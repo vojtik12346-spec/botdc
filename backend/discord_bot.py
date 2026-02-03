@@ -588,7 +588,7 @@ async def prefix_help(ctx):
     )
     embed.add_field(
         name="🏆 Level systém",
-        value="`!level` `!top` `!daily`",
+        value="`!level` `!top` `!daily` `!hry`",
         inline=False
     )
     await ctx.send(embed=embed)
