@@ -2333,8 +2333,9 @@ async def run_music_quiz(channel, channel_id: int):
             del active_music_quiz[channel_id]
 
 @bot.command(name="hudba", aliases=["music", "hz"])
+@commands.has_permissions(administrator=True)
 async def prefix_hudba(ctx, zanr: str = "random"):
-    """!hudba [rap/pop/rock/classic/random] - Hudební kvíz"""
+    """!hudba [rap/pop/rock/classic/random] - Hudební kvíz (Admin)"""
     channel_id = ctx.channel.id
     guild_id = ctx.guild.id
     
