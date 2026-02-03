@@ -34,6 +34,7 @@ function App() {
     totalXp: 0,
     totalGames: 0,
     activeToday: 0,
+    guildCount: 0,
   });
 
   const [botStatus, setBotStatus] = useState("online");
