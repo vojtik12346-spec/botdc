@@ -238,69 +238,136 @@ function App() {
             <Card className="settings-card">
               <CardHeader>
                 <CardTitle>🎮 Nastavení příkazů</CardTitle>
-                <CardDescription>Oprávnění a dostupnost příkazů</CardDescription>
+                <CardDescription>Klikni na přepínač pro změnu oprávnění (Admin / Všichni)</CardDescription>
               </CardHeader>
               <CardContent className="card-content">
-                <div className="switch-group">
-                  <div className="switch-item">
-                    <div className="switch-info">
-                      <Label>Kvízy pouze pro adminy</Label>
-                      <p className="form-hint">/hudba, /film, /pravda může spustit jen admin</p>
-                    </div>
-                    <Switch
-                      checked={settings.adminOnlyQuiz}
-                      onCheckedChange={(checked) => setSettings({ ...settings, adminOnlyQuiz: checked })}
-                    />
-                  </div>
-                </div>
-
                 <div className="commands-list">
-                  <h3>📋 Seznam příkazů</h3>
+                  <h3>🎵 Kvízy</h3>
                   <div className="command-grid">
                     <div className="command-item">
                       <span className="command-name">/hudba</span>
                       <span className="command-desc">Hudební kvíz</span>
-                      <Badge>Admin</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdHudba ? "default" : "secondary"}>
+                          {settings.cmdHudba ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdHudba}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdHudba: checked })}
+                        />
+                      </div>
                     </div>
                     <div className="command-item">
                       <span className="command-name">/film</span>
                       <span className="command-desc">Filmový kvíz</span>
-                      <Badge>Admin</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdFilm ? "default" : "secondary"}>
+                          {settings.cmdFilm ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdFilm}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdFilm: checked })}
+                        />
+                      </div>
                     </div>
                     <div className="command-item">
                       <span className="command-name">/pravda</span>
                       <span className="command-desc">Pravda/Lež</span>
-                      <Badge>Admin</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdPravda ? "default" : "secondary"}>
+                          {settings.cmdPravda ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdPravda}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdPravda: checked })}
+                        />
+                      </div>
                     </div>
+                  </div>
+
+                  <h3>📊 Level systém</h3>
+                  <div className="command-grid">
                     <div className="command-item">
                       <span className="command-name">/gamelevel</span>
                       <span className="command-desc">Tvůj level a XP</span>
-                      <Badge variant="secondary">Všichni</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdGamelevel ? "default" : "secondary"}>
+                          {settings.cmdGamelevel ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdGamelevel}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdGamelevel: checked })}
+                        />
+                      </div>
                     </div>
                     <div className="command-item">
                       <span className="command-name">/top</span>
                       <span className="command-desc">Žebříček</span>
-                      <Badge variant="secondary">Všichni</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdTop ? "default" : "secondary"}>
+                          {settings.cmdTop ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdTop}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdTop: checked })}
+                        />
+                      </div>
                     </div>
                     <div className="command-item">
                       <span className="command-name">/daily</span>
                       <span className="command-desc">Denní bonus</span>
-                      <Badge variant="secondary">Všichni</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdDaily ? "default" : "secondary"}>
+                          {settings.cmdDaily ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdDaily}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdDaily: checked })}
+                        />
+                      </div>
                     </div>
+                  </div>
+
+                  <h3>🎮 Herní příkazy</h3>
+                  <div className="command-grid">
                     <div className="command-item">
                       <span className="command-name">/hry</span>
                       <span className="command-desc">Odemčené hry</span>
-                      <Badge variant="secondary">Všichni</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdHry ? "default" : "secondary"}>
+                          {settings.cmdHry ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdHry}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdHry: checked })}
+                        />
+                      </div>
                     </div>
                     <div className="command-item">
                       <span className="command-name">/ukoly</span>
                       <span className="command-desc">Herní úkoly</span>
-                      <Badge variant="secondary">Všichni</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdUkoly ? "default" : "secondary"}>
+                          {settings.cmdUkoly ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdUkoly}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdUkoly: checked })}
+                        />
+                      </div>
                     </div>
                     <div className="command-item">
                       <span className="command-name">!herniinfo</span>
                       <span className="command-desc">Info zpráva</span>
-                      <Badge>Admin</Badge>
+                      <div className="command-toggle">
+                        <Badge variant={settings.cmdHerniinfo ? "default" : "secondary"}>
+                          {settings.cmdHerniinfo ? "Admin" : "Všichni"}
+                        </Badge>
+                        <Switch
+                          checked={settings.cmdHerniinfo}
+                          onCheckedChange={(checked) => setSettings({ ...settings, cmdHerniinfo: checked })}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
