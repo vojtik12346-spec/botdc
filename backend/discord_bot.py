@@ -246,8 +246,12 @@ async def check_and_complete_quests(guild_id: int, user_id: int, user_name: str,
         # Add XP
         await add_xp(guild_id, user_id, user_name, total_xp, None)
         
-        # Send notification
-        if channel:
+        # Send notification to game channel
+        notify_channel = channel
+        if not notify_channel:
+            notify_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+        
+        if notify_channel:
             for i in newly_completed:
                 quest = quests[i]
                 game_emoji = BONUS_GAMES.get(game_name, {}).get("emoji", "🎮")
@@ -261,7 +265,7 @@ async def check_and_complete_quests(guild_id: int, user_id: int, user_name: str,
                 embed.add_field(name="✨ Odměna", value=f"+{quest['xp']} XP", inline=True)
                 embed.add_field(name="⏱️ Čas", value=f"{total_minutes // 60}h {total_minutes % 60}m", inline=True)
                 embed.set_footer(text="Plň další úkoly a získávej XP!")
-                await channel.send(embed=embed)
+                await notify_channel.send(embed=embed)
     
     return total_xp
 
