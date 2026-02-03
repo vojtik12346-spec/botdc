@@ -1201,7 +1201,337 @@ async def prefix_hudba(ctx, zanr: str = "random"):
     
     await run_music_quiz(ctx.channel, channel_id)
 
-@bot.command(name="stop", aliases=["stophudba"])
+# ============== FILM QUIZ ==============
+
+FILM_DATABASE = {
+    "ceske": [
+        {"quote": "Nechte zvířsatisfaktion, dámy a pánové!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Koho chleba jíš, toho píseň zpívej", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Ty vole, to je bomba!", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Láska je jako voda, musí téct", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Víš co, tak já půjdu...", "film": "Vratné lahve", "year": "2007", "hint": "Vratné l____"},
+        {"quote": "Život je boj a já jsem bojovník", "film": "Román pro ženy", "year": "2005", "hint": "Román pro ž___"},
+        {"quote": "Tak co, holky, jdeme na to?", "film": "Účastníci zájezdu", "year": "2006", "hint": "Účastníci z______"},
+        {"quote": "Musíš se na to dívat z nadhledu", "film": "Pupendo", "year": "2003", "hint": "P______"},
+        {"quote": "To je ale kravina!", "film": "Kolja", "year": "1996", "hint": "K____"},
+        {"quote": "Děti, co byste chtěli k večeři?", "film": "Obecná škola", "year": "1991", "hint": "Obecná š____"},
+        {"quote": "Já jsem ten, kdo klepe!", "film": "Tmavomodrý svět", "year": "2001", "hint": "Tmavomodrý s___"},
+        {"quote": "Země je kulatá a já jsem její střed", "film": "Želary", "year": "2003", "hint": "Ž_____"},
+        {"quote": "Nemám čas na kecy, musím pracovat", "film": "Babovřesky", "year": "2013", "hint": "B________"},
+        {"quote": "To je ale blbost, že jo?", "film": "Snowboarďáci", "year": "2004", "hint": "S__________"},
+        {"quote": "Život je jako jízda na kole", "film": "Věčně tvá nevěrná", "year": "2018", "hint": "Věčně t__ n_____"},
+        {"quote": "Všechno bude dobrý, uvidíš", "film": "Horem pádem", "year": "2004", "hint": "Horem p____"},
+        {"quote": "To je moje holka!", "film": "Musíme si pomáhat", "year": "2000", "hint": "Musíme si p______"},
+        {"quote": "Nikdy neříkej nikdy", "film": "Grandhotel", "year": "2006", "hint": "G________"},
+    ],
+    "hollywood": [
+        {"quote": "I'll be back", "film": "Terminátor", "year": "1984", "hint": "T________"},
+        {"quote": "May the Force be with you", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Here's looking at you, kid", "film": "Casablanca", "year": "1942", "hint": "C_________"},
+        {"quote": "You talking to me?", "film": "Taxikář", "year": "1976", "hint": "T______"},
+        {"quote": "I'm gonna make him an offer he can't refuse", "film": "Kmotr", "year": "1972", "hint": "K____"},
+        {"quote": "Life is like a box of chocolates", "film": "Forrest Gump", "year": "1994", "hint": "Forrest G___"},
+        {"quote": "I see dead people", "film": "Šestý smysl", "year": "1999", "hint": "Šestý s____"},
+        {"quote": "You can't handle the truth!", "film": "Pár správných chlapů", "year": "1992", "hint": "Pár správných c_____"},
+        {"quote": "There's no place like home", "film": "Čaroděj ze země Oz", "year": "1939", "hint": "Čaroděj ze z___ O_"},
+        {"quote": "Why so serious?", "film": "Temný rytíř", "year": "2008", "hint": "Temný r_____"},
+        {"quote": "I am your father", "film": "Star Wars", "year": "1980", "hint": "Star W___"},
+        {"quote": "Just keep swimming", "film": "Hledá se Nemo", "year": "2003", "hint": "Hledá se N___"},
+        {"quote": "To infinity and beyond!", "film": "Toy Story", "year": "1995", "hint": "Toy S____"},
+        {"quote": "I'm the king of the world!", "film": "Titanic", "year": "1997", "hint": "T______"},
+        {"quote": "You shall not pass!", "film": "Pán prstenů", "year": "2001", "hint": "Pán p_______"},
+        {"quote": "My precious", "film": "Pán prstenů", "year": "2001", "hint": "Pán p_______"},
+        {"quote": "Here's Johnny!", "film": "Osvícení", "year": "1980", "hint": "O_______"},
+        {"quote": "I'll never let go, Jack", "film": "Titanic", "year": "1997", "hint": "T______"},
+        {"quote": "With great power comes great responsibility", "film": "Spider-Man", "year": "2002", "hint": "Spider-M__"},
+        {"quote": "I am Iron Man", "film": "Iron Man", "year": "2008", "hint": "Iron M__"},
+        {"quote": "Avengers, assemble!", "film": "Avengers: Endgame", "year": "2019", "hint": "Avengers: E______"},
+        {"quote": "I am Groot", "film": "Strážci galaxie", "year": "2014", "hint": "Strážci g______"},
+        {"quote": "Hakuna Matata", "film": "Lví král", "year": "1994", "hint": "Lví k___"},
+        {"quote": "Let it go!", "film": "Ledové království", "year": "2013", "hint": "Ledové k________"},
+        {"quote": "Houston, we have a problem", "film": "Apollo 13", "year": "1995", "hint": "Apollo __"},
+        {"quote": "I drink your milkshake!", "film": "Až na krev", "year": "2007", "hint": "Až na k___"},
+        {"quote": "Say hello to my little friend!", "film": "Zjizvená tvář", "year": "1983", "hint": "Zjizvená t___"},
+        {"quote": "You had me at hello", "film": "Jerry Maguire", "year": "1996", "hint": "Jerry M______"},
+        {"quote": "Nobody puts Baby in a corner", "film": "Hříšný tanec", "year": "1987", "hint": "Hříšný t____"},
+        {"quote": "I feel the need... the need for speed", "film": "Top Gun", "year": "1986", "hint": "Top G__"},
+    ],
+    "komedie": [
+        {"quote": "That's what she said", "film": "The Office", "year": "2005", "hint": "The O_____"},
+        {"quote": "I'm kind of a big deal", "film": "Zprávař", "year": "2004", "hint": "Z______"},
+        {"quote": "You're killing me, Smalls!", "film": "Sandlot", "year": "1993", "hint": "S______"},
+        {"quote": "I'm not even supposed to be here today", "film": "Baráčníci", "year": "1994", "hint": "B________"},
+        {"quote": "Yeah, baby, yeah!", "film": "Austin Powers", "year": "1997", "hint": "Austin P_____"},
+        {"quote": "Alrighty then!", "film": "Ace Ventura", "year": "1994", "hint": "Ace V______"},
+        {"quote": "So you're telling me there's a chance", "film": "Blbý a blbější", "year": "1994", "hint": "Blbý a b______"},
+        {"quote": "I'll have what she's having", "film": "Když Harry potkal Sally", "year": "1989", "hint": "Když Harry p_____ S____"},
+        {"quote": "It's not a tumor!", "film": "Policajt ve školce", "year": "1990", "hint": "Policajt ve š_____"},
+        {"quote": "I'm in a glass case of emotion!", "film": "Zprávař", "year": "2004", "hint": "Z______"},
+        {"quote": "You sit on a throne of lies", "film": "Vánoce po americku", "year": "2003", "hint": "Vánoce po a_______"},
+        {"quote": "I'm Batman", "film": "Lego Batman", "year": "2017", "hint": "Lego B_____"},
+        {"quote": "Shrek is love, Shrek is life", "film": "Shrek", "year": "2001", "hint": "S____"},
+        {"quote": "Somebody once told me the world is gonna roll me", "film": "Shrek", "year": "2001", "hint": "S____"},
+        {"quote": "Donkey!", "film": "Shrek", "year": "2001", "hint": "S____"},
+    ],
+    "akcni": [
+        {"quote": "Yippee-ki-yay, motherf***er", "film": "Smrtonosná past", "year": "1988", "hint": "Smrtonosná p___"},
+        {"quote": "Get to the chopper!", "film": "Predátor", "year": "1987", "hint": "P_______"},
+        {"quote": "I'll be back", "film": "Terminátor 2", "year": "1991", "hint": "Terminátor _"},
+        {"quote": "Hasta la vista, baby", "film": "Terminátor 2", "year": "1991", "hint": "Terminátor _"},
+        {"quote": "Welcome to the party, pal!", "film": "Smrtonosná past", "year": "1988", "hint": "Smrtonosná p___"},
+        {"quote": "I am the law!", "film": "Soudce Dredd", "year": "1995", "hint": "Soudce D____"},
+        {"quote": "It's showtime!", "film": "Beetlejuice", "year": "1988", "hint": "B__________"},
+        {"quote": "I live my life a quarter mile at a time", "film": "Rychle a zběsile", "year": "2001", "hint": "Rychle a z______"},
+        {"quote": "One does not simply walk into Mordor", "film": "Pán prstenů", "year": "2001", "hint": "Pán p_______"},
+        {"quote": "I can do this all day", "film": "Captain America", "year": "2011", "hint": "Captain A______"},
+        {"quote": "Wakanda forever!", "film": "Black Panther", "year": "2018", "hint": "Black P______"},
+        {"quote": "I'm always angry", "film": "Avengers", "year": "2012", "hint": "A_______"},
+        {"quote": "We are Groot", "film": "Strážci galaxie", "year": "2014", "hint": "Strážci g______"},
+        {"quote": "It's not who I am underneath, but what I do that defines me", "film": "Batman začíná", "year": "2005", "hint": "Batman z_____"},
+        {"quote": "I'm not locked in here with you, you're locked in here with me", "film": "Watchmen", "year": "2009", "hint": "W_______"},
+    ],
+    "horor": [
+        {"quote": "They're here!", "film": "Poltergeist", "year": "1982", "hint": "P__________"},
+        {"quote": "What's your favorite scary movie?", "film": "Vřískot", "year": "1996", "hint": "V______"},
+        {"quote": "We all float down here", "film": "To", "year": "2017", "hint": "T_"},
+        {"quote": "Heeere's Johnny!", "film": "Osvícení", "year": "1980", "hint": "O_______"},
+        {"quote": "I want to play a game", "film": "Saw", "year": "2004", "hint": "S__"},
+        {"quote": "It puts the lotion in the basket", "film": "Mlčení jehňátek", "year": "1991", "hint": "Mlčení j_______"},
+        {"quote": "A census taker once tried to test me", "film": "Mlčení jehňátek", "year": "1991", "hint": "Mlčení j_______"},
+        {"quote": "They're coming to get you, Barbara!", "film": "Noc oživlých mrtvol", "year": "1968", "hint": "Noc oživlých m_____"},
+        {"quote": "Be afraid. Be very afraid.", "film": "Moucha", "year": "1986", "hint": "M_____"},
+        {"quote": "Whatever you do, don't fall asleep", "film": "Noční můra v Elm Street", "year": "1984", "hint": "Noční m___ v E__ S_____"},
+        {"quote": "It's alive! It's alive!", "film": "Frankenstein", "year": "1931", "hint": "F___________"},
+        {"quote": "Seven days", "film": "Kruh", "year": "2002", "hint": "K___"},
+        {"quote": "I'm your number one fan", "film": "Misery", "year": "1990", "hint": "M_____"},
+    ],
+    "scifi": [
+        {"quote": "I'm sorry, Dave. I'm afraid I can't do that", "film": "2001: Vesmírná odysea", "year": "1968", "hint": "2001: Vesmírná o_____"},
+        {"quote": "E.T. phone home", "film": "E.T. Mimozemšťan", "year": "1982", "hint": "E.T. M__________"},
+        {"quote": "I'll be back", "film": "Terminátor", "year": "1984", "hint": "T________"},
+        {"quote": "The Matrix has you", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "There is no spoon", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Wake up, Neo", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Resistance is futile", "film": "Star Trek", "year": "1996", "hint": "Star T___"},
+        {"quote": "Live long and prosper", "film": "Star Trek", "year": "1966", "hint": "Star T___"},
+        {"quote": "In space, no one can hear you scream", "film": "Vetřelec", "year": "1979", "hint": "V______"},
+        {"quote": "Game over, man! Game over!", "film": "Vetřelci", "year": "1986", "hint": "V______"},
+        {"quote": "Stay on target!", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Do or do not. There is no try", "film": "Star Wars", "year": "1980", "hint": "Star W___"},
+        {"quote": "I find your lack of faith disturbing", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "These aren't the droids you're looking for", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Clever girl", "film": "Jurský park", "year": "1993", "hint": "Jurský p___"},
+        {"quote": "Life finds a way", "film": "Jurský park", "year": "1993", "hint": "Jurský p___"},
+        {"quote": "Hold onto your butts", "film": "Jurský park", "year": "1993", "hint": "Jurský p___"},
+        {"quote": "I am inevitable", "film": "Avengers: Endgame", "year": "2019", "hint": "Avengers: E______"},
+        {"quote": "We're in the endgame now", "film": "Avengers: Infinity War", "year": "2018", "hint": "Avengers: I_______ W__"},
+    ]
+}
+
+# Active film quizzes
+active_film_quiz = {}
+
+@bot.tree.command(name="film", description="Spusť filmový kvíz - hádej film!")
+@app_commands.describe(zanr="Vyber žánr filmů")
+@app_commands.choices(zanr=[
+    app_commands.Choice(name="🇨🇿 České filmy", value="ceske"),
+    app_commands.Choice(name="🎬 Hollywood", value="hollywood"),
+    app_commands.Choice(name="😂 Komedie", value="komedie"),
+    app_commands.Choice(name="💥 Akční", value="akcni"),
+    app_commands.Choice(name="👻 Horor", value="horor"),
+    app_commands.Choice(name="🚀 Sci-Fi", value="scifi"),
+    app_commands.Choice(name="🎲 Náhodný", value="random"),
+])
+async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
+    channel_id = interaction.channel_id
+    guild_id = interaction.guild_id
+    
+    if channel_id in active_film_quiz and active_film_quiz[channel_id].get("active"):
+        await interaction.response.send_message("❌ V tomto kanálu už běží filmový kvíz!", ephemeral=True)
+        return
+    
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
+    
+    active_film_quiz[channel_id] = {
+        "active": True,
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
+    }
+    
+    genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
+    
+    embed = discord.Embed(
+        title="🎬 FILMOVÝ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
+        color=discord.Color.red()
+    )
+    embed.add_field(name="🎞️ Žánr", value=genre_names.get(zanr, "NÁHODNÝ"), inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš název filmu do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
+    
+    await interaction.response.send_message(embed=embed)
+    await asyncio.sleep(3)
+    
+    await run_film_quiz(interaction.channel, channel_id)
+
+async def run_film_quiz(channel, channel_id: int):
+    """Run multiple rounds of film quiz"""
+    import random
+    
+    quiz_data = active_film_quiz.get(channel_id)
+    if not quiz_data:
+        return
+    
+    genre = quiz_data["genre"]
+    total_rounds = quiz_data["total_rounds"]
+    quiz_time = quiz_data["quiz_time"]
+    genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
+    
+    for round_num in range(1, total_rounds + 1):
+        if channel_id not in active_film_quiz:
+            return
+        
+        quiz_data = active_film_quiz[channel_id]
+        quiz_data["current_round"] = round_num
+        quiz_data["answered"] = False
+        
+        current_genre = genre if genre != "random" else random.choice(list(FILM_DATABASE.keys()))
+        film_data = random.choice(FILM_DATABASE[current_genre])
+        
+        quiz_data["current_question"] = {
+            "film": film_data["film"],
+            "year": film_data["year"],
+            "hint": film_data["hint"]
+        }
+        
+        embed = discord.Embed(
+            title=f"🎬 OTÁZKA {round_num}/{total_rounds}",
+            description=f"**Hádej film!**",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="🎤 Slavná hláška", value=f"*\"{film_data['quote']}\"*", inline=False)
+        embed.add_field(name="💡 Nápověda", value=f"`{film_data['hint']}`", inline=True)
+        embed.add_field(name="📅 Rok", value=film_data['year'], inline=True)
+        embed.add_field(name="🎞️ Žánr", value=genre_names.get(current_genre, current_genre), inline=True)
+        embed.add_field(name="⏰ Čas", value=f"{quiz_time}s", inline=True)
+        
+        await channel.send(embed=embed)
+        
+        elapsed = 0
+        while elapsed < quiz_time:
+            await asyncio.sleep(0.5)
+            elapsed += 0.5
+            
+            quiz_data = active_film_quiz.get(channel_id)
+            if not quiz_data:
+                return
+            if quiz_data.get("answered"):
+                break
+        
+        quiz_data = active_film_quiz.get(channel_id)
+        if not quiz_data:
+            return
+        
+        if not quiz_data["answered"]:
+            embed = discord.Embed(
+                title="⏰ ČAS VYPRŠEL!",
+                description=f"Správná odpověď: **{film_data['film']}** ({film_data['year']})",
+                color=discord.Color.orange()
+            )
+            await channel.send(embed=embed)
+        
+        if round_num < total_rounds:
+            await channel.send(f"⏳ **Další otázka za 3 sekundy...**")
+            await asyncio.sleep(3)
+    
+    # Quiz finished
+    quiz_data = active_film_quiz.get(channel_id)
+    if quiz_data:
+        scores = quiz_data.get("scores", {})
+        
+        if scores:
+            sorted_scores = sorted(scores.items(), key=lambda x: x[1]["score"], reverse=True)
+            
+            medals = ["🥇", "🥈", "🥉"]
+            leaderboard = ""
+            for i, (user_id, data) in enumerate(sorted_scores[:10]):
+                medal = medals[i] if i < 3 else f"**{i+1}.**"
+                leaderboard += f"{medal} {data['name']} - **{data['score']} bodů**\n"
+            
+            embed = discord.Embed(
+                title="🏆 FILMOVÝ KVÍZ DOKONČEN!",
+                description=f"**Výsledky z {total_rounds} otázek:**",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="📊 Žebříček", value=leaderboard or "Nikdo neskóroval", inline=False)
+            
+            if sorted_scores:
+                winner_id, winner_data = sorted_scores[0]
+                embed.add_field(name="👑 Vítěz", value=f"**{winner_data['name']}** s {winner_data['score']} body!", inline=False)
+        else:
+            embed = discord.Embed(
+                title="🏆 FILMOVÝ KVÍZ DOKONČEN!",
+                description="Nikdo neuhodl žádnou otázku!",
+                color=discord.Color.orange()
+            )
+        
+        await channel.send(embed=embed)
+        
+        if channel_id in active_film_quiz:
+            del active_film_quiz[channel_id]
+
+@bot.command(name="film", aliases=["movie", "kino"])
+async def prefix_film(ctx, zanr: str = "random"):
+    """!film [ceske/hollywood/komedie/akcni/horor/scifi/random] - Filmový kvíz"""
+    channel_id = ctx.channel.id
+    guild_id = ctx.guild.id
+    
+    if channel_id in active_film_quiz and active_film_quiz[channel_id].get("active"):
+        await ctx.send("❌ V tomto kanálu už běží filmový kvíz!")
+        return
+    
+    if zanr not in ["ceske", "hollywood", "komedie", "akcni", "horor", "scifi", "random"]:
+        zanr = "random"
+    
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
+    
+    active_film_quiz[channel_id] = {
+        "active": True,
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
+    }
+    
+    genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
+    
+    embed = discord.Embed(
+        title="🎬 FILMOVÝ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
+        color=discord.Color.red()
+    )
+    embed.add_field(name="🎞️ Žánr", value=genre_names.get(zanr, "NÁHODNÝ"), inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš název filmu do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
+    
+    await ctx.send(embed=embed)
+    await asyncio.sleep(3)
+    
+    await run_film_quiz(ctx.channel, channel_id)
+
+@bot.command(name="stop", aliases=["stophudba", "stopfilm"])
 async def stop_quiz(ctx):
     """!stop - Zastav hudební kvíz"""
     channel_id = ctx.channel.id
