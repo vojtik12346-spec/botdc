@@ -2490,6 +2490,11 @@ async def on_message(message):
                 
                 current_score = quiz_data["scores"][user_id]["score"]
                 
+                # Add XP
+                guild_id = quiz_data.get("guild_id", message.guild.id)
+                await add_xp(guild_id, user_id, message.author.display_name, XP_REWARDS["quiz_correct"], message.channel)
+                increment_stats(guild_id, user_id, correct=True)
+                
                 embed = discord.Embed(
                     title="🎉 SPRÁVNĚ!",
                     description=f"**{message.author.display_name}** uhodl/a!",
@@ -2498,6 +2503,7 @@ async def on_message(message):
                 embed.add_field(name="🎬 Film", value=quiz_data["current_question"]["film"], inline=True)
                 embed.add_field(name="📅 Rok", value=quiz_data["current_question"]["year"], inline=True)
                 embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
+                embed.add_field(name="✨ XP", value=f"+{XP_REWARDS['quiz_correct']} XP", inline=True)
                 embed.set_thumbnail(url=message.author.display_avatar.url)
                 
                 await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
@@ -2522,6 +2528,11 @@ async def on_message(message):
                 
                 current_score = quiz_data["scores"][user_id]["score"]
                 
+                # Add XP
+                guild_id = quiz_data.get("guild_id", message.guild.id)
+                await add_xp(guild_id, user_id, message.author.display_name, XP_REWARDS["quiz_correct"], message.channel)
+                increment_stats(guild_id, user_id, correct=True)
+                
                 embed = discord.Embed(
                     title="🎉 SPRÁVNĚ!",
                     description=f"**{message.author.display_name}** uhodl/a!",
@@ -2530,6 +2541,7 @@ async def on_message(message):
                 embed.add_field(name="🎤 Interpret", value=quiz_data["current_question"]["artist"], inline=True)
                 embed.add_field(name="🎵 Píseň", value=quiz_data["current_question"]["song"], inline=True)
                 embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
+                embed.add_field(name="✨ XP", value=f"+{XP_REWARDS['quiz_correct']} XP", inline=True)
                 embed.set_thumbnail(url=message.author.display_avatar.url)
                 
                 await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
