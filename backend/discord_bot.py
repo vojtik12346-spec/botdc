@@ -561,6 +561,18 @@ async def run_countdown(channel, message, end_time: int, countdown_id: str, auth
 async def on_ready():
     print(f'🤖 Bot {bot.user} je online!', flush=True)
     print(f'📊 Připojen k {len(bot.guilds)} serverům', flush=True)
+    
+    # Uložit statistiky bota do databáze
+    users_collection.database.bot_stats.update_one(
+        {"type": "global"},
+        {"$set": {
+            "guild_count": len(bot.guilds),
+            "bot_name": str(bot.user),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
     try:
         synced = await bot.tree.sync()
         print(f'✅ Synchronizováno {len(synced)} slash příkazů', flush=True)
