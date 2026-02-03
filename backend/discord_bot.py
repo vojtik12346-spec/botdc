@@ -1086,16 +1086,13 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
             "user_name": after.display_name
         }
         
+        # Get notification channel
+        channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+        if not channel:
+            channel = after.guild.system_channel
+        
         # Check if it's a bonus game to unlock
         if after_game in BONUS_GAMES:
-            # Find a channel to send notification (system channel or first text channel)
-            channel = after.guild.system_channel
-            if not channel:
-                for ch in after.guild.text_channels:
-                    if ch.permissions_for(after.guild.me).send_messages:
-                        channel = ch
-                        break
-            
             await unlock_game(guild_id, user_id, after.display_name, after_game, channel)
     
     # Stopped playing a game
