@@ -1392,10 +1392,8 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
             "user_name": after.display_name
         }
         
-        # Get notification channel
+        # Get notification channel - VŽDY do správného kanálu
         channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
-        if not channel:
-            channel = after.guild.system_channel
         
         # Check if it's a bonus game to unlock
         if after_game in BONUS_GAMES:
