@@ -938,8 +938,18 @@ async def run_music_quiz(channel, channel_id: int):
         
         await channel.send(embed=embed)
         
-        # Wait for answer or timeout
-        await asyncio.sleep(quiz_time)
+        # Wait for answer or timeout - check every 0.5 seconds
+        elapsed = 0
+        while elapsed < quiz_time:
+            await asyncio.sleep(0.5)
+            elapsed += 0.5
+            
+            # Check if quiz still exists and if answered
+            quiz_data = active_music_quiz.get(channel_id)
+            if not quiz_data:
+                return
+            if quiz_data.get("answered"):
+                break  # Someone answered, move to next question
         
         # Check if answered
         quiz_data = active_music_quiz.get(channel_id)
@@ -956,6 +966,7 @@ async def run_music_quiz(channel, channel_id: int):
         
         # Pause between rounds
         if round_num < total_rounds:
+            await channel.send(f"⏳ **Další otázka za 3 sekundy...**")
             await asyncio.sleep(3)
     
     # Quiz finished - show final scores
