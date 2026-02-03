@@ -689,6 +689,238 @@ async def prefix_poll(ctx, cas: str, *, args: str):
         ctx.guild
     ))
 
+# ============== MUSIC QUIZ ==============
+
+# Czech music database - lyrics snippets with artist and song
+CZECH_MUSIC = {
+    "rap": [
+        {"lyrics": "Hele, víš co? Uděláme si to po svým", "artist": "Yzomandias", "song": "Po svým", "hint": "Y_______"},
+        {"lyrics": "Můj svět je šedej, ale nebe je modrý", "artist": "Viktor Sheen", "song": "Barvy", "hint": "Viktor S____"},
+        {"lyrics": "Jednou budem všichni v zemi, užij si ten den", "artist": "Calin", "song": "Jednou", "hint": "C____"},
+        {"lyrics": "Mám v kapse pár stovek a to mi stačí", "artist": "Nik Tendo", "song": "Stovky", "hint": "Nik T____"},
+        {"lyrics": "Přišel jsem z ničeho, teď mám všechno", "artist": "Yzomandias", "song": "Z ničeho", "hint": "Y_______"},
+        {"lyrics": "Nemám čas na fake love, mám čas na real shit", "artist": "Viktor Sheen", "song": "Real Shit", "hint": "Viktor S____"},
+        {"lyrics": "Začínal jsem dole, teď jsem nahoře", "artist": "Sergei Barracuda", "song": "Nahoře", "hint": "Sergei B_______"},
+        {"lyrics": "Celej život makám, žádnej oddech", "artist": "Hasan", "song": "Makám", "hint": "H____"},
+        {"lyrics": "V hlavě mám démony, co mě ženou dál", "artist": "Nik Tendo", "song": "Démoni", "hint": "Nik T____"},
+        {"lyrics": "Jsem král svýho světa, nikdo mi neporučí", "artist": "Calin", "song": "Král", "hint": "C____"},
+    ],
+    "pop": [
+        {"lyrics": "Holky z naší školky, chtěly by mě zpátky", "artist": "Mirai", "song": "Holky z naší školky", "hint": "M____"},
+        {"lyrics": "Když nemůžeš spát a myslíš na mě", "artist": "Slza", "song": "Když nemůžeš spát", "hint": "S___"},
+        {"lyrics": "Půlnoční vlak mě veze domů", "artist": "Pokáč", "song": "Půlnoční", "hint": "P____"},
+        {"lyrics": "Já vím, že ty víš, že já vím", "artist": "Ewa Farna", "song": "Ty víš", "hint": "Ewa F____"},
+        {"lyrics": "Máme se rádi, tak proč to kazit", "artist": "Slza", "song": "Máme se rádi", "hint": "S___"},
+        {"lyrics": "Celá léta jsem hledal tu pravou", "artist": "Marek Ztracený", "song": "Léta", "hint": "Marek Z_______"},
+        {"lyrics": "Na konci dne to bude dobrý", "artist": "Mirai", "song": "Dobrý", "hint": "M____"},
+        {"lyrics": "Nikdy nevíš, co ti život přinese", "artist": "Ewa Farna", "song": "Nevíš", "hint": "Ewa F____"},
+    ],
+    "rock": [
+        {"lyrics": "Až mě jednou potkáš, budu jinej člověk", "artist": "Kryštof", "song": "Jinej člověk", "hint": "K______"},
+        {"lyrics": "Sním svůj sen a nechci se probudit", "artist": "Kabát", "song": "Sním svůj sen", "hint": "K____"},
+        {"lyrics": "Dívám se na hvězdy a přemýšlím", "artist": "Chinaski", "song": "Hvězdy", "hint": "C______"},
+        {"lyrics": "Pojď blíž, pojď blíž ke mně", "artist": "Lucie", "song": "Pojď blíž", "hint": "L____"},
+        {"lyrics": "Máma mi vždycky říkala, ať si dávám pozor", "artist": "Kabát", "song": "Máma", "hint": "K____"},
+        {"lyrics": "Běžím po ulici a nevím kam", "artist": "Kryštof", "song": "Běžím", "hint": "K______"},
+        {"lyrics": "Chci žít svůj život naplno", "artist": "Chinaski", "song": "Naplno", "hint": "C______"},
+        {"lyrics": "Amerika je daleko, ale sny jsou blízko", "artist": "Lucie", "song": "Amerika", "hint": "L____"},
+    ],
+    "classic": [
+        {"lyrics": "Lady Carneval, tančí dál a dál", "artist": "Karel Gott", "song": "Lady Carneval", "hint": "Karel G___"},
+        {"lyrics": "Včelka Mája, ta si létá", "artist": "Karel Gott", "song": "Včelka Mája", "hint": "Karel G___"},
+        {"lyrics": "Holubí dům, tam kde jsem doma", "artist": "Waldemar Matuška", "song": "Holubí dům", "hint": "Waldemar M______"},
+        {"lyrics": "Jožin z bažin měří přes dva metry", "artist": "Ivan Mládek", "song": "Jožin z bažin", "hint": "Ivan M_____"},
+        {"lyrics": "Být stále mlád, to není žádnej věk", "artist": "Marta Kubišová", "song": "Být stále mlád", "hint": "Marta K______"},
+        {"lyrics": "Těžkej den, všechno je špatně", "artist": "Olympic", "song": "Těžkej den", "hint": "O______"},
+        {"lyrics": "Lásko voníš deštěm", "artist": "Karel Gott", "song": "Lásko", "hint": "Karel G___"},
+    ]
+}
+
+# Active music quizzes: {channel_id: {answer: str, artist: str, song: str, winner: None, active: True}}
+active_music_quiz = {}
+
+def normalize_answer(text: str) -> str:
+    """Normalize text for comparison - remove accents, lowercase"""
+    text = text.lower().strip()
+    # Czech character replacements
+    replacements = {
+        'á': 'a', 'č': 'c', 'ď': 'd', 'é': 'e', 'ě': 'e', 'í': 'i',
+        'ň': 'n', 'ó': 'o', 'ř': 'r', 'š': 's', 'ť': 't', 'ú': 'u',
+        'ů': 'u', 'ý': 'y', 'ž': 'z'
+    }
+    for cz, en in replacements.items():
+        text = text.replace(cz, en)
+    return text
+
+@bot.tree.command(name="hudba", description="Spusť hudební kvíz - hádej písničku!")
+@app_commands.describe(zanr="Vyber žánr hudby")
+@app_commands.choices(zanr=[
+    app_commands.Choice(name="🎤 Rap", value="rap"),
+    app_commands.Choice(name="🎵 Pop", value="pop"),
+    app_commands.Choice(name="🎸 Rock", value="rock"),
+    app_commands.Choice(name="🎺 Klasika", value="classic"),
+    app_commands.Choice(name="🎲 Náhodný", value="random"),
+])
+async def slash_hudba(interaction: discord.Interaction, zanr: str = "random"):
+    import random
+    
+    channel_id = interaction.channel_id
+    
+    # Check if quiz already active
+    if channel_id in active_music_quiz and active_music_quiz[channel_id]["active"]:
+        await interaction.response.send_message("❌ V tomto kanálu už běží kvíz! Počkej až skončí.", ephemeral=True)
+        return
+    
+    # Select genre
+    if zanr == "random":
+        zanr = random.choice(list(CZECH_MUSIC.keys()))
+    
+    # Select random song
+    song_data = random.choice(CZECH_MUSIC[zanr])
+    
+    # Store quiz data
+    active_music_quiz[channel_id] = {
+        "artist": song_data["artist"],
+        "song": song_data["song"],
+        "hint": song_data["hint"],
+        "active": True,
+        "winner": None
+    }
+    
+    genre_names = {"rap": "🎤 Rap", "pop": "🎵 Pop", "rock": "🎸 Rock", "classic": "🎺 Klasika"}
+    
+    embed = discord.Embed(
+        title="🎵 HUDEBNÍ KVÍZ",
+        description=f"**Hádej interpreta!**",
+        color=discord.Color.purple()
+    )
+    embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
+    embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
+    embed.add_field(name="🎸 Žánr", value=genre_names.get(zanr, zanr), inline=True)
+    embed.add_field(name="⏰ Čas", value="30 sekund", inline=True)
+    embed.set_footer(text="Napiš jméno interpreta do chatu! První správná odpověď vyhrává!")
+    
+    await interaction.response.send_message(embed=embed)
+    
+    # Wait for answer (30 seconds)
+    await asyncio.sleep(30)
+    
+    # Check if someone won
+    quiz_data = active_music_quiz.get(channel_id)
+    if quiz_data and quiz_data["active"]:
+        quiz_data["active"] = False
+        
+        embed = discord.Embed(
+            title="⏰ ČAS VYPRŠEL!",
+            description=f"Nikdo neuhodl správnou odpověď.",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="✅ Správná odpověď", value=f"**{song_data['artist']}** - {song_data['song']}", inline=False)
+        
+        await interaction.channel.send(embed=embed)
+        
+        del active_music_quiz[channel_id]
+
+@bot.command(name="hudba", aliases=["music", "hz"])
+async def prefix_hudba(ctx, zanr: str = "random"):
+    """!hudba [rap/pop/rock/classic/random] - Hudební kvíz"""
+    import random
+    
+    channel_id = ctx.channel.id
+    
+    if channel_id in active_music_quiz and active_music_quiz[channel_id]["active"]:
+        await ctx.send("❌ V tomto kanálu už běží kvíz!")
+        return
+    
+    # Validate genre
+    if zanr not in ["rap", "pop", "rock", "classic", "random"]:
+        zanr = "random"
+    
+    if zanr == "random":
+        zanr = random.choice(list(CZECH_MUSIC.keys()))
+    
+    song_data = random.choice(CZECH_MUSIC[zanr])
+    
+    active_music_quiz[channel_id] = {
+        "artist": song_data["artist"],
+        "song": song_data["song"],
+        "hint": song_data["hint"],
+        "active": True,
+        "winner": None
+    }
+    
+    genre_names = {"rap": "🎤 Rap", "pop": "🎵 Pop", "rock": "🎸 Rock", "classic": "🎺 Klasika"}
+    
+    embed = discord.Embed(
+        title="🎵 HUDEBNÍ KVÍZ",
+        description=f"**Hádej interpreta!**",
+        color=discord.Color.purple()
+    )
+    embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
+    embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
+    embed.add_field(name="🎸 Žánr", value=genre_names.get(zanr, zanr), inline=True)
+    embed.add_field(name="⏰ Čas", value="30 sekund", inline=True)
+    embed.set_footer(text="Napiš jméno interpreta do chatu! První správná odpověď vyhrává!")
+    
+    await ctx.send(embed=embed)
+    
+    await asyncio.sleep(30)
+    
+    quiz_data = active_music_quiz.get(channel_id)
+    if quiz_data and quiz_data["active"]:
+        quiz_data["active"] = False
+        
+        embed = discord.Embed(
+            title="⏰ ČAS VYPRŠEL!",
+            description=f"Nikdo neuhodl správnou odpověď.",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="✅ Správná odpověď", value=f"**{song_data['artist']}** - {song_data['song']}", inline=False)
+        
+        await ctx.send(embed=embed)
+        
+        del active_music_quiz[channel_id]
+
+# Listen for quiz answers
+@bot.event
+async def on_message(message):
+    # Ignore bot messages
+    if message.author.bot:
+        return
+    
+    channel_id = message.channel.id
+    
+    # Check if there's an active quiz in this channel
+    if channel_id in active_music_quiz:
+        quiz_data = active_music_quiz[channel_id]
+        
+        if quiz_data["active"]:
+            user_answer = normalize_answer(message.content)
+            correct_artist = normalize_answer(quiz_data["artist"])
+            
+            # Check if answer matches (artist name)
+            if correct_artist in user_answer or user_answer in correct_artist:
+                # Winner!
+                quiz_data["active"] = False
+                quiz_data["winner"] = message.author
+                
+                embed = discord.Embed(
+                    title="🎉 SPRÁVNĚ!",
+                    description=f"**{message.author.display_name}** uhodl/a jako první!",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="🎤 Interpret", value=quiz_data["artist"], inline=True)
+                embed.add_field(name="🎵 Píseň", value=quiz_data["song"], inline=True)
+                embed.set_thumbnail(url=message.author.display_avatar.url)
+                
+                await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
+                
+                del active_music_quiz[channel_id]
+                return
+    
+    # Process other commands
+    await bot.process_commands(message)
+
 # ============== RUN BOT ==============
 
 if __name__ == "__main__":
