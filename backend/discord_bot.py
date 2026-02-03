@@ -2219,7 +2219,7 @@ async def prefix_pravda(ctx, kategorie: str = "random"):
     
     message = await ctx.send(embed=embed, view=view)
     
-    asyncio.create_task(run_truth_game(ctx.channel, message, view, fact_data))
+    asyncio.create_task(run_truth_game(ctx.channel, message, view, fact_data, ctx.guild.id))
 
 # Active film quizzes
 active_film_quiz = {}
