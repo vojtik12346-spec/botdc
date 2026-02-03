@@ -1167,7 +1167,8 @@ async def prefix_daily(ctx):
         embed.add_field(name="💫 Streak bonus", value=f"+{streak_bonus} XP", inline=True)
     embed.set_footer(text="Vrať se zítra pro další bonus!")
     
-    await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 300))
 
 # ============== GAME TRACKING ==============
 
