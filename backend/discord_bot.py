@@ -1109,6 +1109,7 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
                     user_id,
                     session["user_name"],
                     minutes_played,
+                    session["game"],  # Pass game name for quests
                     channel
                 )
                 
@@ -1137,7 +1138,7 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
             minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
             
             if minutes_played >= 10:
-                await add_game_xp(guild_id, user_id, after.display_name, minutes_played, None)
+                await add_game_xp(guild_id, user_id, after.display_name, minutes_played, session["game"], None)
         
         # Start new session
         active_gaming_sessions[user_id] = {
