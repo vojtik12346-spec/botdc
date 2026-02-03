@@ -1590,34 +1590,27 @@ async def prefix_stop_quiz(ctx):
 # Listen for quiz answers
 @bot.event
 async def on_message(message):
-    # Debug - log every message
-    print(f"[ON_MESSAGE] Received: '{message.content}' from {message.author} (bot: {message.author.bot})", flush=True)
-    
     if message.author.bot:
+        return
+    
+    # Skip if message is a command
+    if message.content.startswith('!'):
+        await bot.process_commands(message)
         return
     
     channel_id = message.channel.id
     
-    # Debug log
-    print(f"[DEBUG] Processing message in channel {channel_id}", flush=True)
-    print(f"[DEBUG] Active music quizzes: {list(active_music_quiz.keys())}", flush=True)
-    print(f"[DEBUG] Active film quizzes: {list(active_film_quiz.keys())}", flush=True)
-    
     # Check for active FILM quiz
     if channel_id in active_film_quiz:
         quiz_data = active_film_quiz[channel_id]
-        print(f"[FILM] Found quiz in channel! Data: answered={quiz_data.get('answered')}, current_question={quiz_data.get('current_question')}", flush=True)
         
         if quiz_data.get("active") and quiz_data.get("current_question") and not quiz_data.get("answered"):
             user_answer = normalize_answer(message.content)
             correct_film = normalize_answer(quiz_data["current_question"]["film"])
             
-            print(f"[FILM] Comparing: user='{user_answer}' vs correct='{correct_film}'", flush=True)
-            
             # Check if answer matches
             if len(user_answer) >= 3 and (correct_film in user_answer or user_answer in correct_film):
                 quiz_data["answered"] = True
-                print(f"[FILM] CORRECT ANSWER!", flush=True)
                 
                 # Add score
                 user_id = message.author.id
@@ -1638,8 +1631,6 @@ async def on_message(message):
                 embed.set_thumbnail(url=message.author.display_avatar.url)
                 
                 await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
-            else:
-                print(f"[FILM] Wrong answer", flush=True)
     
     # Check for active MUSIC quiz
     if channel_id in active_music_quiz:
