@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Discord Countdown Bot
-- Odpočet s ping notifikací
+Valhalla Bot - Discord kvízy a XP systém
 """
 
 import discord
@@ -3508,5 +3507,5 @@ if __name__ == "__main__":
         print("❌ DISCORD_BOT_TOKEN není nastaven!", flush=True)
         exit(1)
     
-    print("🚀 Spouštím Countdown Bot...", flush=True)
+    print("⚔️ Spouštím Valhalla Bot...", flush=True)
     bot.run(token)
