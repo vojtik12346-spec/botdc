@@ -289,6 +289,16 @@ async def slash_help(interaction: discord.Interaction):
         inline=False
     )
     embed.add_field(
+        name="🎬 Filmový kvíz",
+        value="`/film-quiz [žánr]` - české, hollywood, komedie, akční, horor, scifi",
+        inline=False
+    )
+    embed.add_field(
+        name="🛑 Zastavit kvíz",
+        value="`/stop` - zastaví běžící kvíz",
+        inline=False
+    )
+    embed.add_field(
         name="⏱️ Formáty času",
         value="`30s`, `2m`, `1h`, `1d`",
         inline=False
@@ -318,13 +328,13 @@ async def prefix_help(ctx):
         inline=False
     )
     embed.add_field(
-        name="📊 Ankety",
-        value="`!poll 5m Otázka? | Možnost1, Možnost2`",
+        name="🎬 Filmový kvíz",
+        value="`!film [ceske/hollywood/komedie/akcni/horor/scifi]`",
         inline=False
     )
     embed.add_field(
-        name="🎵 Hudební kvíz",
-        value="`!hudba [rap/pop/rock/classic]`",
+        name="🛑 Zastavit kvíz",
+        value="`!stop` - zastaví běžící kvíz",
         inline=False
     )
     await ctx.send(embed=embed)
