@@ -656,7 +656,7 @@ const babelMetadataPlugin = ({ types: t }) => {
       }
 
       // Analyze the root identifier
-      const rootInfo = analyzeIdentifier(rootName, exprPath, state);
+      const rootInfo = analyzeIdentifier(rootName, exprPath, state, { depth: depth + 1 });
       if (rootInfo) {
         return {
           ...rootInfo,
