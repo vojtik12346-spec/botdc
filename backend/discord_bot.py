@@ -349,7 +349,7 @@ async def unlock_game(guild_id: int, user_id: int, user_name: str, game_name: st
     # Give bonus XP
     await add_xp(guild_id, user_id, user_name, GAME_UNLOCK_BONUS, None)
     
-    # Send notification
+    # Send notification with role ping
     if channel and game_name in BONUS_GAMES:
         game_info = BONUS_GAMES[game_name]
         embed = discord.Embed(
