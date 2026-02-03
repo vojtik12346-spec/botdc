@@ -2859,7 +2859,7 @@ async def run_truth_game(channel, message, view: TruthView, fact_data: dict, gui
     if channel.id in active_truth_games:
         del active_truth_games[channel.id]
 
-@bot.tree.command(name="pravda", description="Pravda nebo lež? Hádej jestli je fakt pravdivý!")
+@bot.tree.command(name="pravda", description="Pravda nebo lež? Hádej jestli je fakt pravdivý! (Admin)")
 @app_commands.describe(kategorie="Vyber kategorii faktů")
 @app_commands.choices(kategorie=[
     app_commands.Choice(name="🐾 Zvířata", value="zvířata"),
@@ -2871,6 +2871,7 @@ async def run_truth_game(channel, message, view: TruthView, fact_data: dict, gui
     app_commands.Choice(name="🤪 Bizarní", value="bizarní"),
     app_commands.Choice(name="🎲 Náhodné", value="random"),
 ])
+@app_commands.default_permissions(administrator=True)
 async def slash_pravda(interaction: discord.Interaction, kategorie: str = "random"):
     import random
     
