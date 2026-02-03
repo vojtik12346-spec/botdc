@@ -2166,7 +2166,7 @@ async def slash_hudba_settings(interaction: discord.Interaction, sekundy: int = 
     
     await interaction.response.send_message(f"✅ Nastavení uloženo!\n" + "\n".join(changes))
 
-@bot.tree.command(name="hudba", description="Spusť hudební kvíz - hádej písničku!")
+@bot.tree.command(name="hudba", description="Spusť hudební kvíz - hádej písničku! (Admin)")
 @app_commands.describe(zanr="Vyber žánr hudby")
 @app_commands.choices(zanr=[
     app_commands.Choice(name="🎤 Rap", value="rap"),
@@ -2175,6 +2175,7 @@ async def slash_hudba_settings(interaction: discord.Interaction, sekundy: int = 
     app_commands.Choice(name="🎺 Klasika", value="classic"),
     app_commands.Choice(name="🎲 Náhodný", value="random"),
 ])
+@app_commands.default_permissions(administrator=True)
 async def slash_hudba(interaction: discord.Interaction, zanr: str = "random"):
     channel_id = interaction.channel_id
     guild_id = interaction.guild_id
