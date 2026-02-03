@@ -453,7 +453,7 @@ def get_live_options_text(options: list, poll_id: str, guild) -> str:
     
     return "\n".join(lines)
 
-async def run_poll(channel, message, poll_id: str, options: list, author: discord.Member, question: str, end_time: int):
+async def run_poll(channel, message, poll_id: str, options: list, author: discord.Member, question: str, end_time: int, guild):
     """Run the poll and end it when time expires"""
     
     while True:
@@ -469,14 +469,14 @@ async def run_poll(channel, message, poll_id: str, options: list, author: discor
         poll_data = active_polls.get(poll_id, {"votes": {}})
         total_votes = len(poll_data["votes"])
         
-        options_text = get_live_options_text(options, poll_id)
+        options_text = get_live_options_text(options, poll_id, guild)
         
         embed = discord.Embed(
             title="📊 ANKETA",
             description=f"**{question}**",
             color=discord.Color.blue()
         )
-        embed.add_field(name="Možnosti", value=options_text, inline=False)
+        embed.add_field(name="Možnosti", value=options_text if options_text else "Žádné hlasy", inline=False)
         embed.add_field(name="⏰ Zbývá", value=f"**{format_time(remaining)}**", inline=True)
         embed.add_field(name="👥 Hlasů", value=f"**{total_votes}**", inline=True)
         embed.add_field(name="👤 Autor", value=author.mention, inline=True)
@@ -502,7 +502,7 @@ async def run_poll(channel, message, poll_id: str, options: list, author: discor
     poll_data = active_polls[poll_id]
     total_votes = len(poll_data["votes"])
     
-    results_text = get_poll_results(poll_id, options)
+    results_text = get_poll_results(poll_id, options, guild)
     
     embed = discord.Embed(
         title="📊 ANKETA UKONČENA!",
