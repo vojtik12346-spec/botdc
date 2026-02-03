@@ -563,6 +563,37 @@ async def update_bot_settings(settings: BotSettings):
     
     return {"success": True, "message": "Nastavení uloženo"}
 
+@api_router.get("/bot/guilds")
+async def get_bot_guilds():
+    """Get list of guilds where bot is active"""
+    try:
+        bot_stats = await db.bot_stats.find_one({"type": "global"}, {"_id": 0})
+        guilds_data = await db.bot_guilds.find({}, {"_id": 0}).to_list(100)
+        
+        if guilds_data:
+            return guilds_data
+        
+        # Fallback - return empty or mock data
+        return []
+    except Exception as e:
+        logger.error(f"Guilds error: {e}")
+        return []
+
+@api_router.post("/bot/settings/{guild_id}")
+async def update_guild_bot_settings(guild_id: str, request: Request):
+    """Update bot settings for specific guild"""
+    data = await request.json()
+    data["guild_id"] = guild_id
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.guild_bot_settings.update_one(
+        {"guild_id": guild_id},
+        {"$set": data},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Nastavení serveru uloženo"}
+
 # ============== Health Check ==============
 
 @api_router.get("/")
