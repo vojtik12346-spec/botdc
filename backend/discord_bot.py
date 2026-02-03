@@ -1426,6 +1426,8 @@ async def slash_ukoly(interaction: discord.Interaction, hra: str):
     embed.set_footer(text="Hraj hru a úkoly se automaticky splní!")
     
     await interaction.response.send_message(embed=embed)
+    msg = await interaction.original_response()
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.command(name="ukoly", aliases=["quests", "mise", "tasks"])
 async def prefix_ukoly(ctx, *, hra: str = None):
