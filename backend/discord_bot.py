@@ -1038,6 +1038,14 @@ async def send_game_info(ctx):
     # Potvrzení v původním kanálu
     await ctx.send(f"✅ Herní info bylo odesláno do kanálu <#{GAME_NOTIFICATION_CHANNEL}>!", delete_after=10)
 
+@send_game_info.error
+async def send_game_info_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("❌ Tento příkaz může použít pouze administrátor!", delete_after=10)
+    else:
+        print(f"[ERROR] herniinfo: {error}", flush=True)
+        await ctx.send(f"❌ Nastala chyba: {error}", delete_after=10)
+
 # ============== GAME LEVEL SYSTEM ==============
 
 LEVEL_BADGES = {
