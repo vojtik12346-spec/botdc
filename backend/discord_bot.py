@@ -1090,12 +1090,6 @@ async def on_message(message):
                 await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
     
     await bot.process_commands(message)
-                
-                del active_music_quiz[channel_id]
-                return
-    
-    # Process other commands
-    await bot.process_commands(message)
 
 # ============== RUN BOT ==============
 
