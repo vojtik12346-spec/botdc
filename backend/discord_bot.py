@@ -86,6 +86,84 @@ BONUS_GAMES = {
     "Helldivers 2": {"emoji": "🪖", "category": "Akce"},
 }
 
+# Úkoly pro každou hru - {minuty: {"name": název, "xp": odměna}}
+GAME_QUESTS = {
+    # Každá hra má stejné základní úkoly podle času hraní
+    "default": [
+        {"minutes": 60, "name": "Nováček", "xp": 50, "emoji": "🌟"},
+        {"minutes": 180, "name": "Hráč", "xp": 100, "emoji": "⭐"},
+        {"minutes": 300, "name": "Veterán", "xp": 150, "emoji": "🏅"},
+        {"minutes": 600, "name": "Expert", "xp": 250, "emoji": "🎖️"},
+        {"minutes": 1200, "name": "Mistr", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Legenda", "xp": 750, "emoji": "🏆"},
+        {"minutes": 6000, "name": "Bůh", "xp": 1500, "emoji": "⚡"},
+    ],
+    # Speciální úkoly pro konkrétní hry
+    "Counter-Strike 2": [
+        {"minutes": 60, "name": "První mise", "xp": 50, "emoji": "🎯"},
+        {"minutes": 180, "name": "Střelec", "xp": 100, "emoji": "🔫"},
+        {"minutes": 300, "name": "Taktik", "xp": 150, "emoji": "🗺️"},
+        {"minutes": 600, "name": "Elite", "xp": 250, "emoji": "💎"},
+        {"minutes": 1200, "name": "Global Elite", "xp": 400, "emoji": "🌍"},
+        {"minutes": 3000, "name": "CS Veterán", "xp": 750, "emoji": "🎖️"},
+        {"minutes": 6000, "name": "CS Legenda", "xp": 1500, "emoji": "👑"},
+    ],
+    "Minecraft": [
+        {"minutes": 60, "name": "Kopáč", "xp": 50, "emoji": "⛏️"},
+        {"minutes": 180, "name": "Stavitel", "xp": 100, "emoji": "🏠"},
+        {"minutes": 300, "name": "Průzkumník", "xp": 150, "emoji": "🗺️"},
+        {"minutes": 600, "name": "Dračí lovec", "xp": 250, "emoji": "🐉"},
+        {"minutes": 1200, "name": "Mistr stavitel", "xp": 400, "emoji": "🏰"},
+        {"minutes": 3000, "name": "Minecraft Veterán", "xp": 750, "emoji": "💎"},
+        {"minutes": 6000, "name": "Minecraft Bůh", "xp": 1500, "emoji": "⚡"},
+    ],
+    "League of Legends": [
+        {"minutes": 60, "name": "Summoner", "xp": 50, "emoji": "⚔️"},
+        {"minutes": 180, "name": "Ranked Warrior", "xp": 100, "emoji": "🛡️"},
+        {"minutes": 300, "name": "Diamant", "xp": 150, "emoji": "💎"},
+        {"minutes": 600, "name": "Master", "xp": 250, "emoji": "🏅"},
+        {"minutes": 1200, "name": "Grandmaster", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Challenger", "xp": 750, "emoji": "🏆"},
+        {"minutes": 6000, "name": "LoL Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "Fortnite": [
+        {"minutes": 60, "name": "Přistání", "xp": 50, "emoji": "🪂"},
+        {"minutes": 180, "name": "Přeživší", "xp": 100, "emoji": "🏝️"},
+        {"minutes": 300, "name": "Stavitel", "xp": 150, "emoji": "🏗️"},
+        {"minutes": 600, "name": "Victory Royale", "xp": 250, "emoji": "🏆"},
+        {"minutes": 1200, "name": "Fortnite Pro", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Fortnite Veterán", "xp": 750, "emoji": "🎖️"},
+        {"minutes": 6000, "name": "Fortnite Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "VALORANT": [
+        {"minutes": 60, "name": "Agent", "xp": 50, "emoji": "🔫"},
+        {"minutes": 180, "name": "Taktik", "xp": 100, "emoji": "🎯"},
+        {"minutes": 300, "name": "Radiant hráč", "xp": 150, "emoji": "💎"},
+        {"minutes": 600, "name": "Immortal", "xp": 250, "emoji": "🏅"},
+        {"minutes": 1200, "name": "Radiant", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Valorant Pro", "xp": 750, "emoji": "🏆"},
+        {"minutes": 6000, "name": "Valorant Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "GTA V": [
+        {"minutes": 60, "name": "Gangster", "xp": 50, "emoji": "🚗"},
+        {"minutes": 180, "name": "Zločinec", "xp": 100, "emoji": "💰"},
+        {"minutes": 300, "name": "Šéf gangu", "xp": 150, "emoji": "🔫"},
+        {"minutes": 600, "name": "Kingpin", "xp": 250, "emoji": "👑"},
+        {"minutes": 1200, "name": "Los Santos Boss", "xp": 400, "emoji": "🏆"},
+        {"minutes": 3000, "name": "GTA Veterán", "xp": 750, "emoji": "🎖️"},
+        {"minutes": 6000, "name": "GTA Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "Rocket League": [
+        {"minutes": 60, "name": "Rookie", "xp": 50, "emoji": "🚗"},
+        {"minutes": 180, "name": "Pro", "xp": 100, "emoji": "⚽"},
+        {"minutes": 300, "name": "Veteran", "xp": 150, "emoji": "🏅"},
+        {"minutes": 600, "name": "Champion", "xp": 250, "emoji": "🏆"},
+        {"minutes": 1200, "name": "Grand Champion", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Supersonic", "xp": 750, "emoji": "🚀"},
+        {"minutes": 6000, "name": "RL Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+}
+
 # Game XP settings
 GAME_XP_PER_10_MIN = 5
 GAME_XP_DAILY_LIMIT = 200
