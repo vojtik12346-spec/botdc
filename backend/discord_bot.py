@@ -338,6 +338,11 @@ async def prefix_help(ctx):
         inline=False
     )
     embed.add_field(
+        name="🤔 Pravda/Lež",
+        value="`!pravda [kategorie]` - zvirata, veda, historie, telo, jidlo, cesko, bizarni",
+        inline=False
+    )
+    embed.add_field(
         name="🛑 Zastavit kvíz",
         value="`!stop` - zastaví běžící kvíz",
         inline=False
