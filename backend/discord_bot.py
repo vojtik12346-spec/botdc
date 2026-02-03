@@ -589,7 +589,7 @@ async def slash_poll(interaction: discord.Interaction, otazka: str, moznosti: st
     end_time = int(datetime.now(timezone.utc).timestamp()) + seconds
     
     # Create poll data
-    active_polls[poll_id] = {"votes": {}, "options": options}
+    active_polls[poll_id] = {"votes": {}, "names": {}, "options": options}
     
     # Build options text
     options_text = "\n".join([f"{NUMBER_EMOJIS[i]} {opt}" for i, opt in enumerate(options)])
