@@ -84,6 +84,7 @@ BONUS_GAMES = {
     "Lethal Company": {"emoji": "💀", "category": "Horor"},
     "Palworld": {"emoji": "🐾", "category": "Survival"},
     "Helldivers 2": {"emoji": "🪖", "category": "Akce"},
+    "FiveM": {"emoji": "🚔", "category": "RP"},
 }
 
 # Úkoly pro každou hru - {minuty: {"name": název, "xp": odměna}}
