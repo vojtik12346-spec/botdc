@@ -660,7 +660,7 @@ async def prefix_poll(ctx, cas: str, *, args: str):
     poll_id = str(uuid.uuid4())
     end_time = int(datetime.now(timezone.utc).timestamp()) + seconds
     
-    active_polls[poll_id] = {"votes": {}, "options": options}
+    active_polls[poll_id] = {"votes": {}, "names": {}, "options": options}
     
     options_text = "\n".join([f"{NUMBER_EMOJIS[i]} {opt}" for i, opt in enumerate(options)])
     
