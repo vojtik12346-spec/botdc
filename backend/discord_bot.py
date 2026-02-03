@@ -751,7 +751,108 @@ async def prefix_help(ctx):
         value="`!level` `!top` `!daily` `!hry` `!ukoly`",
         inline=False
     )
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 300))  # Smaže po 5 min
+
+@bot.command(name="prikazy")
+@commands.has_permissions(administrator=True)
+async def send_commands_info(ctx):
+    """!prikazy - Pošle trvalou zprávu s přehledem příkazů (jen admin)"""
+    
+    # Delete the command message
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+    
+    # Main embed
+    embed = discord.Embed(
+        title="🤖 BOT PŘÍKAZY",
+        description="Kompletní přehled všech dostupných příkazů",
+        color=discord.Color.blue()
+    )
+    
+    # Kvízy
+    embed.add_field(
+        name="🎵 HUDEBNÍ KVÍZ",
+        value="```/hudba [žánr]\n!hudba [rap/pop/rock/classic]```\nHádej interpreta podle textu písně!\n**+25 XP** za správnou odpověď",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🎬 FILMOVÝ KVÍZ",
+        value="```/film [žánr]\n!film [ceske/hollywood/komedie/akcni/horor/scifi]```\nHádej film podle slavné hlášky!\n**+25 XP** za správnou odpověď",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🤔 PRAVDA NEBO LEŽ",
+        value="```/pravda [kategorie]\n!pravda [zvirata/veda/historie/telo/jidlo/cesko/bizarni]```\nJe tento fakt pravdivý?\n**+15 XP** za správnou odpověď",
+        inline=False
+    )
+    
+    # Level systém
+    embed.add_field(
+        name="📊 LEVEL SYSTÉM",
+        value="```/gamelevel nebo !level``` Zobraz svůj level a statistiky\n```/top nebo !top``` Žebříček TOP 10 hráčů\n```/daily nebo !daily``` Denní bonus **+100 XP** + streak",
+        inline=False
+    )
+    
+    # Herní systém
+    embed.add_field(
+        name="🎮 HRY NA PC",
+        value="```/hry nebo !hry``` Tvé odemčené hry a čas hraní\n```/ukoly [hra] nebo !ukoly [hra]``` Úkoly pro konkrétní hru\n\n**Automatické XP za hraní:**\n• +5 XP za 10 minut hraní\n• Max 200 XP/den\n• +25 XP za odemčení nové hry",
+        inline=False
+    )
+    
+    # Utility
+    embed.add_field(
+        name="⏰ UTILITY",
+        value="```/odpocet [čas] [důvod]\n!odpocet 5m Přestávka```\nSpustí odpočet s notifikací\n```/poll [otázka] [možnosti] [čas]\n!poll 5m Otázka? | Ano, Ne```\nVytvoří anketu s hlasováním",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🛑 OSTATNÍ",
+        value="```/stop nebo !stop``` Zastaví běžící kvíz\n```/help nebo !pomoc``` Zobrazí nápovědu",
+        inline=False
+    )
+    
+    embed.set_footer(text="💡 Hraj hry, plň úkoly a staň se legendou!")
+    
     await ctx.send(embed=embed)
+    
+    # Second embed - XP info
+    xp_embed = discord.Embed(
+        title="✨ JAK ZÍSKAT XP",
+        color=discord.Color.gold()
+    )
+    
+    xp_embed.add_field(
+        name="🎯 Kvízy",
+        value="• Hudební/Filmový kvíz: **+25 XP**\n• Pravda/Lež: **+15 XP**",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎮 Hraní her",
+        value="• 10 minut hraní: **+5 XP**\n• Odemčení hry: **+25 XP**\n• Max denně: **200 XP**",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎁 Bonusy",
+        value="• Denní bonus: **+100 XP**\n• Streak bonus: **+10 XP/den**\n• Splněný úkol: **+50-1500 XP**",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="📈 LEVELY",
+        value="🌱 Lvl 1 → 🌿 Lvl 2 → 🌳 Lvl 3 → ⭐ Lvl 4 → 🌟 Lvl 5 → 💫 Lvl 10 → 🔥 Lvl 15 → 💎 Lvl 20 → 👑 Lvl 25 → 🏆 Lvl 30",
+        inline=False
+    )
+    
+    await ctx.send(embed=xp_embed)
 
 # ============== GAME LEVEL SYSTEM ==============
 
