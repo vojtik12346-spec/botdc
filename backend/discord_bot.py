@@ -120,10 +120,97 @@ def get_user_data(guild_id: int, user_id: int) -> dict:
             "total_games": 0,
             "streak": 0,
             "last_daily": None,
+            "daily_game_xp": 0,
+            "last_game_xp_reset": None,
+            "unlocked_games": [],
+            "total_game_time": 0,  # v minutách
             "created_at": datetime.now(timezone.utc)
         }
         users_collection.insert_one(user)
     return user
+
+def get_daily_game_xp(guild_id: int, user_id: int) -> int:
+    """Get how much game XP user earned today"""
+    user = get_user_data(guild_id, user_id)
+    last_reset = user.get("last_game_xp_reset")
+    
+    if last_reset:
+        if isinstance(last_reset, str):
+            last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
+        
+        # Reset if new day
+        if (datetime.now(timezone.utc) - last_reset).days >= 1:
+            users_collection.update_one(
+                {"guild_id": guild_id, "user_id": user_id},
+                {"$set": {"daily_game_xp": 0, "last_game_xp_reset": datetime.now(timezone.utc)}}
+            )
+            return 0
+    
+    return user.get("daily_game_xp", 0)
+
+async def add_game_xp(guild_id: int, user_id: int, user_name: str, minutes: int, channel=None):
+    """Add XP for gaming time"""
+    # Calculate XP (5 XP per 10 minutes)
+    xp_earned = (minutes // 10) * GAME_XP_PER_10_MIN
+    
+    if xp_earned <= 0:
+        return 0
+    
+    # Check daily limit
+    daily_xp = get_daily_game_xp(guild_id, user_id)
+    remaining = GAME_XP_DAILY_LIMIT - daily_xp
+    
+    if remaining <= 0:
+        return 0
+    
+    # Cap XP at remaining limit
+    xp_earned = min(xp_earned, remaining)
+    
+    # Update daily game XP
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {
+            "$inc": {"daily_game_xp": xp_earned, "total_game_time": minutes},
+            "$set": {"last_game_xp_reset": datetime.now(timezone.utc)}
+        }
+    )
+    
+    # Add to total XP
+    await add_xp(guild_id, user_id, user_name, xp_earned, channel)
+    
+    return xp_earned
+
+async def unlock_game(guild_id: int, user_id: int, user_name: str, game_name: str, channel=None) -> bool:
+    """Unlock a bonus game and give bonus XP. Returns True if newly unlocked."""
+    user = get_user_data(guild_id, user_id)
+    unlocked = user.get("unlocked_games", [])
+    
+    if game_name in unlocked:
+        return False
+    
+    # Unlock the game
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {"$push": {"unlocked_games": game_name}}
+    )
+    
+    # Give bonus XP
+    await add_xp(guild_id, user_id, user_name, GAME_UNLOCK_BONUS, None)
+    
+    # Send notification
+    if channel and game_name in BONUS_GAMES:
+        game_info = BONUS_GAMES[game_name]
+        embed = discord.Embed(
+            title="🎮 HRA ODEMČENA!",
+            description=f"**{user_name}** odemkl/a hru **{game_name}**!",
+            color=discord.Color.purple()
+        )
+        embed.add_field(name="🏷️ Kategorie", value=game_info["category"], inline=True)
+        embed.add_field(name="✨ Bonus", value=f"+{GAME_UNLOCK_BONUS} XP", inline=True)
+        embed.set_footer(text="Hraj více her a odemykej achievementy!")
+        await channel.send(embed=embed)
+    
+    return True
 
 async def add_xp(guild_id: int, user_id: int, user_name: str, xp_amount: int, channel=None) -> bool:
     """Add XP to user and check for level up. Returns True if leveled up."""
