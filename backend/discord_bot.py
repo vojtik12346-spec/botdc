@@ -1106,6 +1106,8 @@ async def slash_daily(interaction: discord.Interaction):
     embed.set_footer(text="Vrať se zítra pro další bonus!")
     
     await interaction.response.send_message(embed=embed)
+    msg = await interaction.original_response()
+    asyncio.create_task(delete_after(msg, 300))
     
     # Level up check
     if new_level > old_level:
