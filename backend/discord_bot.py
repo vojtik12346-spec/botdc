@@ -672,6 +672,12 @@ async def prefix_help_custom(ctx):
         inline=False
     )
     
+    embed.add_field(
+        name="⏰ Utility",
+        value="`!odpocet 2m [důvod]` - Spusť odpočet",
+        inline=False
+    )
+    
     await ctx.send(embed=embed)
 
 # ---------- COUNTDOWN COMMAND ----------
