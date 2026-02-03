@@ -1603,6 +1603,44 @@ async def on_message(message):
     print(f"[DEBUG] Active music quizzes: {list(active_music_quiz.keys())}", flush=True)
     print(f"[DEBUG] Active film quizzes: {list(active_film_quiz.keys())}", flush=True)
     
+    # Check for active FILM quiz
+    if channel_id in active_film_quiz:
+        quiz_data = active_film_quiz[channel_id]
+        print(f"[FILM] Found quiz in channel! Data: answered={quiz_data.get('answered')}, current_question={quiz_data.get('current_question')}", flush=True)
+        
+        if quiz_data.get("active") and quiz_data.get("current_question") and not quiz_data.get("answered"):
+            user_answer = normalize_answer(message.content)
+            correct_film = normalize_answer(quiz_data["current_question"]["film"])
+            
+            print(f"[FILM] Comparing: user='{user_answer}' vs correct='{correct_film}'", flush=True)
+            
+            # Check if answer matches
+            if len(user_answer) >= 3 and (correct_film in user_answer or user_answer in correct_film):
+                quiz_data["answered"] = True
+                print(f"[FILM] CORRECT ANSWER!", flush=True)
+                
+                # Add score
+                user_id = message.author.id
+                if user_id not in quiz_data["scores"]:
+                    quiz_data["scores"][user_id] = {"name": message.author.display_name, "score": 0}
+                quiz_data["scores"][user_id]["score"] += 1
+                
+                current_score = quiz_data["scores"][user_id]["score"]
+                
+                embed = discord.Embed(
+                    title="🎉 SPRÁVNĚ!",
+                    description=f"**{message.author.display_name}** uhodl/a!",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="🎬 Film", value=quiz_data["current_question"]["film"], inline=True)
+                embed.add_field(name="📅 Rok", value=quiz_data["current_question"]["year"], inline=True)
+                embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
+                embed.set_thumbnail(url=message.author.display_avatar.url)
+                
+                await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
+            else:
+                print(f"[FILM] Wrong answer", flush=True)
+    
     # Check for active MUSIC quiz
     if channel_id in active_music_quiz:
         quiz_data = active_music_quiz[channel_id]
@@ -1630,38 +1668,6 @@ async def on_message(message):
                 )
                 embed.add_field(name="🎤 Interpret", value=quiz_data["current_question"]["artist"], inline=True)
                 embed.add_field(name="🎵 Píseň", value=quiz_data["current_question"]["song"], inline=True)
-                embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
-                embed.set_thumbnail(url=message.author.display_avatar.url)
-                
-                await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
-    
-    # Check for active FILM quiz
-    if channel_id in active_film_quiz:
-        quiz_data = active_film_quiz[channel_id]
-        
-        if quiz_data.get("active") and quiz_data.get("current_question") and not quiz_data.get("answered"):
-            user_answer = normalize_answer(message.content)
-            correct_film = normalize_answer(quiz_data["current_question"]["film"])
-            
-            # Check if answer matches
-            if len(user_answer) >= 3 and (correct_film in user_answer or user_answer in correct_film):
-                quiz_data["answered"] = True
-                
-                # Add score
-                user_id = message.author.id
-                if user_id not in quiz_data["scores"]:
-                    quiz_data["scores"][user_id] = {"name": message.author.display_name, "score": 0}
-                quiz_data["scores"][user_id]["score"] += 1
-                
-                current_score = quiz_data["scores"][user_id]["score"]
-                
-                embed = discord.Embed(
-                    title="🎉 SPRÁVNĚ!",
-                    description=f"**{message.author.display_name}** uhodl/a!",
-                    color=discord.Color.green()
-                )
-                embed.add_field(name="🎬 Film", value=quiz_data["current_question"]["film"], inline=True)
-                embed.add_field(name="📅 Rok", value=quiz_data["current_question"]["year"], inline=True)
                 embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
                 embed.set_thumbnail(url=message.author.display_avatar.url)
                 
