@@ -1356,8 +1356,6 @@ async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
     channel_id = interaction.channel_id
     guild_id = interaction.guild_id
     
-    print(f"[FILM QUIZ] Starting quiz in channel {channel_id}", flush=True)
-    
     if channel_id in active_film_quiz and active_film_quiz[channel_id].get("active"):
         await interaction.response.send_message("❌ V tomto kanálu už běží filmový kvíz!", ephemeral=True)
         return
@@ -1376,8 +1374,6 @@ async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
         "quiz_time": quiz_time,
         "guild_id": guild_id
     }
-    
-    print(f"[FILM QUIZ] Quiz registered: {active_film_quiz[channel_id]}", flush=True)
     
     genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
     
@@ -1399,11 +1395,8 @@ async def run_film_quiz(channel, channel_id: int):
     """Run multiple rounds of film quiz"""
     import random
     
-    print(f"[FILM QUIZ] run_film_quiz started for channel {channel_id}", flush=True)
-    
     quiz_data = active_film_quiz.get(channel_id)
     if not quiz_data:
-        print(f"[FILM QUIZ] No quiz data found for channel {channel_id}", flush=True)
         return
     
     genre = quiz_data["genre"]
@@ -1428,11 +1421,9 @@ async def run_film_quiz(channel, channel_id: int):
             "hint": film_data["hint"]
         }
         
-        print(f"[FILM QUIZ] Round {round_num}: Question set - {film_data['film']}", flush=True)
-        
         embed = discord.Embed(
             title=f"🎬 OTÁZKA {round_num}/{total_rounds}",
-            description=f"**Hádej film!**",
+            description="**Hádej film!**",
             color=discord.Color.red()
         )
         embed.add_field(name="🎤 Slavná hláška", value=f"*\"{film_data['quote']}\"*", inline=False)
