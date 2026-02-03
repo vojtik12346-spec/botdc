@@ -232,7 +232,12 @@ class DiscordBotDashboardTester:
         if self.failed_tests:
             print(f"\n❌ Failed Tests:")
             for failure in self.failed_tests:
-                print(f"  - {failure['test']}: {failure.get('error', f\"Expected {failure.get('expected')}, got {failure.get('actual')}\")}")
+                if 'error' in failure:
+                    print(f"  - {failure['test']}: {failure['error']}")
+                else:
+                    expected = failure.get('expected', 'unknown')
+                    actual = failure.get('actual', 'unknown')
+                    print(f"  - {failure['test']}: Expected {expected}, got {actual}")
         
         return self.tests_passed == self.tests_run
 
