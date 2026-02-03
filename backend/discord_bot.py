@@ -684,7 +684,8 @@ async def prefix_poll(ctx, cas: str, *, args: str):
         options,
         ctx.author,
         otazka,
-        end_time
+        end_time,
+        ctx.guild
     ))
 
 # ============== RUN BOT ==============
