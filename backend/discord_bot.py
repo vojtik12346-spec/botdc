@@ -303,7 +303,7 @@ async def slash_help(interaction: discord.Interaction):
     )
     await interaction.response.send_message(embed=embed)
 
-@bot.command(name="pomoc", aliases=["help"])
+@bot.command(name="pomoc")
 async def prefix_help(ctx):
     """!pomoc - Zobraz nápovědu"""
     embed = discord.Embed(
