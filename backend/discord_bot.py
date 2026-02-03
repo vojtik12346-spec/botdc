@@ -398,9 +398,29 @@ def get_poll_results(poll_id: str, options: list) -> str:
         percentage = (count / total_votes * 100) if total_votes > 0 else 0
         bar_length = int(percentage / 10)
         bar = "█" * bar_length + "░" * (10 - bar_length)
-        results.append(f"{NUMBER_EMOJIS[i]} **{option}**\n`{bar}` {percentage:.1f}% ({count} hlasů)")
+        results.append(f"{NUMBER_EMOJIS[i]} **{option}**\n`{bar}` {percentage:.1f}% ({count})")
     
     return "\n\n".join(results)
+
+def get_live_options_text(options: list, poll_id: str) -> str:
+    """Generate options text with live vote counts"""
+    poll_data = active_polls.get(poll_id, {"votes": {}})
+    votes = poll_data["votes"]
+    total_votes = len(votes)
+    vote_counts = [0] * len(options)
+    
+    for option_index in votes.values():
+        vote_counts[option_index] += 1
+    
+    lines = []
+    for i, opt in enumerate(options):
+        count = vote_counts[i]
+        percentage = (count / total_votes * 100) if total_votes > 0 else 0
+        bar_length = int(percentage / 5)  # Shorter bar for live view
+        bar = "▓" * bar_length + "░" * (20 - bar_length)
+        lines.append(f"{NUMBER_EMOJIS[i]} {opt}\n`{bar}` {percentage:.0f}%")
+    
+    return "\n".join(lines)
 
 async def run_poll(channel, message, poll_id: str, options: list, author: discord.Member, question: str, end_time: int):
     """Run the poll and end it when time expires"""
@@ -414,11 +434,35 @@ async def run_poll(channel, message, poll_id: str, options: list, author: discor
         if remaining <= 0:
             break
         
-        # Update every 30 seconds or when close to end
-        if remaining > 60:
+        # Update embed with current votes and time
+        poll_data = active_polls.get(poll_id, {"votes": {}})
+        total_votes = len(poll_data["votes"])
+        
+        options_text = get_live_options_text(options, poll_id)
+        
+        embed = discord.Embed(
+            title="📊 ANKETA",
+            description=f"**{question}**",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Možnosti", value=options_text, inline=False)
+        embed.add_field(name="⏰ Zbývá", value=f"**{format_time(remaining)}**", inline=True)
+        embed.add_field(name="👥 Hlasů", value=f"**{total_votes}**", inline=True)
+        embed.add_field(name="👤 Autor", value=author.mention, inline=True)
+        embed.set_footer(text="Klikni na tlačítko pro hlasování • 1 hlas na osobu")
+        
+        try:
+            await message.edit(embed=embed)
+        except:
+            pass
+        
+        # Update interval based on remaining time
+        if remaining > 300:  # > 5 min
             await asyncio.sleep(30)
+        elif remaining > 60:  # > 1 min
+            await asyncio.sleep(10)
         else:
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
     
     # Poll ended - show final results
     if poll_id not in active_polls:
@@ -435,8 +479,8 @@ async def run_poll(channel, message, poll_id: str, options: list, author: discor
         color=discord.Color.green()
     )
     embed.add_field(name="Výsledky", value=results_text if results_text else "Žádné hlasy", inline=False)
-    embed.add_field(name="Celkem hlasů", value=str(total_votes), inline=True)
-    embed.add_field(name="Autor", value=author.mention, inline=True)
+    embed.add_field(name="👥 Celkem hlasů", value=f"**{total_votes}**", inline=True)
+    embed.add_field(name="👤 Autor", value=author.mention, inline=True)
     embed.set_footer(text="Anketa skončila")
     
     # Disable all buttons
