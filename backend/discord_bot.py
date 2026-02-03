@@ -3137,8 +3137,9 @@ async def run_film_quiz(channel, channel_id: int):
             del active_film_quiz[channel_id]
 
 @bot.command(name="film", aliases=["movie", "kino"])
+@commands.has_permissions(administrator=True)
 async def prefix_film(ctx, zanr: str = "random"):
-    """!film [ceske/hollywood/komedie/akcni/horor/scifi/random] - Filmový kvíz"""
+    """!film [ceske/hollywood/komedie/akcni/horor/scifi/random] - Filmový kvíz (Admin)"""
     channel_id = ctx.channel.id
     guild_id = ctx.guild.id
     
