@@ -422,9 +422,15 @@ const babelMetadataPlugin = ({ types: t }) => {
    * @param {Object} state - Babel state
    * @param {Object} options - Options
    * @param {boolean} options.skipArrayContext - Skip array iteration context check to avoid recursion
+   * @param {number} options.depth - Recursion depth to prevent infinite loops
    */
   function analyzeIdentifier(name, exprPath, state, options = {}) {
-    const { skipArrayContext = false } = options;
+    const { skipArrayContext = false, depth = 0 } = options;
+    
+    // Prevent infinite recursion
+    if (depth > 10) {
+      return { type: "unknown", varName: name, isEditable: false };
+    }
 
     const binding = exprPath.scope.getBinding(name);
     if (!binding) {
@@ -437,7 +443,7 @@ const babelMetadataPlugin = ({ types: t }) => {
     // (e.g., `review` in `reviews.map((review) => ...)`)
     // Skip this check when called from getArrayIterationContext to avoid infinite recursion
     if (!skipArrayContext) {
-      const arrayContext = getArrayIterationContext(exprPath, state);
+      const arrayContext = getArrayIterationContext(exprPath, state, depth + 1);
       if (arrayContext && arrayContext.itemParam === name) {
         return {
           type: "static-imported",
