@@ -270,12 +270,11 @@ async def prefix_odpocet(ctx, cas: str, *, duvod: str = None):
 @bot.tree.command(name="help", description="Zobraz nápovědu")
 async def slash_help(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="⏰ Countdown Bot",
-        description="Příkazy pro odpočet:",
+        title="🤖 Bot Příkazy",
         color=discord.Color.blue()
     )
     embed.add_field(
-        name="Použití",
+        name="⏰ Odpočet",
         value="""
 `/odpocet [čas] [důvod]` - Spusť odpočet
 `!odpocet [čas] [důvod]` - Prefix verze
@@ -283,22 +282,16 @@ async def slash_help(interaction: discord.Interaction):
         inline=False
     )
     embed.add_field(
-        name="Formáty času",
+        name="📊 Ankety",
         value="""
-`30s` - 30 sekund
-`2m` - 2 minuty
-`1h` - 1 hodina
-`1d` - 1 den
+`/poll [otázka] [možnosti] [čas]` - Vytvoř anketu
+`!poll 5m Otázka? | Ano, Ne, Možná`
         """,
         inline=False
     )
     embed.add_field(
-        name="Příklady",
-        value="""
-`/odpocet 5m`
-`/odpocet 1h Soutěž začíná!`
-`!odpocet 30s Rychlý odpočet`
-        """,
+        name="⏱️ Formáty času",
+        value="`30s`, `2m`, `1h`, `1d`",
         inline=False
     )
     await interaction.response.send_message(embed=embed)
@@ -307,17 +300,21 @@ async def slash_help(interaction: discord.Interaction):
 async def prefix_help(ctx):
     """!pomoc - Zobraz nápovědu"""
     embed = discord.Embed(
-        title="⏰ Countdown Bot",
-        description="Příkazy pro odpočet:",
+        title="🤖 Bot Příkazy",
         color=discord.Color.blue()
     )
     embed.add_field(
-        name="Použití",
+        name="⏰ Odpočet",
         value="`!odpocet [čas] [důvod]`",
         inline=False
     )
     embed.add_field(
-        name="Formáty",
+        name="📊 Ankety",
+        value="`!poll 5m Otázka? | Možnost1, Možnost2`",
+        inline=False
+    )
+    embed.add_field(
+        name="⏱️ Formáty",
         value="`30s`, `2m`, `1h`, `1d`",
         inline=False
     )
