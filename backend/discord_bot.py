@@ -1337,6 +1337,8 @@ async def slash_hry(interaction: discord.Interaction, hrac: discord.Member = Non
     embed.set_footer(text=f"Hraj hry a získávej +{GAME_XP_PER_10_MIN} XP za 10 min • Max {GAME_XP_DAILY_LIMIT} XP/den")
     
     await interaction.response.send_message(embed=embed)
+    msg = await interaction.original_response()
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.command(name="hry", aliases=["games", "achievements"])
 async def prefix_hry(ctx, hrac: discord.Member = None):
