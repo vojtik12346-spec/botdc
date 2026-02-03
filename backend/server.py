@@ -579,6 +579,77 @@ async def get_bot_guilds():
         logger.error(f"Guilds error: {e}")
         return []
 
+# ============== Discord OAuth ==============
+
+@api_router.post("/discord/callback")
+async def discord_oauth_callback(request: Request):
+    """Handle Discord OAuth callback"""
+    data = await request.json()
+    code = data.get("code")
+    redirect_uri = data.get("redirect_uri")
+    
+    if not code:
+        raise HTTPException(status_code=400, detail="Missing code")
+    
+    client_id = os.environ.get("DISCORD_CLIENT_ID", "1336454706620063826")
+    client_secret = os.environ.get("DISCORD_CLIENT_SECRET", "")
+    
+    # Exchange code for token
+    async with httpx.AsyncClient() as client:
+        try:
+            # Get access token
+            token_response = await client.post(
+                "https://discord.com/api/oauth2/token",
+                data={
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": redirect_uri,
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+            
+            if token_response.status_code != 200:
+                logger.error(f"Token error: {token_response.text}")
+                raise HTTPException(status_code=401, detail="Failed to get token")
+            
+            token_data = token_response.json()
+            access_token = token_data["access_token"]
+            
+            # Get user info
+            user_response = await client.get(
+                "https://discord.com/api/users/@me",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            user_data = user_response.json()
+            
+            # Get user guilds
+            guilds_response = await client.get(
+                "https://discord.com/api/users/@me/guilds",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            guilds_data = guilds_response.json()
+            
+            # Format user
+            avatar_url = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{user_data['avatar']}.png" if user_data.get('avatar') else "https://cdn.discordapp.com/embed/avatars/0.png"
+            
+            user = {
+                "id": user_data["id"],
+                "username": user_data["username"],
+                "avatar": avatar_url,
+                "discriminator": user_data.get("discriminator", "0")
+            }
+            
+            return {
+                "user": user,
+                "guilds": guilds_data
+            }
+            
+        except Exception as e:
+            logger.error(f"OAuth error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/bot/settings/{guild_id}")
 async def update_guild_bot_settings(guild_id: str, request: Request):
     """Update bot settings for specific guild"""
