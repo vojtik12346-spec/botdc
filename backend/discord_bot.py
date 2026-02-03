@@ -892,6 +892,8 @@ async def prefix_hudba(ctx, zanr: str = "random"):
     import random
     
     channel_id = ctx.channel.id
+    guild_id = ctx.guild.id
+    quiz_time = get_quiz_time(guild_id)
     
     if channel_id in active_music_quiz and active_music_quiz[channel_id]["active"]:
         await ctx.send("❌ V tomto kanálu už běží kvíz!")
@@ -924,12 +926,12 @@ async def prefix_hudba(ctx, zanr: str = "random"):
     embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
     embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
     embed.add_field(name="🎸 Žánr", value=genre_names.get(zanr, zanr), inline=True)
-    embed.add_field(name="⏰ Čas", value="30 sekund", inline=True)
+    embed.add_field(name="⏰ Čas", value=f"{quiz_time} sekund", inline=True)
     embed.set_footer(text="Napiš jméno interpreta do chatu! První správná odpověď vyhrává!")
     
     await ctx.send(embed=embed)
     
-    await asyncio.sleep(30)
+    await asyncio.sleep(quiz_time)
     
     quiz_data = active_music_quiz.get(channel_id)
     if quiz_data and quiz_data["active"]:
