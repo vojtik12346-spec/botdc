@@ -190,9 +190,8 @@ class QuizBotAPITester:
         success, response = self.run_test(
             "Start Game Session",
             "POST",
-            "sessions/start",
-            200,
-            params={"user_id": self.test_user_id, "game_type": "quiz"}
+            f"sessions/start?user_id={self.test_user_id}&game_type=quiz",
+            200
         )
         
         if success and 'session_id' in response:
@@ -209,9 +208,8 @@ class QuizBotAPITester:
         return self.run_test(
             "End Game Session",
             "POST",
-            f"sessions/{self.session_id}/end",
-            200,
-            params={"score": 100, "correct": 5, "total": 10}
+            f"sessions/{self.session_id}/end?score=100&correct=5&total=10",
+            200
         )[0]
 
 def main():
