@@ -323,6 +323,297 @@ async def prefix_help(ctx):
     )
     await ctx.send(embed=embed)
 
+# ============== POLL SYSTEM ==============
+
+NUMBER_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+
+# Store active polls: {poll_id: {votes: {user_id: option_index}, ...}}
+active_polls = {}
+
+class PollView(discord.ui.View):
+    def __init__(self, poll_id: str, options: list, author_id: int, end_time: int):
+        super().__init__(timeout=None)
+        self.poll_id = poll_id
+        self.options = options
+        self.author_id = author_id
+        self.end_time = end_time
+        
+        # Add buttons for each option
+        for i, option in enumerate(options):
+            button = discord.ui.Button(
+                label=option[:50],  # Limit label length
+                style=discord.ButtonStyle.secondary,
+                emoji=NUMBER_EMOJIS[i],
+                custom_id=f"poll_{poll_id}_{i}"
+            )
+            button.callback = self.make_vote_callback(i)
+            self.add_item(button)
+    
+    def make_vote_callback(self, option_index: int):
+        async def callback(interaction: discord.Interaction):
+            poll_data = active_polls.get(self.poll_id)
+            if not poll_data:
+                await interaction.response.send_message("❌ Tato anketa již skončila!", ephemeral=True)
+                return
+            
+            user_id = interaction.user.id
+            
+            # Check if user already voted
+            if user_id in poll_data["votes"]:
+                previous_vote = poll_data["votes"][user_id]
+                if previous_vote == option_index:
+                    await interaction.response.send_message(
+                        f"❌ Již jsi hlasoval pro **{self.options[option_index]}**!",
+                        ephemeral=True
+                    )
+                    return
+                else:
+                    # Change vote
+                    poll_data["votes"][user_id] = option_index
+                    await interaction.response.send_message(
+                        f"🔄 Změnil jsi hlas na **{self.options[option_index]}**!",
+                        ephemeral=True
+                    )
+            else:
+                # New vote
+                poll_data["votes"][user_id] = option_index
+                await interaction.response.send_message(
+                    f"✅ Hlasoval jsi pro **{self.options[option_index]}**!",
+                    ephemeral=True
+                )
+        
+        return callback
+
+def get_poll_results(poll_id: str, options: list) -> str:
+    """Generate poll results text"""
+    poll_data = active_polls.get(poll_id, {"votes": {}})
+    votes = poll_data["votes"]
+    
+    total_votes = len(votes)
+    vote_counts = [0] * len(options)
+    
+    for option_index in votes.values():
+        vote_counts[option_index] += 1
+    
+    results = []
+    for i, option in enumerate(options):
+        count = vote_counts[i]
+        percentage = (count / total_votes * 100) if total_votes > 0 else 0
+        bar_length = int(percentage / 10)
+        bar = "█" * bar_length + "░" * (10 - bar_length)
+        results.append(f"{NUMBER_EMOJIS[i]} **{option}**\n`{bar}` {percentage:.1f}% ({count} hlasů)")
+    
+    return "\n\n".join(results)
+
+async def run_poll(channel, message, poll_id: str, options: list, author: discord.Member, question: str, end_time: int):
+    """Run the poll and end it when time expires"""
+    
+    while True:
+        if poll_id not in active_polls:
+            return
+        
+        remaining = end_time - int(datetime.now(timezone.utc).timestamp())
+        
+        if remaining <= 0:
+            break
+        
+        # Update every 30 seconds or when close to end
+        if remaining > 60:
+            await asyncio.sleep(30)
+        else:
+            await asyncio.sleep(5)
+    
+    # Poll ended - show final results
+    if poll_id not in active_polls:
+        return
+    
+    poll_data = active_polls[poll_id]
+    total_votes = len(poll_data["votes"])
+    
+    results_text = get_poll_results(poll_id, options)
+    
+    embed = discord.Embed(
+        title="📊 ANKETA UKONČENA!",
+        description=f"**{question}**",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="Výsledky", value=results_text if results_text else "Žádné hlasy", inline=False)
+    embed.add_field(name="Celkem hlasů", value=str(total_votes), inline=True)
+    embed.add_field(name="Autor", value=author.mention, inline=True)
+    embed.set_footer(text="Anketa skončila")
+    
+    # Disable all buttons
+    view = discord.ui.View()
+    for i, option in enumerate(options):
+        btn = discord.ui.Button(
+            label=option[:50],
+            style=discord.ButtonStyle.secondary,
+            emoji=NUMBER_EMOJIS[i],
+            disabled=True
+        )
+        view.add_item(btn)
+    
+    try:
+        await message.edit(embed=embed, view=view)
+    except:
+        pass
+    
+    # Announce winner
+    if total_votes > 0:
+        vote_counts = [0] * len(options)
+        for option_index in poll_data["votes"].values():
+            vote_counts[option_index] += 1
+        
+        max_votes = max(vote_counts)
+        winners = [options[i] for i, count in enumerate(vote_counts) if count == max_votes]
+        
+        if len(winners) == 1:
+            winner_text = f"🏆 **Vítěz: {winners[0]}** s {max_votes} hlasy!"
+        else:
+            winner_text = f"🏆 **Remíza:** {', '.join(winners)} s {max_votes} hlasy!"
+        
+        await channel.send(f"📊 **Anketa skončila!** {author.mention}\n{winner_text}")
+    
+    # Cleanup
+    del active_polls[poll_id]
+
+@bot.tree.command(name="poll", description="Vytvoř anketu s více možnostmi")
+@app_commands.describe(
+    otazka="Otázka ankety",
+    moznosti="Možnosti oddělené čárkou (max 10)",
+    cas="Doba trvání ankety (např. 5m, 1h, 1d)"
+)
+async def slash_poll(interaction: discord.Interaction, otazka: str, moznosti: str, cas: str = "5m"):
+    # Parse options
+    options = [opt.strip() for opt in moznosti.split(",") if opt.strip()]
+    
+    if len(options) < 2:
+        await interaction.response.send_message("❌ Musíš zadat alespoň 2 možnosti!", ephemeral=True)
+        return
+    
+    if len(options) > 10:
+        await interaction.response.send_message("❌ Maximum je 10 možností!", ephemeral=True)
+        return
+    
+    # Parse time
+    seconds = parse_time(cas)
+    if seconds is None:
+        await interaction.response.send_message(
+            "❌ Neplatný formát času! Použij např. `5m`, `1h`, `1d`",
+            ephemeral=True
+        )
+        return
+    
+    if seconds < 30:
+        await interaction.response.send_message("❌ Minimální čas je 30 sekund!", ephemeral=True)
+        return
+    
+    if seconds > 86400 * 7:
+        await interaction.response.send_message("❌ Maximální čas je 7 dní!", ephemeral=True)
+        return
+    
+    poll_id = str(uuid.uuid4())
+    end_time = int(datetime.now(timezone.utc).timestamp()) + seconds
+    
+    # Create poll data
+    active_polls[poll_id] = {"votes": {}, "options": options}
+    
+    # Build options text
+    options_text = "\n".join([f"{NUMBER_EMOJIS[i]} {opt}" for i, opt in enumerate(options)])
+    
+    embed = discord.Embed(
+        title="📊 ANKETA",
+        description=f"**{otazka}**",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="Možnosti", value=options_text, inline=False)
+    embed.add_field(name="⏰ Končí za", value=format_time(seconds), inline=True)
+    embed.add_field(name="👤 Autor", value=interaction.user.mention, inline=True)
+    embed.set_footer(text="Klikni na tlačítko pro hlasování • 1 hlas na osobu")
+    
+    view = PollView(poll_id, options, interaction.user.id, end_time)
+    
+    await interaction.response.send_message(embed=embed, view=view)
+    message = await interaction.original_response()
+    
+    # Start poll task
+    asyncio.create_task(run_poll(
+        interaction.channel,
+        message,
+        poll_id,
+        options,
+        interaction.user,
+        otazka,
+        end_time
+    ))
+
+@bot.command(name="poll", aliases=["anketa", "hlasovani"])
+async def prefix_poll(ctx, cas: str, *, args: str):
+    """!poll 5m Otázka? | Možnost1, Možnost2, Možnost3"""
+    
+    # Parse: question | options
+    if "|" not in args:
+        await ctx.send("❌ Použij formát: `!poll 5m Otázka? | Možnost1, Možnost2, Možnost3`")
+        return
+    
+    parts = args.split("|")
+    otazka = parts[0].strip()
+    moznosti_str = parts[1].strip() if len(parts) > 1 else ""
+    
+    options = [opt.strip() for opt in moznosti_str.split(",") if opt.strip()]
+    
+    if len(options) < 2:
+        await ctx.send("❌ Musíš zadat alespoň 2 možnosti!")
+        return
+    
+    if len(options) > 10:
+        await ctx.send("❌ Maximum je 10 možností!")
+        return
+    
+    seconds = parse_time(cas)
+    if seconds is None:
+        await ctx.send("❌ Neplatný formát času! Použij např. `5m`, `1h`, `1d`")
+        return
+    
+    if seconds < 30:
+        await ctx.send("❌ Minimální čas je 30 sekund!")
+        return
+    
+    if seconds > 86400 * 7:
+        await ctx.send("❌ Maximální čas je 7 dní!")
+        return
+    
+    poll_id = str(uuid.uuid4())
+    end_time = int(datetime.now(timezone.utc).timestamp()) + seconds
+    
+    active_polls[poll_id] = {"votes": {}, "options": options}
+    
+    options_text = "\n".join([f"{NUMBER_EMOJIS[i]} {opt}" for i, opt in enumerate(options)])
+    
+    embed = discord.Embed(
+        title="📊 ANKETA",
+        description=f"**{otazka}**",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="Možnosti", value=options_text, inline=False)
+    embed.add_field(name="⏰ Končí za", value=format_time(seconds), inline=True)
+    embed.add_field(name="👤 Autor", value=ctx.author.mention, inline=True)
+    embed.set_footer(text="Klikni na tlačítko pro hlasování • 1 hlas na osobu")
+    
+    view = PollView(poll_id, options, ctx.author.id, end_time)
+    
+    message = await ctx.send(embed=embed, view=view)
+    
+    asyncio.create_task(run_poll(
+        ctx.channel,
+        message,
+        poll_id,
+        options,
+        ctx.author,
+        otazka,
+        end_time
+    ))
+
 # ============== RUN BOT ==============
 
 if __name__ == "__main__":
