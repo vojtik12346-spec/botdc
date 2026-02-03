@@ -1,631 +1,699 @@
-import React, { useState, useEffect, useCallback } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Progress } from "./components/ui/progress";
-import { Badge } from "./components/ui/badge";
-import { Input } from "./components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "./components/ui/select";
+import React, { useState, useEffect, useRef } from "react";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
-import { 
-  Brain, 
-  Calculator, 
-  Trophy, 
-  Zap, 
-  Timer, 
-  Star, 
-  ArrowRight,
-  Copy,
-  Check,
-  Home as HomeIcon,
-  User,
-  Sparkles
+import { Button } from "./components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./components/ui/card";
+import { Input } from "./components/ui/input";
+import { Label } from "./components/ui/label";
+import { Switch } from "./components/ui/switch";
+import { Badge } from "./components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import {
+  Settings,
+  BarChart3,
+  Music,
+  Users,
+  LogOut,
+  Bot,
+  Clock,
+  Hash,
+  Activity,
+  Trophy,
+  FileText,
+  Zap,
+  Timer,
+  Vote
 } from "lucide-react";
+import "./App.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-// Landing Page Component
-const LandingPage = () => {
+// ============== Auth Context ==============
+
+const AuthContext = React.createContext(null);
+
+function useAuth() {
+  return React.useContext(AuthContext);
+}
+
+// ============== Login Page ==============
+
+function LoginPage() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, loading } = useAuth();
 
-  const handleStart = async (gameType) => {
-    if (!username.trim()) {
-      toast.error("Zadej své jméno!");
-      return;
+  useEffect(() => {
+    if (user && !loading) {
+      navigate("/dashboard");
     }
+  }, [user, loading, navigate]);
 
-    setIsLoading(true);
-    try {
-      const response = await axios.post(`${API}/users`, { username: username.trim() });
-      const user = response.data;
-      localStorage.setItem("userId", user.id);
-      localStorage.setItem("username", user.username);
-      navigate(`/game/${gameType}`);
-    } catch (error) {
-      toast.error("Něco se pokazilo!");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleLogin = () => {
+    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    const redirectUrl = window.location.origin + '/dashboard';
+    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
-  return (
-    <div className="min-h-screen hero-gradient noise-bg relative overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: "url(https://images.pexels.com/photos/28428584/pexels-photo-28428584.jpeg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex flex-col">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-12">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-8 h-8 text-primary" />
-            <span className="font-orbitron text-2xl font-bold tracking-wider text-glow-primary">
-              QUIZ BOT
-            </span>
-          </div>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/leaderboard")}
-            className="font-rajdhani"
-            data-testid="nav-leaderboard-btn"
-          >
-            <Trophy className="w-5 h-5 mr-2" />
-            Žebříček
-          </Button>
-        </header>
-
-        {/* Hero Section */}
-        <main className="flex-1 flex flex-col items-center justify-center text-center">
-          <h1 
-            className="font-orbitron text-4xl sm:text-5xl lg:text-6xl font-black tracking-wider mb-6 animate-fade-in-up text-glow-primary"
-            data-testid="hero-title"
-          >
-            OTÁZKY & MATEMATIKA
-          </h1>
-          <p className="font-rajdhani text-lg text-zinc-400 mb-12 max-w-xl animate-fade-in-up stagger-1">
-            Testuj své znalosti, získej XP a staň se mistrem kvízů!
-          </p>
-
-          {/* Username Input */}
-          <div className="w-full max-w-sm mb-8 animate-fade-in-up stagger-2">
-            <Input
-              placeholder="Zadej své jméno..."
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="h-14 text-lg font-rajdhani bg-black/50 border-white/10 focus:border-primary text-center"
-              data-testid="username-input"
-            />
-          </div>
-
-          {/* Game Selection Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl animate-fade-in-up stagger-3">
-            {/* Quiz Card */}
-            <Card 
-              className="glass-card cursor-pointer group hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(124,58,237,0.3)]"
-              onClick={() => handleStart("quiz")}
-              data-testid="quiz-card"
-            >
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Brain className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="font-orbitron text-xl font-bold mb-2 text-glow-primary">
-                  KVÍZ
-                </h3>
-                <p className="text-zinc-400 font-rajdhani">
-                  Otestuj své všeobecné znalosti
-                </p>
-                <div className="mt-4 flex items-center justify-center gap-2 text-primary">
-                  <span className="font-mono text-sm">START</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Math Card */}
-            <Card 
-              className="glass-card cursor-pointer group hover:border-secondary/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]"
-              onClick={() => handleStart("math")}
-              data-testid="math-card"
-            >
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Calculator className="w-8 h-8 text-cyan-400" />
-                </div>
-                <h3 className="font-orbitron text-xl font-bold mb-2 text-glow-secondary">
-                  MATEMATIKA
-                </h3>
-                <p className="text-zinc-400 font-rajdhani">
-                  Výpočty, rovnice a hlavolamy
-                </p>
-                <div className="mt-4 flex items-center justify-center gap-2 text-cyan-400">
-                  <span className="font-mono text-sm">START</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full" />
       </div>
-    </div>
-  );
-};
-
-// Game Page Component
-const GamePage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const gameType = location.pathname.split("/")[2]; // quiz or math
-  
-  const [question, setQuestion] = useState(null);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [result, setResult] = useState(null);
-  const [score, setScore] = useState(0);
-  const [questionsAnswered, setQuestionsAnswered] = useState(0);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [difficulty, setDifficulty] = useState("medium");
-  const [mathType, setMathType] = useState("math_calc");
-  const [mee6Command, setMee6Command] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [useAI, setUseAI] = useState(false);
-
-  const userId = localStorage.getItem("userId");
-  const username = localStorage.getItem("username");
-
-  const fetchQuestion = useCallback(async () => {
-    setIsLoading(true);
-    setResult(null);
-    setSelectedAnswer(null);
-    setMee6Command("");
-    
-    try {
-      const questionType = gameType === "quiz" ? "quiz" : mathType;
-      const endpoint = useAI ? "/questions/generate-ai" : "/questions/generate";
-      
-      const response = await axios.post(`${API}${endpoint}`, {
-        difficulty,
-        question_type: questionType
-      });
-      
-      setQuestion(response.data);
-      setTimeLeft(response.data.time_limit);
-    } catch (error) {
-      toast.error("Nepodařilo se načíst otázku");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [gameType, difficulty, mathType, useAI]);
-
-  useEffect(() => {
-    if (!userId) {
-      navigate("/");
-      return;
-    }
-    fetchQuestion();
-  }, [userId, navigate, fetchQuestion]);
-
-  // Timer
-  useEffect(() => {
-    if (timeLeft > 0 && !result) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && question && !result) {
-      handleSubmit(null);
-    }
-  }, [timeLeft, result, question]);
-
-  const handleSubmit = async (answer) => {
-    if (result) return;
-    
-    setSelectedAnswer(answer);
-    
-    try {
-      const response = await axios.post(`${API}/questions/answer`, {
-        question_id: question.id,
-        user_id: userId,
-        selected_answer: answer || "",
-        time_taken: question.time_limit - timeLeft
-      });
-      
-      setResult(response.data);
-      setQuestionsAnswered(prev => prev + 1);
-      
-      if (response.data.correct) {
-        setScore(prev => prev + response.data.xp_earned);
-        setCorrectAnswers(prev => prev + 1);
-        setMee6Command(response.data.mee6_command);
-        toast.success(`+${response.data.xp_earned} XP!`, {
-          description: "Správná odpověď!"
-        });
-      } else {
-        toast.error("Špatná odpověď!", {
-          description: `Správně: ${response.data.correct_answer}`
-        });
-      }
-    } catch (error) {
-      toast.error("Chyba při odesílání odpovědi");
-      console.error(error);
-    }
-  };
-
-  const copyMee6Command = () => {
-    navigator.clipboard.writeText(mee6Command);
-    setCopied(true);
-    toast.success("Příkaz zkopírován!");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const getTimerColor = () => {
-    if (timeLeft > 15) return "text-green-400";
-    if (timeLeft > 5) return "text-yellow-400";
-    return "text-red-400 animate-timer-pulse";
-  };
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#050505] noise-bg">
-      <div className="container mx-auto px-4 py-6 max-w-3xl">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/")}
-            data-testid="back-home-btn"
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-cyan-900/20" />
+      
+      <Card className="w-full max-w-md bg-[#12121a] border-purple-500/20 relative z-10">
+        <CardHeader className="text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center">
+            <Bot className="w-10 h-10 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-white">Quiz Bot Dashboard</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Spravuj nastavení svého Discord bota
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={handleLogin}
+            className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold"
           >
-            <HomeIcon className="w-5 h-5 mr-2" />
-            Domů
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Přihlásit se přes Google
           </Button>
           
-          <div className="flex items-center gap-4">
-            <Badge variant="outline" className="font-mono px-4 py-2">
-              <User className="w-4 h-4 mr-2" />
-              {username}
-            </Badge>
-            <Badge className="bg-primary/20 text-primary border-primary/50 font-mono px-4 py-2">
-              <Star className="w-4 h-4 mr-2" />
-              {score} XP
-            </Badge>
-          </div>
-        </header>
+          <p className="text-center text-zinc-500 text-sm mt-4">
+            Bezpečné přihlášení pomocí Google účtu
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
-        {/* Game Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <Card className="glass-card">
-            <CardContent className="p-4 text-center">
-              <p className="text-zinc-400 text-sm font-rajdhani">Otázky</p>
-              <p className="font-orbitron text-2xl font-bold">{questionsAnswered}</p>
-            </CardContent>
-          </Card>
-          <Card className="glass-card">
-            <CardContent className="p-4 text-center">
-              <p className="text-zinc-400 text-sm font-rajdhani">Správné</p>
-              <p className="font-orbitron text-2xl font-bold text-green-400">{correctAnswers}</p>
-            </CardContent>
-          </Card>
-          <Card className="glass-card">
-            <CardContent className="p-4 text-center">
-              <p className="text-zinc-400 text-sm font-rajdhani">Úspěšnost</p>
-              <p className="font-orbitron text-2xl font-bold text-cyan-400">
-                {questionsAnswered > 0 ? Math.round((correctAnswers / questionsAnswered) * 100) : 0}%
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+// ============== Auth Callback ==============
 
-        {/* Settings */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <Select value={difficulty} onValueChange={setDifficulty}>
-            <SelectTrigger className="w-40 bg-black/50 border-white/10" data-testid="difficulty-select">
-              <SelectValue placeholder="Obtížnost" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="easy">Lehká</SelectItem>
-              <SelectItem value="medium">Střední</SelectItem>
-              <SelectItem value="hard">Těžká</SelectItem>
-            </SelectContent>
-          </Select>
+function AuthCallback() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const hasProcessed = useRef(false);
 
-          {gameType === "math" && (
-            <Select value={mathType} onValueChange={setMathType}>
-              <SelectTrigger className="w-44 bg-black/50 border-white/10" data-testid="math-type-select">
-                <SelectValue placeholder="Typ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="math_calc">Počítání</SelectItem>
-                <SelectItem value="math_equation">Rovnice</SelectItem>
-                <SelectItem value="math_puzzle">Hlavolamy</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
+  useEffect(() => {
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
 
-          <Button
-            variant={useAI ? "default" : "outline"}
-            onClick={() => setUseAI(!useAI)}
-            className={useAI ? "bg-primary" : ""}
-            data-testid="ai-toggle-btn"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            AI Otázky
-          </Button>
-        </div>
+    const processAuth = async () => {
+      const hash = location.hash;
+      const sessionIdMatch = hash.match(/session_id=([^&]+)/);
+      
+      if (!sessionIdMatch) {
+        navigate("/login");
+        return;
+      }
 
-        {/* Question Card */}
-        {isLoading ? (
-          <Card className="glass-card animate-pulse">
-            <CardContent className="p-12 text-center">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/20 animate-spin" />
-              <p className="mt-4 text-zinc-400">Načítám otázku...</p>
-            </CardContent>
-          </Card>
-        ) : question ? (
-          <Card className="glass-card tracing-beam overflow-hidden" data-testid="question-card">
-            {/* Timer */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <Badge variant="outline" className="font-mono">
-                {question.difficulty === "easy" ? "Lehká" : 
-                 question.difficulty === "medium" ? "Střední" : "Těžká"}
-              </Badge>
-              <div className={`flex items-center gap-2 font-mono text-xl ${getTimerColor()}`}>
-                <Timer className="w-5 h-5" />
-                {timeLeft}s
-              </div>
-              <Badge variant="outline" className="font-mono">
-                +{question.xp_reward} XP
-              </Badge>
-            </div>
+      const sessionId = sessionIdMatch[1];
 
-            {/* Progress */}
-            <Progress 
-              value={(timeLeft / question.time_limit) * 100} 
-              className="h-1 rounded-none"
-            />
+      try {
+        const response = await fetch(`${API_URL}/api/auth/session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ session_id: sessionId })
+        });
 
-            {/* Question */}
-            <CardContent className="p-8">
-              <h2 
-                className="font-rajdhani text-xl sm:text-2xl font-semibold text-center mb-8"
-                data-testid="question-text"
-              >
-                {question.question}
-              </h2>
+        if (!response.ok) {
+          throw new Error("Auth failed");
+        }
 
-              {/* Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {question.options.map((option, index) => {
-                  let optionClass = "option-card";
-                  if (result) {
-                    if (option === result.correct_answer) {
-                      optionClass += " correct";
-                    } else if (option === selectedAnswer && !result.correct) {
-                      optionClass += " wrong";
-                    }
-                  } else if (option === selectedAnswer) {
-                    optionClass += " selected";
-                  }
+        const user = await response.json();
+        // Clear hash and navigate to dashboard with user data
+        window.history.replaceState(null, "", window.location.pathname);
+        navigate("/dashboard", { state: { user } });
+      } catch (error) {
+        console.error("Auth error:", error);
+        toast.error("Přihlášení selhalo");
+        navigate("/login");
+      }
+    };
 
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => !result && handleSubmit(option)}
-                      disabled={!!result}
-                      className={`${optionClass} p-4 rounded-lg bg-black/40 text-left font-rajdhani text-lg transition-all`}
-                      data-testid={`option-${index}`}
-                    >
-                      <span className="font-mono text-primary mr-3">
-                        {String.fromCharCode(65 + index)}.
-                      </span>
-                      {option}
-                    </button>
-                  );
-                })}
-              </div>
+    processAuth();
+  }, [location, navigate]);
 
-              {/* Result & Mee6 Command */}
-              {result && (
-                <div className="mt-8 space-y-4 animate-fade-in-up">
-                  <div className={`p-4 rounded-lg text-center ${
-                    result.correct ? "bg-green-500/20 border border-green-500/50" : "bg-red-500/20 border border-red-500/50"
-                  }`}>
-                    <p className="font-orbitron text-lg">
-                      {result.correct ? "🎉 SPRÁVNĚ!" : "❌ ŠPATNĚ!"}
-                    </p>
-                    {!result.correct && (
-                      <p className="text-zinc-400 mt-2">
-                        Správná odpověď: <span className="text-green-400">{result.correct_answer}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {mee6Command && (
-                    <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                      <p className="text-sm text-zinc-400 mb-2">Mee6 příkaz pro XP:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 p-2 bg-black/50 rounded font-mono text-sm text-primary overflow-x-auto">
-                          {mee6Command}
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={copyMee6Command}
-                          data-testid="copy-mee6-btn"
-                        >
-                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button 
-                    onClick={fetchQuestion} 
-                    className="w-full h-12 font-orbitron tracking-wider bg-primary hover:bg-primary/80"
-                    data-testid="next-question-btn"
-                  >
-                    DALŠÍ OTÁZKA
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {/* End Game Button */}
-        <div className="mt-8 text-center">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/leaderboard")}
-            className="font-rajdhani"
-            data-testid="view-leaderboard-btn"
-          >
-            <Trophy className="w-5 h-5 mr-2" />
-            Zobrazit žebříček
-          </Button>
-        </div>
+  return (
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin w-12 h-12 border-3 border-purple-500 border-t-transparent rounded-full mx-auto mb-4" />
+        <p className="text-zinc-400">Přihlašování...</p>
       </div>
     </div>
   );
-};
+}
 
-// Leaderboard Page Component
-const LeaderboardPage = () => {
-  const navigate = useNavigate();
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+// ============== Protected Route ==============
+
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
+
+// ============== Dashboard ==============
+
+function Dashboard() {
+  const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [settings, setSettings] = useState({
+    quiz_time: 60,
+    quiz_rounds: 5,
+    poll_enabled: true,
+    countdown_enabled: true
+  });
+  const [stats, setStats] = useState({
+    total_users: 0,
+    total_quizzes: 0,
+    total_polls: 0,
+    leaderboard: []
+  });
+  const [songs, setSongs] = useState({});
+  const [logs, setLogs] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const response = await axios.get(`${API}/leaderboard?limit=20`);
-        setLeaderboard(response.data);
-      } catch (error) {
-        toast.error("Nepodařilo se načíst žebříček");
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchLeaderboard();
+    fetchData();
   }, []);
 
-  const getRankStyle = (rank) => {
-    if (rank === 1) return "rank-gold";
-    if (rank === 2) return "rank-silver";
-    if (rank === 3) return "rank-bronze";
-    return "bg-zinc-800";
+  const fetchData = async () => {
+    try {
+      // Fetch stats
+      const statsRes = await fetch(`${API_URL}/api/stats`, { credentials: "include" });
+      if (statsRes.ok) {
+        setStats(await statsRes.json());
+      }
+
+      // Fetch songs
+      const songsRes = await fetch(`${API_URL}/api/songs`, { credentials: "include" });
+      if (songsRes.ok) {
+        setSongs(await songsRes.json());
+      }
+
+      // Fetch logs
+      const logsRes = await fetch(`${API_URL}/api/logs`, { credentials: "include" });
+      if (logsRes.ok) {
+        setLogs(await logsRes.json());
+      }
+
+      // Fetch settings (use default guild for now)
+      const settingsRes = await fetch(`${API_URL}/api/settings/default`, { credentials: "include" });
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        setSettings(prev => ({ ...prev, ...data }));
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/settings/default`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(settings)
+      });
+
+      if (response.ok) {
+        toast.success("Nastavení uloženo!");
+      } else {
+        toast.error("Chyba při ukládání");
+      }
+    } catch (error) {
+      toast.error("Chyba při ukládání");
+    }
+    setSaving(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] noise-bg">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/")}
-            data-testid="leaderboard-back-btn"
-          >
-            <HomeIcon className="w-5 h-5 mr-2" />
-            Domů
-          </Button>
-          <h1 className="font-orbitron text-2xl font-bold tracking-wider text-glow-primary">
-            ŽEBŘÍČEK
-          </h1>
-          <div className="w-24" /> {/* Spacer */}
-        </header>
+    <div className="min-h-screen bg-[#0a0a0f]">
+      {/* Header */}
+      <header className="bg-[#12121a] border-b border-purple-500/20 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center">
+              <Bot className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="font-bold text-white">Quiz Bot</h1>
+              <p className="text-xs text-zinc-500">Dashboard</p>
+            </div>
+          </div>
 
-        {/* Leaderboard */}
-        <Card className="glass-card overflow-hidden" data-testid="leaderboard-card">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="font-orbitron flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-yellow-400" />
-              TOP HRÁČI
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-12 text-center">
-                <div className="w-12 h-12 mx-auto rounded-full bg-primary/20 animate-spin" />
-                <p className="mt-4 text-zinc-400">Načítám žebříček...</p>
-              </div>
-            ) : leaderboard.length === 0 ? (
-              <div className="p-12 text-center">
-                <p className="text-zinc-400">Žádní hráči zatím</p>
-                <Button 
-                  onClick={() => navigate("/")} 
-                  className="mt-4"
-                  data-testid="start-playing-btn"
-                >
-                  Buď první!
-                </Button>
-              </div>
-            ) : (
-              <div className="divide-y divide-white/5">
-                {leaderboard.map((entry, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors animate-slide-in"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                    data-testid={`leaderboard-entry-${index}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 flex items-center justify-center rounded-full font-orbitron font-bold ${getRankStyle(entry.rank)}`}>
-                        {entry.rank}
-                      </div>
-                      <div>
-                        <p className="font-rajdhani font-semibold text-lg">{entry.username}</p>
-                        <p className="text-sm text-zinc-400">{entry.games_played} her</p>
-                      </div>
+          <div className="flex items-center gap-4">
+            <Badge variant="outline" className="border-green-500/50 text-green-400">
+              <Activity className="w-3 h-3 mr-1" />
+              Online
+            </Badge>
+            
+            <div className="flex items-center gap-2">
+              {user?.picture && (
+                <img src={user.picture} alt="" className="w-8 h-8 rounded-full" />
+              )}
+              <span className="text-zinc-300 text-sm hidden sm:block">{user?.name}</span>
+            </div>
+
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-zinc-400 hover:text-white">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="bg-[#12121a] border border-purple-500/20 p-1">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Přehled
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600">
+              <Settings className="w-4 h-4 mr-2" />
+              Nastavení
+            </TabsTrigger>
+            <TabsTrigger value="songs" className="data-[state=active]:bg-purple-600">
+              <Music className="w-4 h-4 mr-2" />
+              Písně
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="data-[state=active]:bg-purple-600">
+              <Trophy className="w-4 h-4 mr-2" />
+              Žebříček
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="data-[state=active]:bg-purple-600">
+              <FileText className="w-4 h-4 mr-2" />
+              Logy
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="bg-[#12121a] border-purple-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zinc-400 text-sm">Celkem hráčů</p>
+                      <p className="text-3xl font-bold text-white">{stats.total_users}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-mono text-xl font-bold text-primary">{entry.total_score}</p>
-                      <p className="text-sm text-zinc-400">XP</p>
-                    </div>
+                    <Users className="w-10 h-10 text-purple-500" />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#12121a] border-cyan-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zinc-400 text-sm">Kvízů odehráno</p>
+                      <p className="text-3xl font-bold text-white">{stats.total_quizzes}</p>
+                    </div>
+                    <Music className="w-10 h-10 text-cyan-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#12121a] border-green-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zinc-400 text-sm">Anket vytvořeno</p>
+                      <p className="text-3xl font-bold text-white">{stats.total_polls}</p>
+                    </div>
+                    <Vote className="w-10 h-10 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-[#12121a] border-yellow-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-zinc-400 text-sm">Status</p>
+                      <p className="text-xl font-bold text-green-400">Online</p>
+                    </div>
+                    <Zap className="w-10 h-10 text-yellow-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Commands */}
+            <Card className="bg-[#12121a] border-purple-500/20">
+              <CardHeader>
+                <CardTitle className="text-white">Dostupné příkazy</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <code className="text-purple-400">/hudba</code>
+                    <p className="text-zinc-400 text-sm mt-1">Hudební kvíz</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                    <code className="text-cyan-400">/poll</code>
+                    <p className="text-zinc-400 text-sm mt-1">Vytvoř anketu</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <code className="text-green-400">/odpocet</code>
+                    <p className="text-zinc-400 text-sm mt-1">Spusť odpočet</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <code className="text-yellow-400">/hudba-nastaveni</code>
+                    <p className="text-zinc-400 text-sm mt-1">Nastav kvíz</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                    <code className="text-red-400">!stop</code>
+                    <p className="text-zinc-400 text-sm mt-1">Zastav kvíz</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-zinc-500/10 border border-zinc-500/20">
+                    <code className="text-zinc-400">/help</code>
+                    <p className="text-zinc-400 text-sm mt-1">Nápověda</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card className="bg-[#12121a] border-purple-500/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Music className="w-5 h-5" />
+                  Hudební kvíz
+                </CardTitle>
+                <CardDescription>Nastavení hudebního kvízu</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="quiz_time" className="text-zinc-300 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Čas na odpověď (sekundy)
+                    </Label>
+                    <Input
+                      id="quiz_time"
+                      type="number"
+                      min={30}
+                      max={300}
+                      value={settings.quiz_time}
+                      onChange={(e) => setSettings({ ...settings, quiz_time: parseInt(e.target.value) || 60 })}
+                      className="bg-[#1a1a24] border-purple-500/20 text-white"
+                    />
+                    <p className="text-xs text-zinc-500">30 - 300 sekund</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="quiz_rounds" className="text-zinc-300 flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      Počet otázek
+                    </Label>
+                    <Input
+                      id="quiz_rounds"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={settings.quiz_rounds}
+                      onChange={(e) => setSettings({ ...settings, quiz_rounds: parseInt(e.target.value) || 5 })}
+                      className="bg-[#1a1a24] border-purple-500/20 text-white"
+                    />
+                    <p className="text-xs text-zinc-500">1 - 20 otázek</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#12121a] border-cyan-500/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Vote className="w-5 h-5" />
+                  Ankety
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-zinc-300">Povolit ankety</p>
+                    <p className="text-xs text-zinc-500">Příkaz /poll bude dostupný</p>
+                  </div>
+                  <Switch
+                    checked={settings.poll_enabled}
+                    onCheckedChange={(checked) => setSettings({ ...settings, poll_enabled: checked })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#12121a] border-green-500/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Timer className="w-5 h-5" />
+                  Odpočet
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-zinc-300">Povolit odpočet</p>
+                    <p className="text-xs text-zinc-500">Příkaz /odpocet bude dostupný</p>
+                  </div>
+                  <Switch
+                    checked={settings.countdown_enabled}
+                    onCheckedChange={(checked) => setSettings({ ...settings, countdown_enabled: checked })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button
+              onClick={saveSettings}
+              disabled={saving}
+              className="w-full md:w-auto bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
+            >
+              {saving ? "Ukládám..." : "Uložit nastavení"}
+            </Button>
+          </TabsContent>
+
+          {/* Songs Tab */}
+          <TabsContent value="songs" className="space-y-6">
+            {Object.entries(songs).map(([genre, songList]) => (
+              <Card key={genre} className="bg-[#12121a] border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-white capitalize flex items-center gap-2">
+                    {genre === "rap" && "🎤"}
+                    {genre === "pop" && "🎵"}
+                    {genre === "rock" && "🎸"}
+                    {genre === "classic" && "🎺"}
+                    {genre}
+                  </CardTitle>
+                  <CardDescription>{songList.length} písní</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {songList.map((song, idx) => (
+                      <div key={idx} className="p-3 rounded-lg bg-[#1a1a24] border border-zinc-800">
+                        <p className="text-white font-medium">{song.artist}</p>
+                        <p className="text-zinc-400 text-sm">{song.song}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          {/* Leaderboard Tab */}
+          <TabsContent value="leaderboard">
+            <Card className="bg-[#12121a] border-yellow-500/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                  Top hráči
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {stats.leaderboard.length === 0 ? (
+                  <p className="text-zinc-400 text-center py-8">Zatím žádní hráči</p>
+                ) : (
+                  <div className="space-y-2">
+                    {stats.leaderboard.map((player, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 rounded-lg bg-[#1a1a24] border border-zinc-800">
+                        <div className="flex items-center gap-4">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                            idx === 0 ? "bg-yellow-500 text-black" :
+                            idx === 1 ? "bg-zinc-400 text-black" :
+                            idx === 2 ? "bg-orange-600 text-white" :
+                            "bg-zinc-700 text-white"
+                          }`}>
+                            {idx + 1}
+                          </span>
+                          <span className="text-white">{player.name || player.username}</span>
+                        </div>
+                        <span className="text-purple-400 font-bold">{player.score || 0} bodů</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Logs Tab */}
+          <TabsContent value="logs">
+            <Card className="bg-[#12121a] border-zinc-500/20">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Poslední příkazy
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {logs.length === 0 ? (
+                  <p className="text-zinc-400 text-center py-8">Zatím žádné logy</p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {logs.map((log, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-[#1a1a24] border border-zinc-800 text-sm">
+                        <div>
+                          <code className="text-purple-400">{log.command}</code>
+                          <span className="text-zinc-400 ml-2">od {log.user}</span>
+                        </div>
+                        <span className="text-zinc-500">{log.timestamp}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
-};
+}
 
-// Main App Component
+// ============== Auth Provider ==============
+
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Skip auth check if we have user from location state (just logged in)
+    if (location.state?.user) {
+      setUser(location.state.user);
+      setLoading(false);
+      return;
+    }
+
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          credentials: "include"
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [location.state]);
+
+  const logout = async () => {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, logout, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// ============== App Router ==============
+
+function AppRouter() {
+  const location = useLocation();
+
+  // Check for session_id in URL hash BEFORE routing
+  if (location.hash?.includes('session_id=')) {
+    return <AuthCallback />;
+  }
+
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </AuthProvider>
+  );
+}
+
+// ============== Main App ==============
+
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/game/:type" element={<GamePage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-        </Routes>
-      </BrowserRouter>
+    <BrowserRouter>
+      <AppRouter />
       <Toaster position="top-center" richColors />
-    </div>
+    </BrowserRouter>
   );
 }
 
