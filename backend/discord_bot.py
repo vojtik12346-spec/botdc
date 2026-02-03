@@ -622,6 +622,14 @@ async def slash_help(interaction: discord.Interaction):
     )
     
     embed.add_field(
+        name="⏰ Utility",
+        value="""
+`/odpocet [čas] [důvod]` - Spusť odpočet (např. 2m, 1h)
+        """,
+        inline=False
+    )
+    
+    embed.add_field(
         name="💡 Prefix příkazy",
         value="Můžeš také použít `!` prefix: `!quiz`, `!math`, `!lb`, `!profile`",
         inline=False
