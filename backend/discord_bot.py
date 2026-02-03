@@ -201,11 +201,67 @@ def get_user_data(guild_id: int, user_id: int) -> dict:
             "daily_game_xp": 0,
             "last_game_xp_reset": None,
             "unlocked_games": [],
+            "completed_quests": {},  # {game_name: [completed_quest_indices]}
+            "game_times": {},  # {game_name: minutes}
             "total_game_time": 0,  # v minutách
             "created_at": datetime.now(timezone.utc)
         }
         users_collection.insert_one(user)
     return user
+
+def get_game_quests(game_name: str) -> list:
+    """Get quests for a specific game"""
+    if game_name in GAME_QUESTS:
+        return GAME_QUESTS[game_name]
+    return GAME_QUESTS["default"]
+
+def get_game_time(guild_id: int, user_id: int, game_name: str) -> int:
+    """Get total time played for a specific game"""
+    user = get_user_data(guild_id, user_id)
+    return user.get("game_times", {}).get(game_name, 0)
+
+async def check_and_complete_quests(guild_id: int, user_id: int, user_name: str, game_name: str, total_minutes: int, channel=None):
+    """Check if any quests are completed and give rewards"""
+    user = get_user_data(guild_id, user_id)
+    completed = user.get("completed_quests", {}).get(game_name, [])
+    quests = get_game_quests(game_name)
+    
+    newly_completed = []
+    total_xp = 0
+    
+    for i, quest in enumerate(quests):
+        if i not in completed and total_minutes >= quest["minutes"]:
+            newly_completed.append(i)
+            total_xp += quest["xp"]
+    
+    if newly_completed:
+        # Update completed quests
+        users_collection.update_one(
+            {"guild_id": guild_id, "user_id": user_id},
+            {"$set": {f"completed_quests.{game_name}": completed + newly_completed}}
+        )
+        
+        # Add XP
+        await add_xp(guild_id, user_id, user_name, total_xp, None)
+        
+        # Send notification
+        if channel:
+            for i in newly_completed:
+                quest = quests[i]
+                game_emoji = BONUS_GAMES.get(game_name, {}).get("emoji", "🎮")
+                
+                embed = discord.Embed(
+                    title=f"🎯 ÚKOL SPLNĚN!",
+                    description=f"**{user_name}** splnil/a úkol v **{game_name}**!",
+                    color=discord.Color.gold()
+                )
+                embed.add_field(name=f"{quest['emoji']} Úkol", value=quest["name"], inline=True)
+                embed.add_field(name="✨ Odměna", value=f"+{quest['xp']} XP", inline=True)
+                embed.add_field(name="⏱️ Čas", value=f"{total_minutes // 60}h {total_minutes % 60}m", inline=True)
+                embed.set_footer(text="Plň další úkoly a získávej XP!")
+                await channel.send(embed=embed)
+    
+    return total_xp
 
 def get_daily_game_xp(guild_id: int, user_id: int) -> int:
     """Get how much game XP user earned today"""
