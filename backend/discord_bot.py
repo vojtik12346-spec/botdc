@@ -1498,7 +1498,8 @@ async def prefix_ukoly(ctx, *, hra: str = None):
     embed.add_field(name="💰 XP", value=f"{earned_xp}/{total_xp}", inline=True)
     embed.add_field(name="✅ Splněno", value=f"{len(completed)}/{len(quests)}", inline=True)
     
-    await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 300))
 
 # ============== POLL SYSTEM ==============
 
