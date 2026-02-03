@@ -1409,10 +1409,8 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
             print(f"[GAME] ⏹️ {session['user_name']} skončil hrát: {session['game']} ({minutes_played} min)", flush=True)
             
             if minutes_played >= 10:
-                # Get notification channel
+                # Get notification channel - VŽDY do správného kanálu
                 channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
-                if not channel:
-                    channel = after.guild.system_channel
                 
                 xp_earned = await add_game_xp(
                     session["guild_id"],
