@@ -453,6 +453,15 @@ def format_time(seconds: int) -> str:
     
     return " ".join(parts)
 
+# Auto-delete helper
+async def delete_after(message, seconds: int = 300):
+    """Delete message after specified seconds (default 5 min)"""
+    await asyncio.sleep(seconds)
+    try:
+        await message.delete()
+    except:
+        pass
+
 # Store active countdowns
 active_countdowns = {}
 
