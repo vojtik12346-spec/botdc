@@ -377,16 +377,18 @@ async def add_xp(guild_id: int, user_id: int, user_name: str, xp_amount: int, ch
         {"$set": {"xp": new_xp, "name": user_name}}
     )
     
-    # Level up notification
-    if new_level > old_level and channel:
-        embed = discord.Embed(
-            title="🎉 LEVEL UP!",
-            description=f"**{user_name}** dosáhl/a **Level {new_level}**!",
-            color=discord.Color.gold()
-        )
-        embed.add_field(name="✨ XP", value=f"{new_xp} XP", inline=True)
-        embed.add_field(name="📈 Další level", value=f"{xp_for_level(new_level + 1)} XP", inline=True)
-        await channel.send(embed=embed)
+    # Level up notification - vždy do správného kanálu
+    if new_level > old_level:
+        notify_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+        if notify_channel:
+            embed = discord.Embed(
+                title="🎉 LEVEL UP!",
+                description=f"**{user_name}** dosáhl/a **Level {new_level}**!",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="✨ XP", value=f"{new_xp} XP", inline=True)
+            embed.add_field(name="📈 Další level", value=f"{xp_for_level(new_level + 1)} XP", inline=True)
+            await notify_channel.send(embed=embed)
         return True
     return False
 
