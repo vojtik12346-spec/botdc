@@ -975,7 +975,7 @@ const babelMetadataPlugin = ({ types: t }) => {
     if (t.isIdentifier(arrayNode)) {
       arrayVar = arrayNode.name;
       // Pass skipArrayContext to avoid infinite recursion
-      const arrayInfo = analyzeIdentifier(arrayVar, callExprParent.get("callee.object"), state, { skipArrayContext: true });
+      const arrayInfo = analyzeIdentifier(arrayVar, callExprParent.get("callee.object"), state, { skipArrayContext: true, depth: depth + 1 });
 
       if (arrayInfo) {
         arrayFile = arrayInfo.file || null;
