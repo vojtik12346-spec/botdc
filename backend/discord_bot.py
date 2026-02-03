@@ -1485,6 +1485,327 @@ FILM_DATABASE = {
     ]
 }
 
+# ============== PRAVDA/LEŽ KVÍZ ==============
+
+FACTS_DATABASE = [
+    # Zvířata - PRAVDA
+    {"fact": "Srdce garnáta je v jeho hlavě", "answer": True, "category": "zvířata"},
+    {"fact": "Krávy mají nejlepší kamarády a stresují se, když jsou od sebe odděleny", "answer": True, "category": "zvířata"},
+    {"fact": "Chobotnice mají tři srdce", "answer": True, "category": "zvířata"},
+    {"fact": "Hlemýždi mohou spát až 3 roky", "answer": True, "category": "zvířata"},
+    {"fact": "Slon je jediné zvíře, které neumí skákat", "answer": True, "category": "zvířata"},
+    {"fact": "Krokodýl nedokáže vypláznou jazyk", "answer": True, "category": "zvířata"},
+    {"fact": "Motýli ochutnávají nohama", "answer": True, "category": "zvířata"},
+    {"fact": "Plameňáci se rodí růžoví", "answer": False, "category": "zvířata"},
+    {"fact": "Pštrosi strkají hlavu do písku, když mají strach", "answer": False, "category": "zvířata"},
+    {"fact": "Netopýři jsou slepí", "answer": False, "category": "zvířata"},
+    {"fact": "Zlaté rybky mají paměť jen 3 sekundy", "answer": False, "category": "zvířata"},
+    {"fact": "Kočky mají 9 životů", "answer": False, "category": "zvířata"},
+    {"fact": "Delfíni spí s jedním okem otevřeným", "answer": True, "category": "zvířata"},
+    {"fact": "Koaly mají otisky prstů podobné lidským", "answer": True, "category": "zvířata"},
+    {"fact": "Žirafy nemají hlasivky a jsou úplně němé", "answer": False, "category": "zvířata"},
+    {"fact": "Včely umí rozpoznat lidské tváře", "answer": True, "category": "zvířata"},
+    {"fact": "Tučňáci mají kolena", "answer": True, "category": "zvířata"},
+    {"fact": "Pavouci mají 6 nohou", "answer": False, "category": "zvířata"},
+    
+    # Věda - PRAVDA
+    {"fact": "Blesk může udeřit dvakrát na stejné místo", "answer": True, "category": "věda"},
+    {"fact": "Lidské tělo obsahuje dost uhlíku na výrobu 9000 tužek", "answer": True, "category": "věda"},
+    {"fact": "Voda může být současně v kapalném i plynném stavu", "answer": True, "category": "věda"},
+    {"fact": "Banány jsou radioaktivní", "answer": True, "category": "věda"},
+    {"fact": "Sklo je ve skutečnosti tekutina", "answer": False, "category": "věda"},
+    {"fact": "Měsíc má vlastní světlo", "answer": False, "category": "věda"},
+    {"fact": "Hvězda, kterou vidíme, už možná neexistuje", "answer": True, "category": "věda"},
+    {"fact": "Na Venuši trvá den déle než rok", "answer": True, "category": "věda"},
+    {"fact": "Lidé používají jen 10% svého mozku", "answer": False, "category": "věda"},
+    {"fact": "Velká čínská zeď je vidět z vesmíru pouhým okem", "answer": False, "category": "věda"},
+    {"fact": "Diamant lze zničit ohněm", "answer": True, "category": "věda"},
+    {"fact": "Horká voda zamrzá rychleji než studená", "answer": True, "category": "věda"},
+    {"fact": "Severní pól má pevninu pod ledem", "answer": False, "category": "věda"},
+    {"fact": "Saturn by plaval ve vodě, kdyby byla dostatečně velká nádoba", "answer": True, "category": "věda"},
+    {"fact": "Na Marsu jsou sopky větší než Mount Everest", "answer": True, "category": "věda"},
+    {"fact": "Člověk může přežít ve vesmíru 2 minuty bez skafandru", "answer": False, "category": "věda"},
+    
+    # Historie
+    {"fact": "Kleopatra žila blíže k přistání na Měsíci než ke stavbě pyramid", "answer": True, "category": "historie"},
+    {"fact": "Vikingové nosili rohaté helmy", "answer": False, "category": "historie"},
+    {"fact": "Napoleon byl velmi malý", "answer": False, "category": "historie"},
+    {"fact": "Oxford univerzita je starší než Aztécká říše", "answer": True, "category": "historie"},
+    {"fact": "Albert Einstein propadl z matematiky", "answer": False, "category": "historie"},
+    {"fact": "Ve starověkém Římě existovala bohyně kanalizace", "answer": True, "category": "historie"},
+    {"fact": "Pyramidy byly původně bílé a lesklé", "answer": True, "category": "historie"},
+    {"fact": "Poslední poprava gilotinou ve Francii byla v roce 1977", "answer": True, "category": "historie"},
+    {"fact": "Coca-Cola byla původně zelená", "answer": False, "category": "historie"},
+    {"fact": "Titanic byl první loď, která použila SOS signál", "answer": False, "category": "historie"},
+    {"fact": "Česká republika má více hradů na km² než jakákoli jiná země", "answer": True, "category": "historie"},
+    {"fact": "První programátor na světě byla žena", "answer": True, "category": "historie"},
+    {"fact": "Edison vynalezl žárovku", "answer": False, "category": "historie"},
+    {"fact": "Čínská zeď je vidět z Měsíce", "answer": False, "category": "historie"},
+    
+    # Lidské tělo
+    {"fact": "Lidský nos dokáže rozpoznat bilion různých vůní", "answer": True, "category": "tělo"},
+    {"fact": "Nehty na rukou rostou rychleji než na nohou", "answer": True, "category": "tělo"},
+    {"fact": "Žaludek vytváří novou výstelku každé 3-4 dny", "answer": True, "category": "tělo"},
+    {"fact": "Člověk má víc než 5 smyslů", "answer": True, "category": "tělo"},
+    {"fact": "Krev je modrá, dokud se nedostane do kontaktu s kyslíkem", "answer": False, "category": "tělo"},
+    {"fact": "Vlasy rostou po smrti", "answer": False, "category": "tělo"},
+    {"fact": "Jazyk je nejsilnější sval v těle", "answer": False, "category": "tělo"},
+    {"fact": "Lidé mají unikátní otisk jazyka, jako otisky prstů", "answer": True, "category": "tělo"},
+    {"fact": "Dospělý člověk má 206 kostí", "answer": True, "category": "tělo"},
+    {"fact": "Novorozenec má více kostí než dospělý", "answer": True, "category": "tělo"},
+    {"fact": "Mozek necítí bolest", "answer": True, "category": "tělo"},
+    {"fact": "Člověk denně vytvoří 1-2 litry slin", "answer": True, "category": "tělo"},
+    {"fact": "Srdce bije i mimo tělo", "answer": True, "category": "tělo"},
+    {"fact": "Člověk se rodí bez koleních čéšek", "answer": True, "category": "tělo"},
+    
+    # Jídlo
+    {"fact": "Med nikdy nezkazí", "answer": True, "category": "jídlo"},
+    {"fact": "Rajčata jsou ovoce", "answer": True, "category": "jídlo"},
+    {"fact": "Jahody nejsou bobule, ale banány ano", "answer": True, "category": "jídlo"},
+    {"fact": "Arašídy jsou ořechy", "answer": False, "category": "jídlo"},
+    {"fact": "Wasabi, které dostanete v restauraci, je obvykle křen s barvivem", "answer": True, "category": "jídlo"},
+    {"fact": "Bílá čokoláda obsahuje čokoládu", "answer": False, "category": "jídlo"},
+    {"fact": "Kečup byl kdysi prodáván jako lék", "answer": True, "category": "jídlo"},
+    {"fact": "Muškátový oříšek ve velkém množství způsobuje halucinace", "answer": True, "category": "jídlo"},
+    {"fact": "Avokádo je ovoce", "answer": True, "category": "jídlo"},
+    {"fact": "Pomeranče se jmenují podle barvy", "answer": False, "category": "jídlo"},
+    {"fact": "Pálivost chilli papriček se měří ve Scoville jednotkách", "answer": True, "category": "jídlo"},
+    {"fact": "Brambory mají více chromozomů než člověk", "answer": True, "category": "jídlo"},
+    
+    # Česko
+    {"fact": "Praha je starší než Vídeň", "answer": True, "category": "česko"},
+    {"fact": "Češi pijí nejvíce piva na světě na osobu", "answer": True, "category": "česko"},
+    {"fact": "Slovo robot vymyslel Karel Čapek", "answer": False, "category": "česko"},
+    {"fact": "Kontaktní čočky vynalezl Čech", "answer": True, "category": "česko"},
+    {"fact": "Česká republika nemá moře", "answer": True, "category": "česko"},
+    {"fact": "Karlův most byl postaven za vlády Karla IV.", "answer": True, "category": "česko"},
+    {"fact": "Semtex byl vynalezen v Česku", "answer": True, "category": "česko"},
+    {"fact": "Kostka cukru byla vynalezena v Česku", "answer": True, "category": "česko"},
+    {"fact": "Václavské náměstí je ve skutečnosti bulvár, ne náměstí", "answer": True, "category": "česko"},
+    {"fact": "Česká hymna má jen jednu sloku", "answer": True, "category": "česko"},
+    {"fact": "Pražský orloj je nejstarší fungující astronomické hodiny na světě", "answer": True, "category": "česko"},
+    {"fact": "Slovo dolar pochází z českého tolaru", "answer": True, "category": "česko"},
+    
+    # Zábavné/Bizarní
+    {"fact": "V Japonsku existuje ostrov plný králíků", "answer": True, "category": "bizarní"},
+    {"fact": "Ve Švýcarsku je nelegální mít jen jednoho morčete", "answer": True, "category": "bizarní"},
+    {"fact": "Kachny kvákání nevytváří ozvěnu", "answer": False, "category": "bizarní"},
+    {"fact": "McDonald's prodává v Indii hovězí burgery", "answer": False, "category": "bizarní"},
+    {"fact": "LEGO vyrábí více pneumatik ročně než jakákoli jiná firma", "answer": True, "category": "bizarní"},
+    {"fact": "Twitter logo ptáček se jmenuje Larry", "answer": True, "category": "bizarní"},
+    {"fact": "Barbie má příjmení Roberts", "answer": True, "category": "bizarní"},
+    {"fact": "V angličtině existuje slovo pro strach z dlouhých slov", "answer": True, "category": "bizarní"},
+    {"fact": "Jazykolam je hippopotomonstrosesquipedaliofóbie", "answer": True, "category": "bizarní"},
+    {"fact": "Nintendo bylo založeno v roce 1889", "answer": True, "category": "bizarní"},
+    {"fact": "Průměrný člověk sní za život 8 pavouků ve spánku", "answer": False, "category": "bizarní"},
+    {"fact": "V Norsku existuje město s názvem Hell", "answer": True, "category": "bizarní"},
+    {"fact": "Kečup teče rychlostí 40 km za hodinu", "answer": False, "category": "bizarní"},
+    {"fact": "Emoji pro tvář s potem 😅 původně znamenalo úlevu, ne nervozitu", "answer": True, "category": "bizarní"},
+]
+
+# Active pravda/lež games
+active_truth_games = {}
+
+class TruthView(discord.ui.View):
+    def __init__(self, channel_id: int, correct_answer: bool, fact_text: str):
+        super().__init__(timeout=30)
+        self.channel_id = channel_id
+        self.correct_answer = correct_answer
+        self.fact_text = fact_text
+        self.answered_users = {}  # {user_id: {"name": name, "answer": bool}}
+    
+    @discord.ui.button(label="✅ PRAVDA", style=discord.ButtonStyle.success, custom_id="truth_true")
+    async def truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_answer(interaction, True)
+    
+    @discord.ui.button(label="❌ LEŽ", style=discord.ButtonStyle.danger, custom_id="truth_false")
+    async def lie_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_answer(interaction, False)
+    
+    async def handle_answer(self, interaction: discord.Interaction, user_answer: bool):
+        user_id = interaction.user.id
+        
+        if user_id in self.answered_users:
+            await interaction.response.send_message("❌ Už jsi odpověděl/a!", ephemeral=True)
+            return
+        
+        self.answered_users[user_id] = {
+            "name": interaction.user.display_name,
+            "answer": user_answer
+        }
+        
+        is_correct = user_answer == self.correct_answer
+        
+        if is_correct:
+            await interaction.response.send_message("✅ Správně! Počkej na výsledky...", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Špatně! Počkej na výsledky...", ephemeral=True)
+    
+    async def on_timeout(self):
+        # This is handled by the game loop
+        pass
+
+async def run_truth_game(channel, message, view: TruthView, fact_data: dict):
+    """Wait for answers and show results"""
+    await asyncio.sleep(15)  # Wait 15 seconds for answers
+    
+    # Disable buttons
+    for item in view.children:
+        item.disabled = True
+    
+    # Count results
+    correct_users = []
+    wrong_users = []
+    
+    for user_id, data in view.answered_users.items():
+        if data["answer"] == view.correct_answer:
+            correct_users.append(data["name"])
+        else:
+            wrong_users.append(data["name"])
+    
+    answer_text = "✅ PRAVDA" if view.correct_answer else "❌ LEŽ"
+    
+    embed = discord.Embed(
+        title="🎯 VÝSLEDKY",
+        description=f"**{view.fact_text}**",
+        color=discord.Color.green() if view.correct_answer else discord.Color.red()
+    )
+    embed.add_field(name="Správná odpověď", value=answer_text, inline=False)
+    
+    if correct_users:
+        embed.add_field(name=f"✅ Správně ({len(correct_users)})", value=", ".join(correct_users[:15]) or "Nikdo", inline=True)
+    if wrong_users:
+        embed.add_field(name=f"❌ Špatně ({len(wrong_users)})", value=", ".join(wrong_users[:15]) or "Nikdo", inline=True)
+    
+    if not view.answered_users:
+        embed.add_field(name="😢", value="Nikdo neodpověděl!", inline=False)
+    
+    embed.set_footer(text=f"Kategorie: {fact_data.get('category', 'obecné')}")
+    
+    try:
+        await message.edit(embed=embed, view=view)
+    except:
+        pass
+    
+    # Cleanup
+    if channel.id in active_truth_games:
+        del active_truth_games[channel.id]
+
+@bot.tree.command(name="pravda", description="Pravda nebo lež? Hádej jestli je fakt pravdivý!")
+@app_commands.describe(kategorie="Vyber kategorii faktů")
+@app_commands.choices(kategorie=[
+    app_commands.Choice(name="🐾 Zvířata", value="zvířata"),
+    app_commands.Choice(name="🔬 Věda", value="věda"),
+    app_commands.Choice(name="📜 Historie", value="historie"),
+    app_commands.Choice(name="🫀 Lidské tělo", value="tělo"),
+    app_commands.Choice(name="🍕 Jídlo", value="jídlo"),
+    app_commands.Choice(name="🇨🇿 Česko", value="česko"),
+    app_commands.Choice(name="🤪 Bizarní", value="bizarní"),
+    app_commands.Choice(name="🎲 Náhodné", value="random"),
+])
+async def slash_pravda(interaction: discord.Interaction, kategorie: str = "random"):
+    import random
+    
+    channel_id = interaction.channel_id
+    
+    if channel_id in active_truth_games:
+        await interaction.response.send_message("❌ V tomto kanálu už běží hra! Počkej na výsledky.", ephemeral=True)
+        return
+    
+    # Filter facts by category
+    if kategorie == "random":
+        available_facts = FACTS_DATABASE
+    else:
+        available_facts = [f for f in FACTS_DATABASE if f.get("category") == kategorie]
+    
+    if not available_facts:
+        available_facts = FACTS_DATABASE
+    
+    fact_data = random.choice(available_facts)
+    
+    active_truth_games[channel_id] = True
+    
+    view = TruthView(channel_id, fact_data["answer"], fact_data["fact"])
+    
+    category_names = {
+        "zvířata": "🐾 Zvířata", "věda": "🔬 Věda", "historie": "📜 Historie",
+        "tělo": "🫀 Lidské tělo", "jídlo": "🍕 Jídlo", "česko": "🇨🇿 Česko",
+        "bizarní": "🤪 Bizarní"
+    }
+    
+    embed = discord.Embed(
+        title="🤔 PRAVDA NEBO LEŽ?",
+        description=f"**{fact_data['fact']}**",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="📁 Kategorie", value=category_names.get(fact_data.get("category"), "Obecné"), inline=True)
+    embed.add_field(name="⏰ Čas", value="15 sekund", inline=True)
+    embed.set_footer(text="Klikni na tlačítko pro odpověď!")
+    
+    await interaction.response.send_message(embed=embed, view=view)
+    message = await interaction.original_response()
+    
+    # Start game loop
+    asyncio.create_task(run_truth_game(interaction.channel, message, view, fact_data))
+
+@bot.command(name="pravda", aliases=["pn", "fact", "fakt"])
+async def prefix_pravda(ctx, kategorie: str = "random"):
+    """!pravda [kategorie] - Pravda nebo lež hra"""
+    import random
+    
+    channel_id = ctx.channel.id
+    
+    if channel_id in active_truth_games:
+        await ctx.send("❌ V tomto kanálu už běží hra! Počkej na výsledky.")
+        return
+    
+    # Map category aliases
+    category_map = {
+        "zvirata": "zvířata", "zvířata": "zvířata", "animals": "zvířata",
+        "veda": "věda", "věda": "věda", "science": "věda",
+        "historie": "historie", "history": "historie",
+        "telo": "tělo", "tělo": "tělo", "body": "tělo",
+        "jidlo": "jídlo", "jídlo": "jídlo", "food": "jídlo",
+        "cesko": "česko", "česko": "česko", "cz": "česko",
+        "bizarni": "bizarní", "bizarní": "bizarní", "weird": "bizarní",
+        "random": "random", "nahodne": "random"
+    }
+    
+    kategorie = category_map.get(kategorie.lower(), "random")
+    
+    if kategorie == "random":
+        available_facts = FACTS_DATABASE
+    else:
+        available_facts = [f for f in FACTS_DATABASE if f.get("category") == kategorie]
+    
+    if not available_facts:
+        available_facts = FACTS_DATABASE
+    
+    fact_data = random.choice(available_facts)
+    
+    active_truth_games[channel_id] = True
+    
+    view = TruthView(channel_id, fact_data["answer"], fact_data["fact"])
+    
+    category_names = {
+        "zvířata": "🐾 Zvířata", "věda": "🔬 Věda", "historie": "📜 Historie",
+        "tělo": "🫀 Lidské tělo", "jídlo": "🍕 Jídlo", "česko": "🇨🇿 Česko",
+        "bizarní": "🤪 Bizarní"
+    }
+    
+    embed = discord.Embed(
+        title="🤔 PRAVDA NEBO LEŽ?",
+        description=f"**{fact_data['fact']}**",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="📁 Kategorie", value=category_names.get(fact_data.get("category"), "Obecné"), inline=True)
+    embed.add_field(name="⏰ Čas", value="15 sekund", inline=True)
+    embed.set_footer(text="Klikni na tlačítko pro odpověď!")
+    
+    message = await ctx.send(embed=embed, view=view)
+    
+    asyncio.create_task(run_truth_game(ctx.channel, message, view, fact_data))
+
 # Active film quizzes
 active_film_quiz = {}
 
