@@ -544,7 +544,7 @@ async def slash_help(interaction: discord.Interaction):
     )
     embed.add_field(
         name="🏆 Level systém",
-        value="`/gamelevel` `/top` `/daily`",
+        value="`/gamelevel` `/top` `/daily` `/hry`",
         inline=False
     )
     await interaction.response.send_message(embed=embed)
