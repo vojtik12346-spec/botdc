@@ -2161,7 +2161,7 @@ async def slash_pravda(interaction: discord.Interaction, kategorie: str = "rando
     message = await interaction.original_response()
     
     # Start game loop
-    asyncio.create_task(run_truth_game(interaction.channel, message, view, fact_data))
+    asyncio.create_task(run_truth_game(interaction.channel, message, view, fact_data, interaction.guild_id))
 
 @bot.command(name="pravda", aliases=["pn", "fact", "fakt"])
 async def prefix_pravda(ctx, kategorie: str = "random"):
