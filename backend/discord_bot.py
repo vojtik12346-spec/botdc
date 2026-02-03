@@ -1586,6 +1586,11 @@ async def on_message(message):
     
     channel_id = message.channel.id
     
+    # Debug log
+    print(f"[DEBUG] Message from {message.author}: '{message.content}' in channel {channel_id}", flush=True)
+    print(f"[DEBUG] Active music quizzes: {list(active_music_quiz.keys())}", flush=True)
+    print(f"[DEBUG] Active film quizzes: {list(active_film_quiz.keys())}", flush=True)
+    
     # Check for active MUSIC quiz
     if channel_id in active_music_quiz:
         quiz_data = active_music_quiz[channel_id]
