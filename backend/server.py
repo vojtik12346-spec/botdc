@@ -482,6 +482,81 @@ async def get_logs(request: Request, limit: int = 50):
     
     return logs
 
+# ============== Bot Settings API ==============
+
+class BotSettings(BaseModel):
+    notificationChannelId: str = "1468355022159872073"
+    pingRoleId: str = "485172457544744972"
+    xpPerQuiz: int = 25
+    xpPerTruth: int = 15
+    xpPer10Min: int = 5
+    xpDailyLimit: int = 200
+    xpUnlockBonus: int = 25
+    dailyBonus: int = 100
+    streakBonus: int = 10
+    autoDeleteSeconds: int = 60
+    adminOnlyQuiz: bool = True
+
+@api_router.get("/bot/stats")
+async def get_bot_stats():
+    """Get bot statistics"""
+    try:
+        total_users = await db.game_users.count_documents({})
+        
+        # Get total XP
+        pipeline = [{"$group": {"_id": None, "total_xp": {"$sum": "$xp"}}}]
+        result = await db.game_users.aggregate(pipeline).to_list(1)
+        total_xp = result[0]["total_xp"] if result else 0
+        
+        # Get total games
+        pipeline2 = [{"$group": {"_id": None, "total_games": {"$sum": "$total_games"}}}]
+        result2 = await db.game_users.aggregate(pipeline2).to_list(1)
+        total_games = result2[0]["total_games"] if result2 else 0
+        
+        # Active today (simplified - users with recent activity)
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        active_today = await db.game_users.count_documents({
+            "last_daily": {"$gte": today.isoformat()}
+        })
+        
+        return {
+            "totalUsers": total_users,
+            "totalXp": total_xp,
+            "totalGames": total_games,
+            "activeToday": active_today
+        }
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        return {
+            "totalUsers": 0,
+            "totalXp": 0,
+            "totalGames": 0,
+            "activeToday": 0
+        }
+
+@api_router.get("/bot/settings")
+async def get_bot_settings():
+    """Get bot settings"""
+    settings = await db.bot_settings.find_one({"type": "global"}, {"_id": 0})
+    if not settings:
+        return BotSettings().dict()
+    return settings
+
+@api_router.post("/bot/settings")
+async def update_bot_settings(settings: BotSettings):
+    """Update bot settings"""
+    data = settings.dict()
+    data["type"] = "global"
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.bot_settings.update_one(
+        {"type": "global"},
+        {"$set": data},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Nastavení uloženo"}
+
 # ============== Health Check ==============
 
 @api_router.get("/")
