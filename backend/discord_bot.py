@@ -275,18 +275,17 @@ async def slash_help(interaction: discord.Interaction):
     )
     embed.add_field(
         name="⏰ Odpočet",
-        value="""
-`/odpocet [čas] [důvod]` - Spusť odpočet
-`!odpocet [čas] [důvod]` - Prefix verze
-        """,
+        value="`/odpocet [čas] [důvod]`",
         inline=False
     )
     embed.add_field(
         name="📊 Ankety",
-        value="""
-`/poll [otázka] [možnosti] [čas]` - Vytvoř anketu
-`!poll 5m Otázka? | Ano, Ne, Možná`
-        """,
+        value="`/poll [otázka] [možnosti] [čas]`",
+        inline=False
+    )
+    embed.add_field(
+        name="🎵 Hudební kvíz",
+        value="`/hudba [žánr]` - rap, pop, rock, classic",
         inline=False
     )
     embed.add_field(
@@ -306,6 +305,16 @@ async def prefix_help(ctx):
     embed.add_field(
         name="⏰ Odpočet",
         value="`!odpocet [čas] [důvod]`",
+        inline=False
+    )
+    embed.add_field(
+        name="📊 Ankety",
+        value="`!poll 5m Otázka? | Možnost1, Možnost2`",
+        inline=False
+    )
+    embed.add_field(
+        name="🎵 Hudební kvíz",
+        value="`!hudba [rap/pop/rock/classic]`",
         inline=False
     )
     embed.add_field(
