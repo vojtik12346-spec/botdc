@@ -393,6 +393,11 @@ async def slash_help(interaction: discord.Interaction):
         value="`30s`, `2m`, `1h`, `1d`",
         inline=False
     )
+    embed.add_field(
+        name="🏆 Level systém",
+        value="`/gamelevel` `/top` `/daily`",
+        inline=False
+    )
     await interaction.response.send_message(embed=embed)
 
 @bot.command(name="pomoc")
@@ -432,6 +437,317 @@ async def prefix_help(ctx):
         value="`!stop` - zastaví běžící kvíz",
         inline=False
     )
+    embed.add_field(
+        name="🏆 Level systém",
+        value="`!level` `!top` `!daily`",
+        inline=False
+    )
+    await ctx.send(embed=embed)
+
+# ============== GAME LEVEL SYSTEM ==============
+
+LEVEL_BADGES = {
+    1: "🌱", 2: "🌿", 3: "🌳", 4: "⭐", 5: "🌟",
+    10: "💫", 15: "🔥", 20: "💎", 25: "👑", 30: "🏆",
+    40: "🎯", 50: "🚀", 75: "🌈", 100: "🏅"
+}
+
+def get_badge(level: int) -> str:
+    """Get badge for level"""
+    badge = "🌱"
+    for lvl, b in sorted(LEVEL_BADGES.items()):
+        if level >= lvl:
+            badge = b
+    return badge
+
+def create_progress_bar(current: int, total: int, length: int = 10) -> str:
+    """Create a visual progress bar"""
+    if total == 0:
+        return "▓" * length
+    filled = int((current / total) * length)
+    empty = length - filled
+    return "▓" * filled + "░" * empty
+
+@bot.tree.command(name="gamelevel", description="Zobraz svůj herní level a statistiky")
+async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member = None):
+    target = hrac or interaction.user
+    user_data = get_user_data(interaction.guild_id, target.id)
+    
+    level = calculate_level(user_data["xp"])
+    current_level_xp = xp_for_level(level)
+    next_level_xp = xp_for_level(level + 1)
+    xp_progress = user_data["xp"] - current_level_xp
+    xp_needed = next_level_xp - current_level_xp
+    
+    badge = get_badge(level)
+    progress_bar = create_progress_bar(xp_progress, xp_needed, 12)
+    
+    accuracy = 0
+    if user_data.get("total_games", 0) > 0:
+        accuracy = (user_data.get("total_correct", 0) / user_data["total_games"]) * 100
+    
+    embed = discord.Embed(
+        title=f"{badge} {target.display_name}",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    
+    embed.add_field(
+        name="📊 Level",
+        value=f"**Level {level}**",
+        inline=True
+    )
+    embed.add_field(
+        name="✨ XP",
+        value=f"**{user_data['xp']}** XP",
+        inline=True
+    )
+    embed.add_field(
+        name="🔥 Streak",
+        value=f"**{user_data.get('streak', 0)}** dnů",
+        inline=True
+    )
+    
+    embed.add_field(
+        name=f"📈 Progress ({xp_progress}/{xp_needed} XP)",
+        value=f"`{progress_bar}`",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🎮 Hry",
+        value=f"{user_data.get('total_games', 0)}",
+        inline=True
+    )
+    embed.add_field(
+        name="✅ Správně",
+        value=f"{user_data.get('total_correct', 0)}",
+        inline=True
+    )
+    embed.add_field(
+        name="🎯 Přesnost",
+        value=f"{accuracy:.1f}%",
+        inline=True
+    )
+    
+    embed.set_footer(text="Získej XP hraním kvízů! • /hudba /film /pravda")
+    
+    await interaction.response.send_message(embed=embed)
+
+@bot.command(name="level", aliases=["lvl", "gamelevel", "rank", "xp"])
+async def prefix_gamelevel(ctx, hrac: discord.Member = None):
+    """!level - Zobraz svůj level"""
+    target = hrac or ctx.author
+    user_data = get_user_data(ctx.guild.id, target.id)
+    
+    level = calculate_level(user_data["xp"])
+    current_level_xp = xp_for_level(level)
+    next_level_xp = xp_for_level(level + 1)
+    xp_progress = user_data["xp"] - current_level_xp
+    xp_needed = next_level_xp - current_level_xp
+    
+    badge = get_badge(level)
+    progress_bar = create_progress_bar(xp_progress, xp_needed, 12)
+    
+    accuracy = 0
+    if user_data.get("total_games", 0) > 0:
+        accuracy = (user_data.get("total_correct", 0) / user_data["total_games"]) * 100
+    
+    embed = discord.Embed(
+        title=f"{badge} {target.display_name}",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    embed.add_field(name="📊 Level", value=f"**Level {level}**", inline=True)
+    embed.add_field(name="✨ XP", value=f"**{user_data['xp']}** XP", inline=True)
+    embed.add_field(name="🔥 Streak", value=f"**{user_data.get('streak', 0)}** dnů", inline=True)
+    embed.add_field(name=f"📈 Progress ({xp_progress}/{xp_needed} XP)", value=f"`{progress_bar}`", inline=False)
+    embed.add_field(name="🎮 Hry", value=f"{user_data.get('total_games', 0)}", inline=True)
+    embed.add_field(name="✅ Správně", value=f"{user_data.get('total_correct', 0)}", inline=True)
+    embed.add_field(name="🎯 Přesnost", value=f"{accuracy:.1f}%", inline=True)
+    embed.set_footer(text="Získej XP hraním kvízů!")
+    
+    await ctx.send(embed=embed)
+
+@bot.tree.command(name="top", description="Zobraz žebříček hráčů")
+async def slash_top(interaction: discord.Interaction):
+    # Get top 10 users for this guild
+    top_users = list(users_collection.find(
+        {"guild_id": interaction.guild_id}
+    ).sort("xp", -1).limit(10))
+    
+    if not top_users:
+        await interaction.response.send_message("📊 Zatím nikdo nehrál! Začni s `/hudba` nebo `/film`", ephemeral=True)
+        return
+    
+    embed = discord.Embed(
+        title="🏆 TOP HRÁČI",
+        color=discord.Color.gold()
+    )
+    
+    medals = ["🥇", "🥈", "🥉"]
+    leaderboard = []
+    
+    for i, user in enumerate(top_users):
+        level = calculate_level(user["xp"])
+        badge = get_badge(level)
+        medal = medals[i] if i < 3 else f"`{i+1}.`"
+        name = user.get("name", f"Hráč {user['user_id']}")
+        leaderboard.append(f"{medal} {badge} **{name}** • Level {level} • {user['xp']} XP")
+    
+    embed.description = "\n".join(leaderboard)
+    embed.set_footer(text="Získej XP hraním kvízů! • /hudba /film /pravda")
+    
+    await interaction.response.send_message(embed=embed)
+
+@bot.command(name="top", aliases=["leaderboard", "lb", "zebricek"])
+async def prefix_top(ctx):
+    """!top - Zobraz žebříček"""
+    top_users = list(users_collection.find(
+        {"guild_id": ctx.guild.id}
+    ).sort("xp", -1).limit(10))
+    
+    if not top_users:
+        await ctx.send("📊 Zatím nikdo nehrál! Začni s `!hudba` nebo `!film`")
+        return
+    
+    embed = discord.Embed(title="🏆 TOP HRÁČI", color=discord.Color.gold())
+    
+    medals = ["🥇", "🥈", "🥉"]
+    leaderboard = []
+    
+    for i, user in enumerate(top_users):
+        level = calculate_level(user["xp"])
+        badge = get_badge(level)
+        medal = medals[i] if i < 3 else f"`{i+1}.`"
+        name = user.get("name", f"Hráč {user['user_id']}")
+        leaderboard.append(f"{medal} {badge} **{name}** • Level {level} • {user['xp']} XP")
+    
+    embed.description = "\n".join(leaderboard)
+    await ctx.send(embed=embed)
+
+@bot.tree.command(name="daily", description="Získej denní bonus XP!")
+async def slash_daily(interaction: discord.Interaction):
+    guild_id = interaction.guild_id
+    user_id = interaction.user.id
+    user_data = get_user_data(guild_id, user_id)
+    
+    now = datetime.now(timezone.utc)
+    last_daily = user_data.get("last_daily")
+    
+    if last_daily:
+        if isinstance(last_daily, str):
+            last_daily = datetime.fromisoformat(last_daily.replace('Z', '+00:00'))
+        
+        time_diff = now - last_daily
+        if time_diff.total_seconds() < 86400:  # 24 hours
+            remaining = 86400 - time_diff.total_seconds()
+            hours = int(remaining // 3600)
+            minutes = int((remaining % 3600) // 60)
+            await interaction.response.send_message(
+                f"⏰ Denní bonus už jsi dnes vybral/a!\nDalší za **{hours}h {minutes}m**",
+                ephemeral=True
+            )
+            return
+        
+        # Check streak
+        if time_diff.total_seconds() < 172800:  # 48 hours - streak continues
+            new_streak = user_data.get("streak", 0) + 1
+        else:
+            new_streak = 1  # Streak reset
+    else:
+        new_streak = 1
+    
+    # Calculate bonus
+    base_xp = XP_REWARDS["daily"]
+    streak_bonus = min(new_streak - 1, 10) * XP_REWARDS["streak_bonus"]  # Max 10 days bonus
+    total_xp = base_xp + streak_bonus
+    
+    # Update user
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {
+            "$set": {"last_daily": now, "streak": new_streak},
+            "$inc": {"xp": total_xp}
+        }
+    )
+    
+    new_xp = user_data["xp"] + total_xp
+    new_level = calculate_level(new_xp)
+    old_level = calculate_level(user_data["xp"])
+    
+    embed = discord.Embed(
+        title="🎁 DENNÍ BONUS!",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="✨ Získáno", value=f"+**{total_xp}** XP", inline=True)
+    embed.add_field(name="🔥 Streak", value=f"**{new_streak}** dnů", inline=True)
+    
+    if streak_bonus > 0:
+        embed.add_field(name="💫 Streak bonus", value=f"+{streak_bonus} XP", inline=True)
+    
+    embed.set_footer(text="Vrať se zítra pro další bonus!")
+    
+    await interaction.response.send_message(embed=embed)
+    
+    # Level up check
+    if new_level > old_level:
+        badge = get_badge(new_level)
+        level_embed = discord.Embed(
+            title="🎉 LEVEL UP!",
+            description=f"**{interaction.user.display_name}** dosáhl/a **Level {new_level}** {badge}!",
+            color=discord.Color.gold()
+        )
+        await interaction.channel.send(embed=level_embed)
+
+@bot.command(name="daily", aliases=["denni", "bonus"])
+async def prefix_daily(ctx):
+    """!daily - Získej denní bonus"""
+    guild_id = ctx.guild.id
+    user_id = ctx.author.id
+    user_data = get_user_data(guild_id, user_id)
+    
+    now = datetime.now(timezone.utc)
+    last_daily = user_data.get("last_daily")
+    
+    if last_daily:
+        if isinstance(last_daily, str):
+            last_daily = datetime.fromisoformat(last_daily.replace('Z', '+00:00'))
+        
+        time_diff = now - last_daily
+        if time_diff.total_seconds() < 86400:
+            remaining = 86400 - time_diff.total_seconds()
+            hours = int(remaining // 3600)
+            minutes = int((remaining % 3600) // 60)
+            await ctx.send(f"⏰ Denní bonus už jsi dnes vybral/a! Další za **{hours}h {minutes}m**")
+            return
+        
+        if time_diff.total_seconds() < 172800:
+            new_streak = user_data.get("streak", 0) + 1
+        else:
+            new_streak = 1
+    else:
+        new_streak = 1
+    
+    base_xp = XP_REWARDS["daily"]
+    streak_bonus = min(new_streak - 1, 10) * XP_REWARDS["streak_bonus"]
+    total_xp = base_xp + streak_bonus
+    
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {
+            "$set": {"last_daily": now, "streak": new_streak},
+            "$inc": {"xp": total_xp}
+        }
+    )
+    
+    embed = discord.Embed(title="🎁 DENNÍ BONUS!", color=discord.Color.green())
+    embed.add_field(name="✨ Získáno", value=f"+**{total_xp}** XP", inline=True)
+    embed.add_field(name="🔥 Streak", value=f"**{new_streak}** dnů", inline=True)
+    if streak_bonus > 0:
+        embed.add_field(name="💫 Streak bonus", value=f"+{streak_bonus} XP", inline=True)
+    embed.set_footer(text="Vrať se zítra pro další bonus!")
+    
     await ctx.send(embed=embed)
 
 # ============== POLL SYSTEM ==============
