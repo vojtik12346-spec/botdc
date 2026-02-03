@@ -2056,7 +2056,7 @@ class TruthView(discord.ui.View):
         # This is handled by the game loop
         pass
 
-async def run_truth_game(channel, message, view: TruthView, fact_data: dict):
+async def run_truth_game(channel, message, view: TruthView, fact_data: dict, guild_id: int):
     """Wait for answers and show results"""
     await asyncio.sleep(15)  # Wait 15 seconds for answers
     
@@ -2064,15 +2064,19 @@ async def run_truth_game(channel, message, view: TruthView, fact_data: dict):
     for item in view.children:
         item.disabled = True
     
-    # Count results
+    # Count results and give XP
     correct_users = []
     wrong_users = []
     
     for user_id, data in view.answered_users.items():
         if data["answer"] == view.correct_answer:
             correct_users.append(data["name"])
+            # Add XP for correct answer
+            await add_xp(guild_id, user_id, data["name"], XP_REWARDS["truth_correct"], channel)
+            increment_stats(guild_id, user_id, correct=True)
         else:
             wrong_users.append(data["name"])
+            increment_stats(guild_id, user_id, correct=False)
     
     answer_text = "✅ PRAVDA" if view.correct_answer else "❌ LEŽ"
     
@@ -2084,7 +2088,7 @@ async def run_truth_game(channel, message, view: TruthView, fact_data: dict):
     embed.add_field(name="Správná odpověď", value=answer_text, inline=False)
     
     if correct_users:
-        embed.add_field(name=f"✅ Správně ({len(correct_users)})", value=", ".join(correct_users[:15]) or "Nikdo", inline=True)
+        embed.add_field(name=f"✅ Správně ({len(correct_users)}) +{XP_REWARDS['truth_correct']} XP", value=", ".join(correct_users[:15]) or "Nikdo", inline=True)
     if wrong_users:
         embed.add_field(name=f"❌ Špatně ({len(wrong_users)})", value=", ".join(wrong_users[:15]) or "Nikdo", inline=True)
     
