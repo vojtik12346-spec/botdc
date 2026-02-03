@@ -294,6 +294,11 @@ async def slash_help(interaction: discord.Interaction):
         inline=False
     )
     embed.add_field(
+        name="🤔 Pravda/Lež",
+        value="`/pravda [kategorie]` - zvířata, věda, historie, tělo, jídlo, česko, bizarní",
+        inline=False
+    )
+    embed.add_field(
         name="🛑 Zastavit kvíz",
         value="`/stop` - zastaví běžící kvíz",
         inline=False
