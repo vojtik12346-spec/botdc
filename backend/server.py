@@ -1,15 +1,16 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict
 import uuid
-from datetime import datetime, timezone
-import random
+from datetime import datetime, timezone, timedelta
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,411 +20,336 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
 app = FastAPI()
-
-# Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ============== Models ==============
+# ============== Auth Models ==============
 
-class User(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    username: str
-    total_score: int = 0
-    quiz_score: int = 0
-    math_score: int = 0
-    games_played: int = 0
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class UserCreate(BaseModel):
-    username: str
-
-class QuestionRequest(BaseModel):
-    difficulty: str = "medium"  # easy, medium, hard
-    question_type: str = "quiz"  # quiz, math_calc, math_equation, math_puzzle
-
-class QuestionResponse(BaseModel):
-    id: str
-    question: str
-    options: List[str]
-    correct_answer: str
-    difficulty: str
-    question_type: str
-    time_limit: int
-    xp_reward: int
-
-class AnswerSubmit(BaseModel):
-    question_id: str
+class UserSession(BaseModel):
     user_id: str
-    selected_answer: str
-    time_taken: float
+    email: str
+    name: str
+    picture: Optional[str] = None
+    session_token: str
+    expires_at: datetime
 
-class AnswerResult(BaseModel):
-    correct: bool
-    correct_answer: str
-    xp_earned: int
-    mee6_command: str
-
-class LeaderboardEntry(BaseModel):
-    rank: int
-    username: str
-    total_score: int
-    games_played: int
-
-class GameSession(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+class DashboardUser(BaseModel):
     user_id: str
-    game_type: str
-    score: int = 0
-    questions_answered: int = 0
-    correct_answers: int = 0
-    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    ended_at: Optional[datetime] = None
+    email: str
+    name: str
+    picture: Optional[str] = None
+    discord_id: Optional[str] = None
 
-# ============== Question Generation ==============
+class GuildSettings(BaseModel):
+    guild_id: str
+    guild_name: str
+    quiz_time: int = 60
+    quiz_rounds: int = 5
+    poll_enabled: bool = True
+    countdown_enabled: bool = True
 
-# Predefined quiz questions
-QUIZ_QUESTIONS = {
-    "easy": [
-        {"q": "Kolik má rok měsíců?", "options": ["10", "11", "12", "13"], "answer": "12"},
-        {"q": "Jaká je hlavní město České republiky?", "options": ["Brno", "Praha", "Ostrava", "Plzeň"], "answer": "Praha"},
-        {"q": "Kolik nohou má pavouk?", "options": ["6", "8", "10", "4"], "answer": "8"},
-        {"q": "Jaká barva vznikne smícháním modré a žluté?", "options": ["Oranžová", "Zelená", "Fialová", "Hnědá"], "answer": "Zelená"},
-        {"q": "Kolik dní má týden?", "options": ["5", "6", "7", "8"], "answer": "7"},
-    ],
-    "medium": [
-        {"q": "Ve kterém roce padla Berlínská zeď?", "options": ["1987", "1989", "1991", "1985"], "answer": "1989"},
-        {"q": "Jaká je chemická značka zlata?", "options": ["Ag", "Au", "Fe", "Cu"], "answer": "Au"},
-        {"q": "Kdo napsal Hamleta?", "options": ["Dickens", "Shakespeare", "Goethe", "Čapek"], "answer": "Shakespeare"},
-        {"q": "Kolik kostí má dospělý člověk?", "options": ["186", "206", "226", "256"], "answer": "206"},
-        {"q": "Jaká planeta je nejblíže Slunci?", "options": ["Venuše", "Mars", "Merkur", "Země"], "answer": "Merkur"},
-    ],
-    "hard": [
-        {"q": "V jakém roce byla založena OSN?", "options": ["1942", "1945", "1948", "1950"], "answer": "1945"},
-        {"q": "Jaká je nejvyšší hora Afriky?", "options": ["Mount Kenya", "Kilimandžáro", "Mount Stanley", "Atlas"], "answer": "Kilimandžáro"},
-        {"q": "Kolik planet ve sluneční soustavě má prstence?", "options": ["1", "2", "3", "4"], "answer": "4"},
-        {"q": "Jaký prvek má atomové číslo 79?", "options": ["Stříbro", "Platina", "Zlato", "Měď"], "answer": "Zlato"},
-        {"q": "Kdo formuloval teorii relativity?", "options": ["Newton", "Einstein", "Hawking", "Bohr"], "answer": "Einstein"},
-    ]
-}
+# ============== Auth Helpers ==============
 
-def generate_math_calc(difficulty: str) -> dict:
-    """Generate calculation problems"""
-    if difficulty == "easy":
-        a, b = random.randint(1, 20), random.randint(1, 20)
-        op = random.choice(["+", "-"])
-    elif difficulty == "medium":
-        a, b = random.randint(10, 50), random.randint(1, 20)
-        op = random.choice(["+", "-", "*"])
+async def get_current_user(request: Request) -> Optional[DashboardUser]:
+    """Get current user from session token cookie or Authorization header"""
+    session_token = request.cookies.get("session_token")
+    
+    if not session_token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            session_token = auth_header[7:]
+    
+    if not session_token:
+        return None
+    
+    session = await db.user_sessions.find_one(
+        {"session_token": session_token},
+        {"_id": 0}
+    )
+    
+    if not session:
+        return None
+    
+    # Check expiry
+    expires_at = session.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
+        return None
+    
+    user = await db.dashboard_users.find_one(
+        {"user_id": session["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not user:
+        return None
+    
+    return DashboardUser(**user)
+
+# ============== Auth Routes ==============
+
+@api_router.post("/auth/session")
+async def create_session(request: Request, response: Response):
+    """Exchange session_id for session_token"""
+    data = await request.json()
+    session_id = data.get("session_id")
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Missing session_id")
+    
+    # Call Emergent Auth API
+    async with httpx.AsyncClient() as client:
+        try:
+            auth_response = await client.get(
+                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+                headers={"X-Session-ID": session_id}
+            )
+            
+            if auth_response.status_code != 200:
+                raise HTTPException(status_code=401, detail="Invalid session")
+            
+            auth_data = auth_response.json()
+        except Exception as e:
+            logger.error(f"Auth error: {e}")
+            raise HTTPException(status_code=401, detail="Authentication failed")
+    
+    # Create or update user
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    existing_user = await db.dashboard_users.find_one({"email": auth_data["email"]}, {"_id": 0})
+    
+    if existing_user:
+        user_id = existing_user["user_id"]
+        await db.dashboard_users.update_one(
+            {"email": auth_data["email"]},
+            {"$set": {
+                "name": auth_data["name"],
+                "picture": auth_data.get("picture"),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
     else:
-        a, b = random.randint(20, 100), random.randint(2, 15)
-        op = random.choice(["+", "-", "*", "//"])
+        await db.dashboard_users.insert_one({
+            "user_id": user_id,
+            "email": auth_data["email"],
+            "name": auth_data["name"],
+            "picture": auth_data.get("picture"),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
     
-    if op == "+":
-        answer = a + b
-        question = f"{a} + {b} = ?"
-    elif op == "-":
-        if a < b:
-            a, b = b, a
-        answer = a - b
-        question = f"{a} - {b} = ?"
-    elif op == "*":
-        answer = a * b
-        question = f"{a} × {b} = ?"
-    else:
-        a = b * random.randint(2, 10)
-        answer = a // b
-        question = f"{a} ÷ {b} = ?"
+    # Create session
+    session_token = auth_data.get("session_token", f"session_{uuid.uuid4().hex}")
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     
-    options = [str(answer)]
-    while len(options) < 4:
-        fake = answer + random.randint(-10, 10)
-        if fake != answer and str(fake) not in options and fake >= 0:
-            options.append(str(fake))
-    random.shuffle(options)
+    await db.user_sessions.insert_one({
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
-    return {"q": question, "options": options, "answer": str(answer)}
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    user = await db.dashboard_users.find_one({"user_id": user_id}, {"_id": 0})
+    return user
 
-def generate_math_equation(difficulty: str) -> dict:
-    """Generate equation problems"""
-    if difficulty == "easy":
-        x = random.randint(1, 10)
-        b = random.randint(1, 10)
-        result = x + b
-        question = f"x + {b} = {result}, x = ?"
-    elif difficulty == "medium":
-        x = random.randint(2, 12)
-        a = random.randint(2, 5)
-        result = a * x
-        question = f"{a}x = {result}, x = ?"
-    else:
-        x = random.randint(1, 10)
-        a = random.randint(2, 5)
-        b = random.randint(1, 10)
-        result = a * x + b
-        question = f"{a}x + {b} = {result}, x = ?"
-    
-    options = [str(x)]
-    while len(options) < 4:
-        fake = x + random.randint(-5, 5)
-        if fake != x and str(fake) not in options and fake > 0:
-            options.append(str(fake))
-    random.shuffle(options)
-    
-    return {"q": question, "options": options, "answer": str(x)}
+@api_router.get("/auth/me")
+async def get_me(request: Request):
+    """Get current authenticated user"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
 
-def generate_math_puzzle(difficulty: str) -> dict:
-    """Generate math puzzles"""
-    puzzles = {
-        "easy": [
-            {"q": "Jaké číslo následuje: 2, 4, 6, 8, ?", "options": ["9", "10", "11", "12"], "answer": "10"},
-            {"q": "5 + 5 ÷ 5 = ?", "options": ["2", "6", "10", "1"], "answer": "6"},
-            {"q": "Kolik je polovina z 50?", "options": ["20", "25", "30", "15"], "answer": "25"},
+@api_router.post("/auth/logout")
+async def logout(request: Request, response: Response):
+    """Logout and clear session"""
+    session_token = request.cookies.get("session_token")
+    
+    if session_token:
+        await db.user_sessions.delete_one({"session_token": session_token})
+    
+    response.delete_cookie(key="session_token", path="/")
+    return {"message": "Logged out"}
+
+# ============== Bot Settings Routes ==============
+
+@api_router.get("/settings")
+async def get_all_settings(request: Request):
+    """Get all guild settings"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    settings = await db.guild_settings.find({}, {"_id": 0}).to_list(100)
+    return settings
+
+@api_router.get("/settings/{guild_id}")
+async def get_guild_settings(guild_id: str, request: Request):
+    """Get settings for a specific guild"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    settings = await db.guild_settings.find_one({"guild_id": guild_id}, {"_id": 0})
+    
+    if not settings:
+        # Return defaults
+        return {
+            "guild_id": guild_id,
+            "guild_name": "Unknown",
+            "quiz_time": 60,
+            "quiz_rounds": 5,
+            "poll_enabled": True,
+            "countdown_enabled": True
+        }
+    
+    return settings
+
+@api_router.post("/settings/{guild_id}")
+async def update_guild_settings(guild_id: str, request: Request):
+    """Update settings for a guild"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    data = await request.json()
+    
+    # Validate
+    if "quiz_time" in data:
+        if data["quiz_time"] < 30 or data["quiz_time"] > 300:
+            raise HTTPException(status_code=400, detail="quiz_time must be 30-300")
+    
+    if "quiz_rounds" in data:
+        if data["quiz_rounds"] < 1 or data["quiz_rounds"] > 20:
+            raise HTTPException(status_code=400, detail="quiz_rounds must be 1-20")
+    
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    data["updated_by"] = user.user_id
+    
+    await db.guild_settings.update_one(
+        {"guild_id": guild_id},
+        {"$set": data},
+        upsert=True
+    )
+    
+    settings = await db.guild_settings.find_one({"guild_id": guild_id}, {"_id": 0})
+    return settings
+
+# ============== Stats Routes ==============
+
+@api_router.get("/stats")
+async def get_stats(request: Request):
+    """Get bot statistics"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Get counts
+    total_users = await db.quiz_users.count_documents({})
+    total_quizzes = await db.quiz_logs.count_documents({})
+    total_polls = await db.poll_logs.count_documents({})
+    
+    # Get leaderboard
+    leaderboard = await db.quiz_users.find(
+        {},
+        {"_id": 0}
+    ).sort("score", -1).limit(10).to_list(10)
+    
+    return {
+        "total_users": total_users,
+        "total_quizzes": total_quizzes,
+        "total_polls": total_polls,
+        "leaderboard": leaderboard
+    }
+
+@api_router.get("/songs")
+async def get_songs(request: Request):
+    """Get all songs in quiz database"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Return predefined songs from bot
+    songs = {
+        "rap": [
+            {"artist": "Yzomandias", "song": "Po svým"},
+            {"artist": "Viktor Sheen", "song": "Barvy"},
+            {"artist": "Calin", "song": "Jednou"},
+            {"artist": "Nik Tendo", "song": "Stovky"},
+            {"artist": "Sergei Barracuda", "song": "Nahoře"},
+            {"artist": "Hasan", "song": "Makám"},
         ],
-        "medium": [
-            {"q": "Jaké číslo následuje: 1, 1, 2, 3, 5, 8, ?", "options": ["11", "12", "13", "14"], "answer": "13"},
-            {"q": "3² + 4² = ?", "options": ["12", "25", "49", "7"], "answer": "25"},
-            {"q": "√144 = ?", "options": ["10", "11", "12", "14"], "answer": "12"},
+        "pop": [
+            {"artist": "Mirai", "song": "Holky z naší školky"},
+            {"artist": "Slza", "song": "Když nemůžeš spát"},
+            {"artist": "Pokáč", "song": "Půlnoční"},
+            {"artist": "Ewa Farna", "song": "Ty víš"},
+            {"artist": "Marek Ztracený", "song": "Léta"},
         ],
-        "hard": [
-            {"q": "Jaké číslo následuje: 2, 6, 12, 20, 30, ?", "options": ["40", "42", "44", "46"], "answer": "42"},
-            {"q": "2⁵ = ?", "options": ["16", "32", "64", "25"], "answer": "32"},
-            {"q": "Kolik je 15% z 200?", "options": ["25", "30", "35", "40"], "answer": "30"},
+        "rock": [
+            {"artist": "Kryštof", "song": "Jinej člověk"},
+            {"artist": "Kabát", "song": "Sním svůj sen"},
+            {"artist": "Chinaski", "song": "Hvězdy"},
+            {"artist": "Lucie", "song": "Pojď blíž"},
+        ],
+        "classic": [
+            {"artist": "Karel Gott", "song": "Lady Carneval"},
+            {"artist": "Ivan Mládek", "song": "Jožin z bažin"},
+            {"artist": "Karel Kryl", "song": "Bratříčku"},
+            {"artist": "Marta Kubišová", "song": "Modlitba pro Martu"},
         ]
     }
-    return random.choice(puzzles[difficulty])
+    
+    return songs
 
-# Store active questions
-active_questions = {}
+@api_router.get("/logs")
+async def get_logs(request: Request, limit: int = 50):
+    """Get command logs"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    logs = await db.command_logs.find(
+        {},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return logs
 
-def get_time_limit(difficulty: str) -> int:
-    return {"easy": 30, "medium": 20, "hard": 15}.get(difficulty, 20)
-
-def get_xp_reward(difficulty: str) -> int:
-    return {"easy": 10, "medium": 25, "hard": 50}.get(difficulty, 25)
-
-# ============== Routes ==============
+# ============== Health Check ==============
 
 @api_router.get("/")
 async def root():
-    return {"message": "Quiz Bot API"}
+    return {"message": "Bot Dashboard API", "status": "online"}
 
-# User routes
-@api_router.post("/users", response_model=User)
-async def create_user(input: UserCreate):
-    existing = await db.users.find_one({"username": input.username}, {"_id": 0})
-    if existing:
-        return User(**existing)
-    
-    user = User(username=input.username)
-    doc = user.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    await db.users.insert_one(doc)
-    return user
+@api_router.get("/health")
+async def health():
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-@api_router.get("/users/{user_id}", response_model=User)
-async def get_user(user_id: str):
-    user = await db.users.find_one({"id": user_id}, {"_id": 0})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if isinstance(user['created_at'], str):
-        user['created_at'] = datetime.fromisoformat(user['created_at'])
-    return User(**user)
-
-@api_router.get("/users/by-username/{username}", response_model=User)
-async def get_user_by_username(username: str):
-    user = await db.users.find_one({"username": username}, {"_id": 0})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if isinstance(user['created_at'], str):
-        user['created_at'] = datetime.fromisoformat(user['created_at'])
-    return User(**user)
-
-# Question routes
-@api_router.post("/questions/generate", response_model=QuestionResponse)
-async def generate_question(request: QuestionRequest):
-    difficulty = request.difficulty
-    q_type = request.question_type
-    
-    if q_type == "quiz":
-        q_data = random.choice(QUIZ_QUESTIONS.get(difficulty, QUIZ_QUESTIONS["medium"]))
-    elif q_type == "math_calc":
-        q_data = generate_math_calc(difficulty)
-    elif q_type == "math_equation":
-        q_data = generate_math_equation(difficulty)
-    elif q_type == "math_puzzle":
-        q_data = generate_math_puzzle(difficulty)
-    else:
-        q_data = random.choice(QUIZ_QUESTIONS.get(difficulty, QUIZ_QUESTIONS["medium"]))
-    
-    question_id = str(uuid.uuid4())
-    time_limit = get_time_limit(difficulty)
-    xp_reward = get_xp_reward(difficulty)
-    
-    active_questions[question_id] = {
-        "correct_answer": q_data["answer"],
-        "difficulty": difficulty,
-        "xp_reward": xp_reward
-    }
-    
-    return QuestionResponse(
-        id=question_id,
-        question=q_data["q"],
-        options=q_data["options"],
-        correct_answer="",  # Don't send to client
-        difficulty=difficulty,
-        question_type=q_type,
-        time_limit=time_limit,
-        xp_reward=xp_reward
-    )
-
-@api_router.post("/questions/answer", response_model=AnswerResult)
-async def submit_answer(answer: AnswerSubmit):
-    q_info = active_questions.get(answer.question_id)
-    if not q_info:
-        raise HTTPException(status_code=404, detail="Question not found or expired")
-    
-    correct = answer.selected_answer == q_info["correct_answer"]
-    xp_earned = q_info["xp_reward"] if correct else 0
-    
-    # Update user score
-    if correct:
-        await db.users.update_one(
-            {"id": answer.user_id},
-            {"$inc": {"total_score": xp_earned, "games_played": 1}}
-        )
-    
-    # Generate Mee6 command
-    mee6_command = f"/give-xp user:{answer.user_id} amount:{xp_earned}" if correct else ""
-    
-    # Clean up
-    del active_questions[answer.question_id]
-    
-    return AnswerResult(
-        correct=correct,
-        correct_answer=q_info["correct_answer"],
-        xp_earned=xp_earned,
-        mee6_command=mee6_command
-    )
-
-# Leaderboard routes
-@api_router.get("/leaderboard", response_model=List[LeaderboardEntry])
-async def get_leaderboard(limit: int = 10):
-    users = await db.users.find({}, {"_id": 0}).sort("total_score", -1).limit(limit).to_list(limit)
-    
-    leaderboard = []
-    for i, user in enumerate(users, 1):
-        leaderboard.append(LeaderboardEntry(
-            rank=i,
-            username=user["username"],
-            total_score=user["total_score"],
-            games_played=user["games_played"]
-        ))
-    
-    return leaderboard
-
-# Game session routes
-@api_router.post("/sessions/start")
-async def start_session(user_id: str, game_type: str):
-    session = GameSession(user_id=user_id, game_type=game_type)
-    doc = session.model_dump()
-    doc['started_at'] = doc['started_at'].isoformat()
-    await db.game_sessions.insert_one(doc)
-    return {"session_id": session.id}
-
-@api_router.post("/sessions/{session_id}/end")
-async def end_session(session_id: str, score: int, correct: int, total: int):
-    await db.game_sessions.update_one(
-        {"id": session_id},
-        {"$set": {
-            "score": score,
-            "correct_answers": correct,
-            "questions_answered": total,
-            "ended_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    return {"status": "completed"}
-
-# AI Question Generation (using Emergent LLM)
-@api_router.post("/questions/generate-ai", response_model=QuestionResponse)
-async def generate_ai_question(request: QuestionRequest):
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
-    if not api_key:
-        # Fallback to regular questions
-        return await generate_question(request)
-    
-    difficulty = request.difficulty
-    q_type = request.question_type
-    
-    prompts = {
-        "quiz": f"Vygeneruj jednu {difficulty} obtížnosti kvízovou otázku v češtině. Vrať JSON: {{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"správná odpověď\"}}",
-        "math_calc": f"Vygeneruj jeden {difficulty} obtížnosti matematický příklad na počítání v češtině. Vrať JSON: {{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"správná odpověď\"}}",
-        "math_equation": f"Vygeneruj jednu {difficulty} obtížnosti rovnici k vyřešení. Vrať JSON: {{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"správná odpověď\"}}",
-        "math_puzzle": f"Vygeneruj jeden {difficulty} obtížnosti matematický hlavolam v češtině. Vrať JSON: {{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"correct\": \"správná odpověď\"}}"
-    }
-    
-    try:
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=str(uuid.uuid4()),
-            system_message="Jsi pomocník pro generování kvízových otázek. Vždy odpovídej pouze validním JSON bez markdown formátování."
-        ).with_model("openai", "gpt-5.2")
-        
-        response = await chat.send_message(UserMessage(text=prompts.get(q_type, prompts["quiz"])))
-        
-        import json
-        # Clean response
-        response_clean = response.strip()
-        if response_clean.startswith("```"):
-            response_clean = response_clean.split("```")[1]
-            if response_clean.startswith("json"):
-                response_clean = response_clean[4:]
-        
-        data = json.loads(response_clean)
-        
-        question_id = str(uuid.uuid4())
-        time_limit = get_time_limit(difficulty)
-        xp_reward = get_xp_reward(difficulty)
-        
-        active_questions[question_id] = {
-            "correct_answer": data["correct"],
-            "difficulty": difficulty,
-            "xp_reward": xp_reward
-        }
-        
-        return QuestionResponse(
-            id=question_id,
-            question=data["question"],
-            options=data["options"],
-            correct_answer="",
-            difficulty=difficulty,
-            question_type=q_type,
-            time_limit=time_limit,
-            xp_reward=xp_reward
-        )
-    except Exception as e:
-        logger.error(f"AI generation error: {e}")
-        return await generate_question(request)
-
-# Include the router in the main app
+# Include router
 app.include_router(api_router)
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
