@@ -852,77 +852,157 @@ async def slash_hudba_settings(interaction: discord.Interaction, sekundy: int = 
     app_commands.Choice(name="🎲 Náhodný", value="random"),
 ])
 async def slash_hudba(interaction: discord.Interaction, zanr: str = "random"):
-    import random
-    
     channel_id = interaction.channel_id
     guild_id = interaction.guild_id
-    quiz_time = get_quiz_time(guild_id)
     
     # Check if quiz already active
-    if channel_id in active_music_quiz and active_music_quiz[channel_id]["active"]:
+    if channel_id in active_music_quiz and active_music_quiz[channel_id].get("active"):
         await interaction.response.send_message("❌ V tomto kanálu už běží kvíz! Počkej až skončí.", ephemeral=True)
         return
     
-    # Select genre
-    if zanr == "random":
-        zanr = random.choice(list(CZECH_MUSIC.keys()))
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
     
-    # Select random song
-    song_data = random.choice(CZECH_MUSIC[zanr])
-    
-    # Store quiz data
+    # Initialize quiz session
     active_music_quiz[channel_id] = {
-        "artist": song_data["artist"],
-        "song": song_data["song"],
-        "hint": song_data["hint"],
         "active": True,
-        "winner": None
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},  # {user_id: {"name": name, "score": score}}
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
     }
     
-    genre_names = {"rap": "🎤 Rap", "pop": "🎵 Pop", "rock": "🎸 Rock", "classic": "🎺 Klasika"}
-    
+    # Send start message
     embed = discord.Embed(
-        title="🎵 HUDEBNÍ KVÍZ",
-        description=f"**Hádej interpreta!**",
+        title="🎵 HUDEBNÍ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
         color=discord.Color.purple()
     )
-    embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
-    embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
-    embed.add_field(name="🎸 Žánr", value=genre_names.get(zanr, zanr), inline=True)
-    embed.add_field(name="⏰ Čas", value=f"{quiz_time} sekund", inline=True)
-    embed.set_footer(text="Napiš jméno interpreta do chatu! První správná odpověď vyhrává!")
+    embed.add_field(name="🎸 Žánr", value=zanr.upper() if zanr != "random" else "NÁHODNÝ", inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš jméno interpreta do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
     
     await interaction.response.send_message(embed=embed)
+    await asyncio.sleep(3)
     
-    # Wait for answer
-    await asyncio.sleep(quiz_time)
+    # Start quiz rounds
+    await run_music_quiz(interaction.channel, channel_id)
+
+async def run_music_quiz(channel, channel_id: int):
+    """Run multiple rounds of music quiz"""
+    import random
     
-    # Check if someone won
     quiz_data = active_music_quiz.get(channel_id)
-    if quiz_data and quiz_data["active"]:
-        quiz_data["active"] = False
+    if not quiz_data:
+        return
+    
+    genre = quiz_data["genre"]
+    total_rounds = quiz_data["total_rounds"]
+    quiz_time = quiz_data["quiz_time"]
+    genre_names = {"rap": "🎤 Rap", "pop": "🎵 Pop", "rock": "🎸 Rock", "classic": "🎺 Klasika"}
+    
+    for round_num in range(1, total_rounds + 1):
+        if channel_id not in active_music_quiz:
+            return  # Quiz was stopped
         
+        quiz_data = active_music_quiz[channel_id]
+        quiz_data["current_round"] = round_num
+        quiz_data["answered"] = False
+        
+        # Select genre for this round
+        current_genre = genre if genre != "random" else random.choice(list(CZECH_MUSIC.keys()))
+        
+        # Select random song
+        song_data = random.choice(CZECH_MUSIC[current_genre])
+        
+        quiz_data["current_question"] = {
+            "artist": song_data["artist"],
+            "song": song_data["song"],
+            "hint": song_data["hint"]
+        }
+        
+        # Send question
         embed = discord.Embed(
-            title="⏰ ČAS VYPRŠEL!",
-            description=f"Nikdo neuhodl správnou odpověď.",
-            color=discord.Color.red()
+            title=f"🎵 OTÁZKA {round_num}/{total_rounds}",
+            description=f"**Hádej interpreta!**",
+            color=discord.Color.purple()
         )
-        embed.add_field(name="✅ Správná odpověď", value=f"**{song_data['artist']}** - {song_data['song']}", inline=False)
+        embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
+        embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
+        embed.add_field(name="🎸 Žánr", value=genre_names.get(current_genre, current_genre), inline=True)
+        embed.add_field(name="⏰ Čas", value=f"{quiz_time}s", inline=True)
         
-        await interaction.channel.send(embed=embed)
+        await channel.send(embed=embed)
         
-        del active_music_quiz[channel_id]
+        # Wait for answer or timeout
+        await asyncio.sleep(quiz_time)
+        
+        # Check if answered
+        quiz_data = active_music_quiz.get(channel_id)
+        if not quiz_data:
+            return
+        
+        if not quiz_data["answered"]:
+            embed = discord.Embed(
+                title="⏰ ČAS VYPRŠEL!",
+                description=f"Správná odpověď: **{song_data['artist']}** - {song_data['song']}",
+                color=discord.Color.red()
+            )
+            await channel.send(embed=embed)
+        
+        # Pause between rounds
+        if round_num < total_rounds:
+            await asyncio.sleep(3)
+    
+    # Quiz finished - show final scores
+    quiz_data = active_music_quiz.get(channel_id)
+    if quiz_data:
+        scores = quiz_data.get("scores", {})
+        
+        if scores:
+            # Sort by score
+            sorted_scores = sorted(scores.items(), key=lambda x: x[1]["score"], reverse=True)
+            
+            medals = ["🥇", "🥈", "🥉"]
+            leaderboard = ""
+            for i, (user_id, data) in enumerate(sorted_scores[:10]):
+                medal = medals[i] if i < 3 else f"**{i+1}.**"
+                leaderboard += f"{medal} {data['name']} - **{data['score']} bodů**\n"
+            
+            embed = discord.Embed(
+                title="🏆 KVÍZ DOKONČEN!",
+                description=f"**Výsledky z {total_rounds} otázek:**",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="📊 Žebříček", value=leaderboard or "Nikdo neskóroval", inline=False)
+            
+            if sorted_scores:
+                winner_id, winner_data = sorted_scores[0]
+                embed.add_field(name="👑 Vítěz", value=f"**{winner_data['name']}** s {winner_data['score']} body!", inline=False)
+        else:
+            embed = discord.Embed(
+                title="🏆 KVÍZ DOKONČEN!",
+                description="Nikdo neuhodl žádnou otázku!",
+                color=discord.Color.orange()
+            )
+        
+        await channel.send(embed=embed)
+        
+        # Cleanup
+        if channel_id in active_music_quiz:
+            del active_music_quiz[channel_id]
 
 @bot.command(name="hudba", aliases=["music", "hz"])
 async def prefix_hudba(ctx, zanr: str = "random"):
     """!hudba [rap/pop/rock/classic/random] - Hudební kvíz"""
-    import random
-    
     channel_id = ctx.channel.id
     guild_id = ctx.guild.id
-    quiz_time = get_quiz_time(guild_id)
     
-    if channel_id in active_music_quiz and active_music_quiz[channel_id]["active"]:
+    if channel_id in active_music_quiz and active_music_quiz[channel_id].get("active"):
         await ctx.send("❌ V tomto kanálu už běží kvíz!")
         return
     
@@ -930,84 +1010,86 @@ async def prefix_hudba(ctx, zanr: str = "random"):
     if zanr not in ["rap", "pop", "rock", "classic", "random"]:
         zanr = "random"
     
-    if zanr == "random":
-        zanr = random.choice(list(CZECH_MUSIC.keys()))
-    
-    song_data = random.choice(CZECH_MUSIC[zanr])
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
     
     active_music_quiz[channel_id] = {
-        "artist": song_data["artist"],
-        "song": song_data["song"],
-        "hint": song_data["hint"],
         "active": True,
-        "winner": None
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
     }
     
-    genre_names = {"rap": "🎤 Rap", "pop": "🎵 Pop", "rock": "🎸 Rock", "classic": "🎺 Klasika"}
-    
     embed = discord.Embed(
-        title="🎵 HUDEBNÍ KVÍZ",
-        description=f"**Hádej interpreta!**",
+        title="🎵 HUDEBNÍ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
         color=discord.Color.purple()
     )
-    embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
-    embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
-    embed.add_field(name="🎸 Žánr", value=genre_names.get(zanr, zanr), inline=True)
-    embed.add_field(name="⏰ Čas", value=f"{quiz_time} sekund", inline=True)
-    embed.set_footer(text="Napiš jméno interpreta do chatu! První správná odpověď vyhrává!")
+    embed.add_field(name="🎸 Žánr", value=zanr.upper() if zanr != "random" else "NÁHODNÝ", inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš jméno interpreta do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
     
     await ctx.send(embed=embed)
+    await asyncio.sleep(3)
     
-    await asyncio.sleep(quiz_time)
-    
-    quiz_data = active_music_quiz.get(channel_id)
-    if quiz_data and quiz_data["active"]:
-        quiz_data["active"] = False
-        
-        embed = discord.Embed(
-            title="⏰ ČAS VYPRŠEL!",
-            description=f"Nikdo neuhodl správnou odpověď.",
-            color=discord.Color.red()
-        )
-        embed.add_field(name="✅ Správná odpověď", value=f"**{song_data['artist']}** - {song_data['song']}", inline=False)
-        
-        await ctx.send(embed=embed)
-        
+    await run_music_quiz(ctx.channel, channel_id)
+
+@bot.command(name="stop", aliases=["stophudba"])
+async def stop_quiz(ctx):
+    """!stop - Zastav hudební kvíz"""
+    channel_id = ctx.channel.id
+    if channel_id in active_music_quiz:
         del active_music_quiz[channel_id]
+        await ctx.send("🛑 Kvíz zastaven!")
+    else:
+        await ctx.send("❌ Žádný kvíz neběží.")
 
 # Listen for quiz answers
 @bot.event
 async def on_message(message):
-    # Ignore bot messages
     if message.author.bot:
         return
     
     channel_id = message.channel.id
     
-    # Check if there's an active quiz in this channel
+    # Check if there's an active quiz
     if channel_id in active_music_quiz:
         quiz_data = active_music_quiz[channel_id]
         
-        if quiz_data["active"]:
+        if quiz_data.get("active") and quiz_data.get("current_question") and not quiz_data.get("answered"):
             user_answer = normalize_answer(message.content)
-            correct_artist = normalize_answer(quiz_data["artist"])
+            correct_artist = normalize_answer(quiz_data["current_question"]["artist"])
             
-            # Check if answer matches (artist name)
-            if correct_artist in user_answer or user_answer in correct_artist:
-                # Winner!
-                quiz_data["active"] = False
-                quiz_data["winner"] = message.author
+            # Check if answer matches
+            if len(user_answer) >= 3 and (correct_artist in user_answer or user_answer in correct_artist):
+                quiz_data["answered"] = True
+                
+                # Add score
+                user_id = message.author.id
+                if user_id not in quiz_data["scores"]:
+                    quiz_data["scores"][user_id] = {"name": message.author.display_name, "score": 0}
+                quiz_data["scores"][user_id]["score"] += 1
+                
+                current_score = quiz_data["scores"][user_id]["score"]
                 
                 embed = discord.Embed(
                     title="🎉 SPRÁVNĚ!",
-                    description=f"**{message.author.display_name}** uhodl/a jako první!",
+                    description=f"**{message.author.display_name}** uhodl/a!",
                     color=discord.Color.green()
                 )
-                embed.add_field(name="🎤 Interpret", value=quiz_data["artist"], inline=True)
-                embed.add_field(name="🎵 Píseň", value=quiz_data["song"], inline=True)
+                embed.add_field(name="🎤 Interpret", value=quiz_data["current_question"]["artist"], inline=True)
+                embed.add_field(name="🎵 Píseň", value=quiz_data["current_question"]["song"], inline=True)
+                embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
                 embed.set_thumbnail(url=message.author.display_avatar.url)
                 
                 await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
+    
+    await bot.process_commands(message)
                 
                 del active_music_quiz[channel_id]
                 return
