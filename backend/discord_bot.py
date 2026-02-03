@@ -282,7 +282,7 @@ def get_daily_game_xp(guild_id: int, user_id: int) -> int:
     
     return user.get("daily_game_xp", 0)
 
-async def add_game_xp(guild_id: int, user_id: int, user_name: str, minutes: int, channel=None):
+async def add_game_xp(guild_id: int, user_id: int, user_name: str, minutes: int, game_name: str = None, channel=None):
     """Add XP for gaming time"""
     # Calculate XP (5 XP per 10 minutes)
     xp_earned = (minutes // 10) * GAME_XP_PER_10_MIN
@@ -300,17 +300,28 @@ async def add_game_xp(guild_id: int, user_id: int, user_name: str, minutes: int,
     # Cap XP at remaining limit
     xp_earned = min(xp_earned, remaining)
     
-    # Update daily game XP
+    # Update daily game XP and game-specific time
+    update_query = {
+        "$inc": {"daily_game_xp": xp_earned, "total_game_time": minutes},
+        "$set": {"last_game_xp_reset": datetime.now(timezone.utc)}
+    }
+    
+    if game_name:
+        update_query["$inc"][f"game_times.{game_name}"] = minutes
+    
     users_collection.update_one(
         {"guild_id": guild_id, "user_id": user_id},
-        {
-            "$inc": {"daily_game_xp": xp_earned, "total_game_time": minutes},
-            "$set": {"last_game_xp_reset": datetime.now(timezone.utc)}
-        }
+        update_query
     )
     
     # Add to total XP
     await add_xp(guild_id, user_id, user_name, xp_earned, channel)
+    
+    # Check for quest completion
+    if game_name:
+        user = get_user_data(guild_id, user_id)
+        total_game_time = user.get("game_times", {}).get(game_name, 0) + minutes
+        await check_and_complete_quests(guild_id, user_id, user_name, game_name, total_game_time, channel)
     
     return xp_earned
 
