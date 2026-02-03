@@ -158,7 +158,7 @@ function Dashboard({ user, servers, onSelectServer, onLogout }) {
                   <span className="server-arrow">→</span>
                 ) : (
                   <a 
-                    href={`https://discord.com/oauth2/authorize?client_id=1336454706620063826&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}`}
+                    href={`https://discord.com/oauth2/authorize?client_id=1466110673875374201&permissions=8&scope=bot%20applications.commands&guild_id=${server.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="add-to-server-btn"
