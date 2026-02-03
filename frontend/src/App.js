@@ -26,7 +26,16 @@ function App() {
     dailyBonus: 100,
     streakBonus: 10,
     autoDeleteSeconds: 60,
-    adminOnlyQuiz: true,
+    // Oprávnění příkazů (true = jen admin, false = všichni)
+    cmdHudba: true,
+    cmdFilm: true,
+    cmdPravda: true,
+    cmdGamelevel: false,
+    cmdTop: false,
+    cmdDaily: false,
+    cmdHry: false,
+    cmdUkoly: false,
+    cmdHerniinfo: true,
   });
 
   const [stats, setStats] = useState({
