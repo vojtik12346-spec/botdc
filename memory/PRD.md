@@ -1,67 +1,58 @@
-# Discord Bot - PRD (Product Requirements Document)
+# Discord Bot PRD - Kvízy a Herní Systém
 
-## Original Problem Statement
-"Bot s otázkami a matematickou minihrou" - Build a Discord quiz bot with questions and games
+## Původní požadavek
+Vytvořit Discord bota s kvízy a herními funkcemi pro komunitu.
 
-## User Requirements
-1. Discord bot (NOT web app)
-2. Quiz games with multiple categories
-3. All texts in Czech
-4. Both slash commands AND prefix commands
-5. Web dashboard for bot management
+## Implementované funkce
 
-## Architecture
-- **Discord Bot**: discord.py with slash commands
-- **Backend API**: FastAPI for web dashboard
-- **Database**: MongoDB for sessions
-- **Service**: Runs via supervisor
+### 🎮 Herní příkazy (HOTOVO)
+- `/hudba [žánr]` - Hudební kvíz (25 XP za správnou odpověď)
+- `/film [žánr]` - Filmový kvíz s 237 filmy (25 XP)
+- `/pravda [kategorie]` - Pravda/Lež hra se 100 fakty (15 XP)
 
-## What's Been Implemented (Feb 2026)
+### 📊 XP a Level Systém (HOTOVO)
+- `/gamelevel` - Zobrazí herní profil, level, XP, statistiky
+- `/top` - Žebříček TOP 10 hráčů
+- `/daily` - Denní bonus +100 XP + streak bonus
+- Automatické XP za správné odpovědi v kvízech
+- Level up notifikace
 
-### Discord Bot Commands
-| Slash | Prefix | Popis |
-|-------|--------|-------|
-| `/odpocet [čas] [důvod]` | `!odpocet` | Spustí odpočet |
-| `/poll [otázka] [možnosti] [čas]` | `!poll` | Vytvoří anketu |
-| `/hudba [žánr]` | `!hudba` | Hudební kvíz (rap, pop, rock, classic) |
-| `/film [žánr]` | `!film` | Filmový kvíz (české, hollywood, komedie, akční, horor, scifi) |
-| `/hudba-nastaveni` | - | Admin nastavení kvízu (čas, počet kol) |
-| `/stop` | `!stop` | Zastaví běžící kvíz |
-| `/help` | `!pomoc` | Nápověda |
+### 🕹️ Sledování herní aktivity (HOTOVO)
+- Automatické XP za hraní her na PC (5 XP/10 min, max 200 XP/den)
+- Bonus 25 XP za odemčení nové hry
+- `/hry` - Seznam odemčených her a čas hraní
+- `/ukoly [hra]` - Úkoly pro konkrétní hru s XP odměnami
 
-### Implemented Features
-- [x] Odpočet s ping notifikací a možností zrušení
-- [x] Ankety s tlačítky, živými výsledky a jmény hlasujících
-- [x] Hudební kvíz - hádej interpreta podle textu (169+ českých písní)
-- [x] **Filmový kvíz** - hádej film podle hlášky (100+ filmů v 6 žánrech)
-- [x] Web dashboard s Discord OAuth přihlášením
-- [x] Slash i prefix příkazy
+### 🔧 Administrace (HOTOVO)
+- Kvízy omezeny pouze pro administrátory
+- `!herniinfo` - Trvalá zpráva s přehledem příkazů do kanálu
+- `!prikazy` - Kompletní přehled všech příkazů
+- Automatické mazání odpovědí po 1 minutě
+- Všechny herní notifikace do kanálu `1468355022159872073`
+- Ping role `485172457544744972` při herních úspěších
 
-### Film Quiz Categories
-- České filmy (Pelíšky, Samotáři, Kolja...)
-- Hollywood (Titanic, Star Wars, Forrest Gump...)
-- Komedie (Shrek, Austin Powers, Ace Ventura...)
-- Akční (Terminátor, Smrtonosná past, Avengers...)
-- Horor (Vřískot, To, Poltergeist...)
-- Sci-Fi (Matrix, Interstellar, Blade Runner...)
+## Architektura
 
-## Technical Details
-- **Bot Name**: Vlastni bot#6953
-- **Connected Servers**: 2
-- **Slash Commands**: 7 synchronized
+```
+/app/backend/
+├── discord_bot.py    # Hlavní bot (monolit)
+├── server.py         # FastAPI server
+└── .env             # Konfigurace
+```
 
-## Key Files
-- `/app/backend/discord_bot.py` - Discord bot logic
-- `/app/backend/server.py` - FastAPI web dashboard API
-- `/app/frontend/src/App.js` - Web dashboard UI
+## Databáze (MongoDB)
+- Collection: `game_users`
+- Struktura: user_id, guild_id, xp, level, streak, game_times, unlocked_games, completed_quests
 
-## Next Tasks
-1. Rozšířit databázi filmů
-2. Přidat nastavení filmového kvízu do dashboardu
-3. Denní výzvy a streak bonusy
-4. Více herních módů (např. rychlé kolo)
-5. Statistiky hráčů a serveru
+## Budoucí úkoly (Backlog)
+- [ ] Emoji kvíz (`/emoji`)
+- [ ] Matematický kvíz (`/matika`)
+- [ ] Hádání hlavních měst (`/zeme`)
+- [ ] Refaktoring do Cogs modulů
 
-## Known Limitations
-- Quiz state is stored in memory (resets on bot restart)
-- Quiz settings are per-guild but also in memory
+## Changelog
+- 2025-01: Přidán příkaz `!herniinfo` pro trvalou zprávu s herními příkazy
+- 2025-01: Změna mazání odpovědí z 5 min na 1 minutu
+- 2025-01: Oprava směrování notifikací do správného kanálu
+- 2025-01: Filmový kvíz rozšířen na 237 filmů
+- 2025-01: Implementován systém úkolů pro hry
