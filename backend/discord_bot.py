@@ -264,7 +264,7 @@ async def check_and_complete_quests(guild_id: int, user_id: int, user_name: str,
                 embed.add_field(name=f"{quest['emoji']} Úkol", value=quest["name"], inline=True)
                 embed.add_field(name="✨ Odměna", value=f"+{quest['xp']} XP", inline=True)
                 embed.add_field(name="⏱️ Čas", value=f"{total_minutes // 60}h {total_minutes % 60}m", inline=True)
-    embed.set_footer(text="⚔️ Valhalla Bot • Plň další úkoly a získávej XP!")
+                embed.set_footer(text="⚔️ Valhalla Bot • Plň další úkoly a získávej XP!")
                 await notify_channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
     
     return total_xp
