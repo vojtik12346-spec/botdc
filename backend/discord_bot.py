@@ -170,6 +170,7 @@ GAME_XP_PER_10_MIN = 5
 GAME_XP_DAILY_LIMIT = 200
 GAME_UNLOCK_BONUS = 25
 GAME_NOTIFICATION_CHANNEL = 1468355022159872073  # Kanál pro herní notifikace
+GAME_PING_ROLE = 485172457544744972  # Role pro ping při splnění
 
 # Track active gaming sessions {user_id: {"game": name, "start": datetime, "guild_id": id}}
 active_gaming_sessions = {}
