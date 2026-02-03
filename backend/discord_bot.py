@@ -264,7 +264,7 @@ async def check_and_complete_quests(guild_id: int, user_id: int, user_name: str,
                 embed.add_field(name=f"{quest['emoji']} Úkol", value=quest["name"], inline=True)
                 embed.add_field(name="✨ Odměna", value=f"+{quest['xp']} XP", inline=True)
                 embed.add_field(name="⏱️ Čas", value=f"{total_minutes // 60}h {total_minutes % 60}m", inline=True)
-                embed.set_footer(text="Plň další úkoly a získávej XP!")
+    embed.set_footer(text="⚔️ Valhalla Bot • Plň další úkoly a získávej XP!")
                 await notify_channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
     
     return total_xp
@@ -821,7 +821,7 @@ async def send_commands_info(ctx):
         inline=False
     )
     
-    embed.set_footer(text="💡 Hraj hry, plň úkoly a staň se legendou!")
+    embed.set_footer(text="💡 Valhalla Bot • Hraj hry, plň úkoly a staň se legendou!")
     
     await ctx.send(embed=embed)
     
@@ -1027,7 +1027,7 @@ async def send_game_info(ctx):
         inline=False
     )
     
-    level_embed.set_footer(text="🎮 Hraj, sbírej XP a staň se legendou!")
+    level_embed.set_footer(text="⚔️ Valhalla Bot • Hraj, sbírej XP a staň se legendou!")
     
     # Odeslání všech embedů do cílového kanálu (trvalé zprávy)
     await target_channel.send(embed=main_embed)
@@ -1131,7 +1131,7 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
         inline=True
     )
     
-    embed.set_footer(text="Získej XP hraním kvízů! • /hudba /film /pravda")
+    embed.set_footer(text="⚔️ Valhalla Bot • Získej XP hraním kvízů!")
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
@@ -1200,7 +1200,7 @@ async def slash_top(interaction: discord.Interaction):
         leaderboard.append(f"{medal} {badge} **{name}** • Level {level} • {user['xp']} XP")
     
     embed.description = "\n".join(leaderboard)
-    embed.set_footer(text="Získej XP hraním kvízů! • /hudba /film /pravda")
+    embed.set_footer(text="⚔️ Valhalla Bot • Získej XP hraním kvízů!")
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
