@@ -979,7 +979,8 @@ async def prefix_gamelevel(ctx, hrac: discord.Member = None):
     embed.add_field(name="🎯 Přesnost", value=f"{accuracy:.1f}%", inline=True)
     embed.set_footer(text="Získej XP hraním kvízů!")
     
-    await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.tree.command(name="top", description="Zobraz žebříček hráčů")
 async def slash_top(interaction: discord.Interaction):
