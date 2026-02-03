@@ -309,6 +309,11 @@ function App() {
               <CardContent className="card-content">
                 <div className="stats-grid">
                   <div className="stat-card">
+                    <span className="stat-icon">🖥️</span>
+                    <span className="stat-value">{stats.guildCount}</span>
+                    <span className="stat-label">Serverů</span>
+                  </div>
+                  <div className="stat-card">
                     <span className="stat-icon">👥</span>
                     <span className="stat-value">{stats.totalUsers}</span>
                     <span className="stat-label">Hráčů celkem</span>
