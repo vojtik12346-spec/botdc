@@ -1369,7 +1369,8 @@ async def prefix_hry(ctx, hrac: discord.Member = None):
         embed.add_field(name="✅ Odemčené hry", value="Zatím žádné", inline=False)
     
     embed.set_footer(text=f"+{GAME_XP_PER_10_MIN} XP / 10 min • Max {GAME_XP_DAILY_LIMIT} XP/den")
-    await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.tree.command(name="ukoly", description="Zobraz úkoly pro konkrétní hru")
 @app_commands.describe(hra="Vyber hru pro zobrazení úkolů")
