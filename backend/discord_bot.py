@@ -1449,7 +1449,8 @@ async def prefix_ukoly(ctx, *, hra: str = None):
         
         embed.add_field(name="Dostupné hry", value="\n".join(game_list), inline=False)
         embed.set_footer(text="Nebo hraj jakoukoli hru - budeš mít základní úkoly!")
-        await ctx.send(embed=embed)
+        msg = await ctx.send(embed=embed)
+        asyncio.create_task(delete_after(msg, 300))
         return
     
     # Find matching game
