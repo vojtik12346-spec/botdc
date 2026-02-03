@@ -800,20 +800,47 @@ def get_quiz_time(guild_id: int) -> int:
     """Get quiz time for guild"""
     return quiz_settings.get(guild_id, {}).get("time", DEFAULT_QUIZ_TIME)
 
-@bot.tree.command(name="hudba-nastaveni", description="Nastav čas hudebního kvízu (pouze admin)")
-@app_commands.describe(sekundy="Čas na odpověď v sekundách (30-300)")
+def get_quiz_rounds(guild_id: int) -> int:
+    """Get number of quiz rounds for guild"""
+    return quiz_settings.get(guild_id, {}).get("rounds", 5)
+
+@bot.tree.command(name="hudba-nastaveni", description="Nastav hudební kvíz (pouze admin)")
+@app_commands.describe(
+    sekundy="Čas na odpověď v sekundách (30-300)",
+    pocet="Počet otázek v kvízu (1-20)"
+)
 @app_commands.default_permissions(administrator=True)
-async def slash_hudba_settings(interaction: discord.Interaction, sekundy: int):
-    if sekundy < 30 or sekundy > 300:
-        await interaction.response.send_message("❌ Čas musí být mezi 30 a 300 sekundami!", ephemeral=True)
-        return
-    
+async def slash_hudba_settings(interaction: discord.Interaction, sekundy: int = None, pocet: int = None):
     guild_id = interaction.guild_id
     if guild_id not in quiz_settings:
         quiz_settings[guild_id] = {}
-    quiz_settings[guild_id]["time"] = sekundy
     
-    await interaction.response.send_message(f"✅ Čas hudebního kvízu nastaven na **{sekundy} sekund**!")
+    changes = []
+    
+    if sekundy is not None:
+        if sekundy < 30 or sekundy > 300:
+            await interaction.response.send_message("❌ Čas musí být mezi 30 a 300 sekundami!", ephemeral=True)
+            return
+        quiz_settings[guild_id]["time"] = sekundy
+        changes.append(f"⏰ Čas: **{sekundy}s**")
+    
+    if pocet is not None:
+        if pocet < 1 or pocet > 20:
+            await interaction.response.send_message("❌ Počet otázek musí být mezi 1 a 20!", ephemeral=True)
+            return
+        quiz_settings[guild_id]["rounds"] = pocet
+        changes.append(f"🔢 Počet otázek: **{pocet}**")
+    
+    if not changes:
+        current_time = get_quiz_time(guild_id)
+        current_rounds = get_quiz_rounds(guild_id)
+        await interaction.response.send_message(
+            f"📊 **Aktuální nastavení:**\n⏰ Čas: {current_time}s\n🔢 Počet otázek: {current_rounds}",
+            ephemeral=True
+        )
+        return
+    
+    await interaction.response.send_message(f"✅ Nastavení uloženo!\n" + "\n".join(changes))
 
 @bot.tree.command(name="hudba", description="Spusť hudební kvíz - hádej písničku!")
 @app_commands.describe(zanr="Vyber žánr hudby")
