@@ -519,11 +519,16 @@ async def get_bot_stats():
             "last_daily": {"$gte": today.isoformat()}
         })
         
+        # Get guild count from bot stats
+        bot_stats = await db.bot_stats.find_one({"type": "global"}, {"_id": 0})
+        guild_count = bot_stats.get("guild_count", 0) if bot_stats else 0
+        
         return {
             "totalUsers": total_users,
             "totalXp": total_xp,
             "totalGames": total_games,
-            "activeToday": active_today
+            "activeToday": active_today,
+            "guildCount": guild_count
         }
     except Exception as e:
         logger.error(f"Stats error: {e}")
@@ -531,7 +536,8 @@ async def get_bot_stats():
             "totalUsers": 0,
             "totalXp": 0,
             "totalGames": 0,
-            "activeToday": 0
+            "activeToday": 0,
+            "guildCount": 0
         }
 
 @api_router.get("/bot/settings")
