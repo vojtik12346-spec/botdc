@@ -703,79 +703,230 @@ async def prefix_poll(ctx, cas: str, *, args: str):
 # Czech music database - lyrics snippets with artist and song
 CZECH_MUSIC = {
     "rap": [
+        # Yzomandias
         {"lyrics": "Hele, víš co? Uděláme si to po svým", "artist": "Yzomandias", "song": "Po svým", "hint": "Y_______"},
-        {"lyrics": "Můj svět je šedej, ale nebe je modrý", "artist": "Viktor Sheen", "song": "Barvy", "hint": "Viktor S____"},
-        {"lyrics": "Jednou budem všichni v zemi, užij si ten den", "artist": "Calin", "song": "Jednou", "hint": "C____"},
-        {"lyrics": "Mám v kapse pár stovek a to mi stačí", "artist": "Nik Tendo", "song": "Stovky", "hint": "Nik T____"},
         {"lyrics": "Přišel jsem z ničeho, teď mám všechno", "artist": "Yzomandias", "song": "Z ničeho", "hint": "Y_______"},
-        {"lyrics": "Nemám čas na fake love, mám čas na real shit", "artist": "Viktor Sheen", "song": "Real Shit", "hint": "Viktor S____"},
-        {"lyrics": "Začínal jsem dole, teď jsem nahoře", "artist": "Sergei Barracuda", "song": "Nahoře", "hint": "Sergei B_______"},
-        {"lyrics": "Celej život makám, žádnej oddech", "artist": "Hasan", "song": "Makám", "hint": "H____"},
-        {"lyrics": "V hlavě mám démony, co mě ženou dál", "artist": "Nik Tendo", "song": "Démoni", "hint": "Nik T____"},
-        {"lyrics": "Jsem král svýho světa, nikdo mi neporučí", "artist": "Calin", "song": "Král", "hint": "C____"},
         {"lyrics": "Prodávám sny, lidi kupujou", "artist": "Yzomandias", "song": "Sny", "hint": "Y_______"},
-        {"lyrics": "Neřeším co říkaj, dělám svý", "artist": "Nik Tendo", "song": "Svý", "hint": "Nik T____"},
-        {"lyrics": "Zlatý časy, stříbrný vzpomínky", "artist": "Viktor Sheen", "song": "Zlatý časy", "hint": "Viktor S____"},
-        {"lyrics": "Money na mým stole, stress v mojí hlavě", "artist": "Calin", "song": "Money", "hint": "C____"},
         {"lyrics": "Celej block ví, že jsem number one", "artist": "Yzomandias", "song": "Block", "hint": "Y_______"},
-        {"lyrics": "Každej den hustluju, to je můj život", "artist": "Sergei Barracuda", "song": "Hustle", "hint": "Sergei B_______"},
-        {"lyrics": "Mám stack v kapse, flex na maximum", "artist": "Nik Tendo", "song": "Stack", "hint": "Nik T____"},
+        {"lyrics": "Runway, dneska letím vysoko", "artist": "Yzomandias", "song": "Runway", "hint": "Y_______"},
+        {"lyrics": "Bohatství a sláva, to je ten sen", "artist": "Yzomandias", "song": "Bohatství", "hint": "Y_______"},
+        {"lyrics": "Milion důvodů proč neskončit", "artist": "Yzomandias", "song": "Milion", "hint": "Y_______"},
+        {"lyrics": "Nemůžu spát, myslím na cash", "artist": "Yzomandias", "song": "Cash", "hint": "Y_______"},
+        # Viktor Sheen
+        {"lyrics": "Můj svět je šedej, ale nebe je modrý", "artist": "Viktor Sheen", "song": "Barvy", "hint": "Viktor S____"},
+        {"lyrics": "Nemám čas na fake love, mám čas na real shit", "artist": "Viktor Sheen", "song": "Real Shit", "hint": "Viktor S____"},
+        {"lyrics": "Zlatý časy, stříbrný vzpomínky", "artist": "Viktor Sheen", "song": "Zlatý časy", "hint": "Viktor S____"},
         {"lyrics": "Noční město svítí, já jdu za svým", "artist": "Viktor Sheen", "song": "Noční město", "hint": "Viktor S____"},
-        {"lyrics": "Ztracený v hudbě, našel jsem se v ní", "artist": "Hasan", "song": "Hudba", "hint": "H____"},
+        {"lyrics": "Černý Mercedes, jedu městem", "artist": "Viktor Sheen", "song": "Mercedes", "hint": "Viktor S____"},
+        {"lyrics": "Nechci zpátky, jdu dopředu", "artist": "Viktor Sheen", "song": "Dopředu", "hint": "Viktor S____"},
+        {"lyrics": "Láska je jed, co mi teče v žilách", "artist": "Viktor Sheen", "song": "Jed", "hint": "Viktor S____"},
+        # Calin
+        {"lyrics": "Jednou budem všichni v zemi, užij si ten den", "artist": "Calin", "song": "Jednou", "hint": "C____"},
+        {"lyrics": "Jsem král svýho světa, nikdo mi neporučí", "artist": "Calin", "song": "Král", "hint": "C____"},
+        {"lyrics": "Money na mým stole, stress v mojí hlavě", "artist": "Calin", "song": "Money", "hint": "C____"},
         {"lyrics": "Dream team, my jsme ti nejlepší", "artist": "Calin", "song": "Dream team", "hint": "C____"},
+        {"lyrics": "Pohádka o klukovi z ulice", "artist": "Calin", "song": "Pohádka", "hint": "C____"},
+        {"lyrics": "Diamanty na krku, zlato na ruce", "artist": "Calin", "song": "Diamanty", "hint": "C____"},
+        # Nik Tendo
+        {"lyrics": "Mám v kapse pár stovek a to mi stačí", "artist": "Nik Tendo", "song": "Stovky", "hint": "Nik T____"},
+        {"lyrics": "V hlavě mám démony, co mě ženou dál", "artist": "Nik Tendo", "song": "Démoni", "hint": "Nik T____"},
+        {"lyrics": "Neřeším co říkaj, dělám svý", "artist": "Nik Tendo", "song": "Svý", "hint": "Nik T____"},
+        {"lyrics": "Mám stack v kapse, flex na maximum", "artist": "Nik Tendo", "song": "Stack", "hint": "Nik T____"},
+        {"lyrics": "Psycho gang, nikdo nás nezastaví", "artist": "Nik Tendo", "song": "Psycho", "hint": "Nik T____"},
+        {"lyrics": "Praha city, tady jsem vyrostl", "artist": "Nik Tendo", "song": "Praha", "hint": "Nik T____"},
+        # Sergei Barracuda
+        {"lyrics": "Začínal jsem dole, teď jsem nahoře", "artist": "Sergei Barracuda", "song": "Nahoře", "hint": "Sergei B_______"},
+        {"lyrics": "Každej den hustluju, to je můj život", "artist": "Sergei Barracuda", "song": "Hustle", "hint": "Sergei B_______"},
+        {"lyrics": "Rest in peace, vzpomínám na ty co odešli", "artist": "Sergei Barracuda", "song": "RIP", "hint": "Sergei B_______"},
+        {"lyrics": "Southside repre, tohle je náš hood", "artist": "Sergei Barracuda", "song": "Southside", "hint": "Sergei B_______"},
+        # Hasan
+        {"lyrics": "Celej život makám, žádnej oddech", "artist": "Hasan", "song": "Makám", "hint": "H____"},
+        {"lyrics": "Ztracený v hudbě, našel jsem se v ní", "artist": "Hasan", "song": "Hudba", "hint": "H____"},
+        {"lyrics": "Moje máma pláče, když mě vidí v TV", "artist": "Hasan", "song": "Máma", "hint": "H____"},
+        # Lvcas Dope
+        {"lyrics": "Dope boys, tohle je naše doba", "artist": "Lvcas Dope", "song": "Dope Boys", "hint": "Lvcas D___"},
+        {"lyrics": "Pálím jako oheň, svítím jako slunce", "artist": "Lvcas Dope", "song": "Oheň", "hint": "Lvcas D___"},
+        {"lyrics": "Gang gang, celá crew je tu", "artist": "Lvcas Dope", "song": "Gang", "hint": "Lvcas D___"},
+        # Yzomandias + others
+        {"lyrics": "Nemám rád lidi, radši mám prachy", "artist": "Yzomandias", "song": "Prachy", "hint": "Y_______"},
+        {"lyrics": "Trap house, tady se to děje", "artist": "Viktor Sheen", "song": "Trap House", "hint": "Viktor S____"},
+        {"lyrics": "Ice na zápěstí, ice na krku", "artist": "Calin", "song": "Ice", "hint": "C____"},
+        # Marpo
+        {"lyrics": "Troublegang až do konce", "artist": "Marpo", "song": "Troublegang", "hint": "M____"},
+        {"lyrics": "Nikdy se nevzdávám, bojuju dál", "artist": "Marpo", "song": "Bojuju", "hint": "M____"},
+        {"lyrics": "Legendy nikdy neumírají", "artist": "Marpo", "song": "Legendy", "hint": "M____"},
+        # Ben Cristovao
+        {"lyrics": "Asio, asio, tancuj se mnou", "artist": "Ben Cristovao", "song": "Asio", "hint": "Ben C________"},
+        {"lyrics": "Bomby, bomby padají kolem nás", "artist": "Ben Cristovao", "song": "Bomby", "hint": "Ben C________"},
+        # Rest
+        {"lyrics": "Pouliční hrdina z betonový džungle", "artist": "Rest", "song": "Hrdina", "hint": "R___"},
+        {"lyrics": "Million dolarů v hlavě mám", "artist": "Rest", "song": "Million", "hint": "R___"},
+        # Dollar Prync
+        {"lyrics": "Balím jeden za druhým, to je ten vibe", "artist": "Dollar Prync", "song": "Vibe", "hint": "Dollar P____"},
+        # Refew
+        {"lyrics": "Královská hra, jsem na trůnu", "artist": "Refew", "song": "Královská hra", "hint": "R____"},
+        {"lyrics": "Padouch s dobrým srdcem", "artist": "Refew", "song": "Padouch", "hint": "R____"},
     ],
     "pop": [
+        # Mirai
         {"lyrics": "Holky z naší školky, chtěly by mě zpátky", "artist": "Mirai", "song": "Holky z naší školky", "hint": "M____"},
-        {"lyrics": "Když nemůžeš spát a myslíš na mě", "artist": "Slza", "song": "Když nemůžeš spát", "hint": "S___"},
-        {"lyrics": "Půlnoční vlak mě veze domů", "artist": "Pokáč", "song": "Půlnoční", "hint": "P____"},
-        {"lyrics": "Já vím, že ty víš, že já vím", "artist": "Ewa Farna", "song": "Ty víš", "hint": "Ewa F____"},
-        {"lyrics": "Máme se rádi, tak proč to kazit", "artist": "Slza", "song": "Máme se rádi", "hint": "S___"},
-        {"lyrics": "Celá léta jsem hledal tu pravou", "artist": "Marek Ztracený", "song": "Léta", "hint": "Marek Z_______"},
         {"lyrics": "Na konci dne to bude dobrý", "artist": "Mirai", "song": "Dobrý", "hint": "M____"},
-        {"lyrics": "Nikdy nevíš, co ti život přinese", "artist": "Ewa Farna", "song": "Nevíš", "hint": "Ewa F____"},
-        {"lyrics": "Tancuj, tancuj, dokud můžeš", "artist": "Pokáč", "song": "Tancuj", "hint": "P____"},
         {"lyrics": "Slunce svítí, svět je krásnej", "artist": "Mirai", "song": "Slunce", "hint": "M____"},
-        {"lyrics": "Věřím na zázraky, věřím na nás", "artist": "Slza", "song": "Zázraky", "hint": "S___"},
-        {"lyrics": "Láska je válka, my jsme vojáci", "artist": "Ewa Farna", "song": "Válka", "hint": "Ewa F____"},
-        {"lyrics": "Společně až na konec světa", "artist": "Marek Ztracený", "song": "Společně", "hint": "Marek Z_______"},
-        {"lyrics": "Každý ráno vstávám s úsměvem", "artist": "Pokáč", "song": "Ráno", "hint": "P____"},
         {"lyrics": "Padám, vstávám, jdu dál", "artist": "Mirai", "song": "Padám", "hint": "M____"},
+        {"lyrics": "Když tě vidím, srdce mi buší", "artist": "Mirai", "song": "Srdce", "hint": "M____"},
+        {"lyrics": "Celou noc jsem vzhůru, myslím na tebe", "artist": "Mirai", "song": "Celou noc", "hint": "M____"},
+        {"lyrics": "Tady a teď, to je ten moment", "artist": "Mirai", "song": "Tady a teď", "hint": "M____"},
+        # Slza
+        {"lyrics": "Když nemůžeš spát a myslíš na mě", "artist": "Slza", "song": "Když nemůžeš spát", "hint": "S___"},
+        {"lyrics": "Máme se rádi, tak proč to kazit", "artist": "Slza", "song": "Máme se rádi", "hint": "S___"},
+        {"lyrics": "Věřím na zázraky, věřím na nás", "artist": "Slza", "song": "Zázraky", "hint": "S___"},
+        {"lyrics": "Hořím pro tebe, shoř se mnou", "artist": "Slza", "song": "Hořím", "hint": "S___"},
+        {"lyrics": "Nebe nad námi je nekonečný", "artist": "Slza", "song": "Nebe", "hint": "S___"},
+        {"lyrics": "Dva lidi, jedna duše", "artist": "Slza", "song": "Dva lidi", "hint": "S___"},
+        # Pokáč
+        {"lyrics": "Půlnoční vlak mě veze domů", "artist": "Pokáč", "song": "Půlnoční", "hint": "P____"},
+        {"lyrics": "Tancuj, tancuj, dokud můžeš", "artist": "Pokáč", "song": "Tancuj", "hint": "P____"},
+        {"lyrics": "Každý ráno vstávám s úsměvem", "artist": "Pokáč", "song": "Ráno", "hint": "P____"},
+        {"lyrics": "Kafe a cigárko, to je moje ráno", "artist": "Pokáč", "song": "Kafe", "hint": "P____"},
+        {"lyrics": "Nakupuju v second handu", "artist": "Pokáč", "song": "Second hand", "hint": "P____"},
+        {"lyrics": "Láska je jako pizza, nejlepší když je teplá", "artist": "Pokáč", "song": "Pizza", "hint": "P____"},
+        # Ewa Farna
+        {"lyrics": "Já vím, že ty víš, že já vím", "artist": "Ewa Farna", "song": "Ty víš", "hint": "Ewa F____"},
+        {"lyrics": "Nikdy nevíš, co ti život přinese", "artist": "Ewa Farna", "song": "Nevíš", "hint": "Ewa F____"},
+        {"lyrics": "Láska je válka, my jsme vojáci", "artist": "Ewa Farna", "song": "Válka", "hint": "Ewa F____"},
+        {"lyrics": "Měls mě vůbec rád, nebo to byla jen hra", "artist": "Ewa Farna", "song": "Měls mě rád", "hint": "Ewa F____"},
+        {"lyrics": "Ticho, křičím, ale nikdo neslyší", "artist": "Ewa Farna", "song": "Ticho", "hint": "Ewa F____"},
+        {"lyrics": "Na ostří nože balancuju", "artist": "Ewa Farna", "song": "Na ostří nože", "hint": "Ewa F____"},
+        # Marek Ztracený
+        {"lyrics": "Celá léta jsem hledal tu pravou", "artist": "Marek Ztracený", "song": "Léta", "hint": "Marek Z_______"},
+        {"lyrics": "Společně až na konec světa", "artist": "Marek Ztracený", "song": "Společně", "hint": "Marek Z_______"},
+        {"lyrics": "Dívám se na hvězdy a vidím tě", "artist": "Marek Ztracený", "song": "Hvězdy", "hint": "Marek Z_______"},
+        {"lyrics": "Až jednou nebudu, vzpomeň si na mě", "artist": "Marek Ztracený", "song": "Až jednou", "hint": "Marek Z_______"},
+        # Aneta Langerová
+        {"lyrics": "Voda živá, proudí v mých žilách", "artist": "Aneta Langerová", "song": "Voda živá", "hint": "Aneta L_______"},
+        {"lyrics": "Pták v kleci zpívá o svobodě", "artist": "Aneta Langerová", "song": "Pták", "hint": "Aneta L_______"},
+        # Tomáš Klus
+        {"lyrics": "Já jdu dál a dál, nikdo mě nezastaví", "artist": "Tomáš Klus", "song": "Dál", "hint": "Tomáš K___"},
+        {"lyrics": "Do nebe, chci letět do nebe", "artist": "Tomáš Klus", "song": "Do nebe", "hint": "Tomáš K___"},
+        {"lyrics": "Ty a já, dva blázni v tomhle světě", "artist": "Tomáš Klus", "song": "Ty a já", "hint": "Tomáš K___"},
+        # Thom Artway
+        {"lyrics": "Running through the night, looking for the light", "artist": "Thom Artway", "song": "Running", "hint": "Thom A_____"},
+        {"lyrics": "I will never let you go", "artist": "Thom Artway", "song": "Never", "hint": "Thom A_____"},
+        # Mig 21
+        {"lyrics": "Snadné je žít, těžké je být", "artist": "Mig 21", "song": "Snadné", "hint": "Mig __"},
+        {"lyrics": "Žiju si svůj život a je mi dobře", "artist": "Mig 21", "song": "Život", "hint": "Mig __"},
+        # Lenny
+        {"lyrics": "Hell.o, can you hear me calling", "artist": "Lenny", "song": "Hell.o", "hint": "L____"},
+        {"lyrics": "Dreaming about you every night", "artist": "Lenny", "song": "Dreaming", "hint": "L____"},
+        # Rybičky 48
+        {"lyrics": "Pořád ta samá, pořád ta samá", "artist": "Rybičky 48", "song": "Pořád ta samá", "hint": "Rybičky __"},
+        {"lyrics": "Adéla, ty jsi moje láska", "artist": "Rybičky 48", "song": "Adéla", "hint": "Rybičky __"},
     ],
     "rock": [
+        # Kryštof
         {"lyrics": "Až mě jednou potkáš, budu jinej člověk", "artist": "Kryštof", "song": "Jinej člověk", "hint": "K______"},
-        {"lyrics": "Sním svůj sen a nechci se probudit", "artist": "Kabát", "song": "Sním svůj sen", "hint": "K____"},
-        {"lyrics": "Dívám se na hvězdy a přemýšlím", "artist": "Chinaski", "song": "Hvězdy", "hint": "C______"},
-        {"lyrics": "Pojď blíž, pojď blíž ke mně", "artist": "Lucie", "song": "Pojď blíž", "hint": "L____"},
-        {"lyrics": "Máma mi vždycky říkala, ať si dávám pozor", "artist": "Kabát", "song": "Máma", "hint": "K____"},
         {"lyrics": "Běžím po ulici a nevím kam", "artist": "Kryštof", "song": "Běžím", "hint": "K______"},
-        {"lyrics": "Chci žít svůj život naplno", "artist": "Chinaski", "song": "Naplno", "hint": "C______"},
-        {"lyrics": "Amerika je daleko, ale sny jsou blízko", "artist": "Lucie", "song": "Amerika", "hint": "L____"},
-        {"lyrics": "Malá bílá vrána letí k obloze", "artist": "Kabát", "song": "Bílá vrána", "hint": "K____"},
         {"lyrics": "Zůstaň se mnou ještě chvíli", "artist": "Kryštof", "song": "Zůstaň", "hint": "K______"},
-        {"lyrics": "Cestou na jih, kde slunce zapadá", "artist": "Chinaski", "song": "Na jih", "hint": "C______"},
-        {"lyrics": "Černý andělé hlídaj můj sen", "artist": "Lucie", "song": "Černý andělé", "hint": "L____"},
-        {"lyrics": "Kdo nekrade, ten má", "artist": "Kabát", "song": "Kdo nekrade", "hint": "K____"},
         {"lyrics": "Dnes ještě ne, zítra možná jo", "artist": "Kryštof", "song": "Zítra", "hint": "K______"},
+        {"lyrics": "Ty a já, dvě srdce jedno tělo", "artist": "Kryštof", "song": "Ty a já", "hint": "K______"},
+        {"lyrics": "Sněhulák, co taje na slunci", "artist": "Kryštof", "song": "Sněhulák", "hint": "K______"},
+        {"lyrics": "Cesta, po které jdu, nemá konce", "artist": "Kryštof", "song": "Cesta", "hint": "K______"},
+        # Kabát
+        {"lyrics": "Sním svůj sen a nechci se probudit", "artist": "Kabát", "song": "Sním svůj sen", "hint": "K____"},
+        {"lyrics": "Máma mi vždycky říkala, ať si dávám pozor", "artist": "Kabát", "song": "Máma", "hint": "K____"},
+        {"lyrics": "Malá bílá vrána letí k obloze", "artist": "Kabát", "song": "Bílá vrána", "hint": "K____"},
+        {"lyrics": "Kdo nekrade, ten má", "artist": "Kabát", "song": "Kdo nekrade", "hint": "K____"},
+        {"lyrics": "Pohoda, všechno je v pohodě", "artist": "Kabát", "song": "Pohoda", "hint": "K____"},
+        {"lyrics": "Corrida, corrida, život je corrida", "artist": "Kabát", "song": "Corrida", "hint": "K____"},
+        {"lyrics": "Dole v dole v údolí", "artist": "Kabát", "song": "Dole v dole", "hint": "K____"},
+        {"lyrics": "Colorado, tam bych chtěl být", "artist": "Kabát", "song": "Colorado", "hint": "K____"},
+        # Chinaski
+        {"lyrics": "Dívám se na hvězdy a přemýšlím", "artist": "Chinaski", "song": "Hvězdy", "hint": "C______"},
+        {"lyrics": "Chci žít svůj život naplno", "artist": "Chinaski", "song": "Naplno", "hint": "C______"},
+        {"lyrics": "Cestou na jih, kde slunce zapadá", "artist": "Chinaski", "song": "Na jih", "hint": "C______"},
         {"lyrics": "Rock and roll je mrtvej, ale my hrajem dál", "artist": "Chinaski", "song": "Rock and roll", "hint": "C______"},
+        {"lyrics": "Jsi můj nejlepší přítel", "artist": "Chinaski", "song": "Přítel", "hint": "C______"},
+        {"lyrics": "Všechno co mám, všechno co chci", "artist": "Chinaski", "song": "Všechno", "hint": "C______"},
+        # Lucie
+        {"lyrics": "Pojď blíž, pojď blíž ke mně", "artist": "Lucie", "song": "Pojď blíž", "hint": "L____"},
+        {"lyrics": "Amerika je daleko, ale sny jsou blízko", "artist": "Lucie", "song": "Amerika", "hint": "L____"},
+        {"lyrics": "Černý andělé hlídaj můj sen", "artist": "Lucie", "song": "Černý andělé", "hint": "L____"},
+        {"lyrics": "Šum silnice, to je má melodie", "artist": "Lucie", "song": "Šum", "hint": "L____"},
+        {"lyrics": "Chci zas v tobě spát", "artist": "Lucie", "song": "Chci zas", "hint": "L____"},
+        {"lyrics": "Medvídek, já jsem tvůj medvídek", "artist": "Lucie", "song": "Medvídek", "hint": "L____"},
+        # Horkýže Slíže
+        {"lyrics": "Vlak, co nikde nestaví", "artist": "Horkýže Slíže", "song": "Vlak", "hint": "Horkýže S____"},
+        {"lyrics": "Silné reči, tie nezastavíš", "artist": "Horkýže Slíže", "song": "Silné reči", "hint": "Horkýže S____"},
+        # Škwor
+        {"lyrics": "Sám proti všem, tak to má být", "artist": "Škwor", "song": "Sám", "hint": "Š____"},
+        {"lyrics": "Síla starejch vín", "artist": "Škwor", "song": "Síla", "hint": "Š____"},
+        # Divokej Bill
+        {"lyrics": "Čmelák, čmelák lítá nad loukou", "artist": "Divokej Bill", "song": "Čmelák", "hint": "Divokej B___"},
+        {"lyrics": "Malování, to je moje hra", "artist": "Divokej Bill", "song": "Malování", "hint": "Divokej B___"},
+        {"lyrics": "Ring ding dong, to je naše song", "artist": "Divokej Bill", "song": "Ring ding dong", "hint": "Divokej B___"},
+        # Wohnout
+        {"lyrics": "Svaz českých bohémů, to jsme my", "artist": "Wohnout", "song": "Svaz", "hint": "W______"},
+        {"lyrics": "Piju jen když svítí slunce", "artist": "Wohnout", "song": "Piju", "hint": "W______"},
+        # Tři sestry
+        {"lyrics": "Punk rock rádio hraje celou noc", "artist": "Tři sestry", "song": "Punk rock rádio", "hint": "Tři s_____"},
+        {"lyrics": "Alkohol, my ho máme rádi", "artist": "Tři sestry", "song": "Alkohol", "hint": "Tři s_____"},
     ],
     "classic": [
+        # Karel Gott
         {"lyrics": "Lady Carneval, tančí dál a dál", "artist": "Karel Gott", "song": "Lady Carneval", "hint": "Karel G___"},
         {"lyrics": "Včelka Mája, ta si létá", "artist": "Karel Gott", "song": "Včelka Mája", "hint": "Karel G___"},
-        {"lyrics": "Holubí dům, tam kde jsem doma", "artist": "Waldemar Matuška", "song": "Holubí dům", "hint": "Waldemar M______"},
-        {"lyrics": "Jožin z bažin měří přes dva metry", "artist": "Ivan Mládek", "song": "Jožin z bažin", "hint": "Ivan M_____"},
-        {"lyrics": "Být stále mlád, to není žádnej věk", "artist": "Marta Kubišová", "song": "Být stále mlád", "hint": "Marta K______"},
-        {"lyrics": "Těžkej den, všechno je špatně", "artist": "Olympic", "song": "Těžkej den", "hint": "O______"},
         {"lyrics": "Lásko voníš deštěm", "artist": "Karel Gott", "song": "Lásko", "hint": "Karel G___"},
         {"lyrics": "Když milenky pláčou, pláče celý svět", "artist": "Karel Gott", "song": "Když milenky pláčou", "hint": "Karel G___"},
+        {"lyrics": "Okno mé lásky, zavři za sebou", "artist": "Karel Gott", "song": "Okno mé lásky", "hint": "Karel G___"},
+        {"lyrics": "Bum bum bum, já mám tě rád", "artist": "Karel Gott", "song": "Bum bum bum", "hint": "Karel G___"},
+        {"lyrics": "Být stále mlád, to je můj sen", "artist": "Karel Gott", "song": "Být stále mlád", "hint": "Karel G___"},
+        {"lyrics": "Trezor, v něm jsou mé vzpomínky", "artist": "Karel Gott", "song": "Trezor", "hint": "Karel G___"},
+        {"lyrics": "Pábitelé, to jsou naši lidi", "artist": "Karel Gott", "song": "Pábitelé", "hint": "Karel G___"},
+        {"lyrics": "Čau lásko, už musím jít", "artist": "Karel Gott", "song": "Čau lásko", "hint": "Karel G___"},
+        # Waldemar Matuška
+        {"lyrics": "Holubí dům, tam kde jsem doma", "artist": "Waldemar Matuška", "song": "Holubí dům", "hint": "Waldemar M______"},
         {"lyrics": "Rosa na kolejích, vlak co nejede", "artist": "Waldemar Matuška", "song": "Rosa na kolejích", "hint": "Waldemar M______"},
+        {"lyrics": "Pod tou naší starou lípou", "artist": "Waldemar Matuška", "song": "Pod lípou", "hint": "Waldemar M______"},
+        {"lyrics": "Tisíc mil, to je cesta domů", "artist": "Waldemar Matuška", "song": "Tisíc mil", "hint": "Waldemar M______"},
+        # Ivan Mládek
+        {"lyrics": "Jožin z bažin měří přes dva metry", "artist": "Ivan Mládek", "song": "Jožin z bažin", "hint": "Ivan M_____"},
         {"lyrics": "Koukej, támhle finišuje báječnej chlap", "artist": "Ivan Mládek", "song": "Báječnej chlap", "hint": "Ivan M_____"},
-        {"lyrics": "Modlitba pro Martu", "artist": "Marta Kubišová", "song": "Modlitba pro Martu", "hint": "Marta K______"},
+        {"lyrics": "Mě to tady nebaví, já chci domů", "artist": "Ivan Mládek", "song": "Mě to nebaví", "hint": "Ivan M_____"},
+        {"lyrics": "Nashledanou v lepších časech", "artist": "Ivan Mládek", "song": "Nashledanou", "hint": "Ivan M_____"},
+        # Marta Kubišová
+        {"lyrics": "Být stále mlád, to není žádnej věk", "artist": "Marta Kubišová", "song": "Být stále mlád", "hint": "Marta K______"},
+        {"lyrics": "Modlitba pro Martu, ať žije dál", "artist": "Marta Kubišová", "song": "Modlitba pro Martu", "hint": "Marta K______"},
+        {"lyrics": "Nechte zvony znít, nechte je znít", "artist": "Marta Kubišová", "song": "Zvony", "hint": "Marta K______"},
+        # Olympic
+        {"lyrics": "Těžkej den, všechno je špatně", "artist": "Olympic", "song": "Těžkej den", "hint": "O______"},
         {"lyrics": "Dej mi víc své lásky", "artist": "Olympic", "song": "Dej mi víc", "hint": "O______"},
+        {"lyrics": "Jasná zpráva, to je ta co čekám", "artist": "Olympic", "song": "Jasná zpráva", "hint": "O______"},
+        {"lyrics": "Želva, ta se nikam nespěchá", "artist": "Olympic", "song": "Želva", "hint": "O______"},
+        # Karel Kryl
         {"lyrics": "Pane prezidente, kam to jdete", "artist": "Karel Kryl", "song": "Pane prezidente", "hint": "Karel K___"},
         {"lyrics": "Bratříčku zavírej vrátka", "artist": "Karel Kryl", "song": "Bratříčku", "hint": "Karel K___"},
-        {"lyrics": "Okno mé lásky, zavři za sebou", "artist": "Karel Gott", "song": "Okno mé lásky", "hint": "Karel G___"},
+        {"lyrics": "Anděl, co spadl z nebe", "artist": "Karel Kryl", "song": "Anděl", "hint": "Karel K___"},
+        {"lyrics": "Slib, co jsem ti dal, platí pořád", "artist": "Karel Kryl", "song": "Slib", "hint": "Karel K___"},
+        # Hana Zagorová
+        {"lyrics": "Já nemám strach, já jdu dál", "artist": "Hana Zagorová", "song": "Nemám strach", "hint": "Hana Z_______"},
+        {"lyrics": "Mimořádná linka lásky", "artist": "Hana Zagorová", "song": "Linka lásky", "hint": "Hana Z_______"},
+        {"lyrics": "Maluj zase obrázky", "artist": "Hana Zagorová", "song": "Obrázky", "hint": "Hana Z_______"},
+        # Helena Vondráčková
+        {"lyrics": "Dlouhá noc, tak dlouhá noc", "artist": "Helena Vondráčková", "song": "Dlouhá noc", "hint": "Helena V________"},
+        {"lyrics": "Přejdi Jordán a vrať se domů", "artist": "Helena Vondráčková", "song": "Jordán", "hint": "Helena V________"},
+        {"lyrics": "Lásko má, já stůňu", "artist": "Helena Vondráčková", "song": "Lásko má", "hint": "Helena V________"},
+        # Michal David
+        {"lyrics": "Nonstop, tancujem nonstop", "artist": "Michal David", "song": "Nonstop", "hint": "Michal D____"},
+        {"lyrics": "Discopříběh, to je naše doba", "artist": "Michal David", "song": "Discopříběh", "hint": "Michal D____"},
+        {"lyrics": "Céčka, béčka, áčka, jedéééééém", "artist": "Michal David", "song": "Céčka", "hint": "Michal D____"},
+        # Jaromír Nohavica
+        {"lyrics": "Těšínská, tam kde je můj domov", "artist": "Jaromír Nohavica", "song": "Těšínská", "hint": "Jaromír N_______"},
+        {"lyrics": "Mikymauz, to je starej známej", "artist": "Jaromír Nohavica", "song": "Mikymauz", "hint": "Jaromír N_______"},
+        {"lyrics": "Ladovská zima, bílá a čistá", "artist": "Jaromír Nohavica", "song": "Ladovská zima", "hint": "Jaromír N_______"},
+        {"lyrics": "Kometa, letí kometa oblohou", "artist": "Jaromír Nohavica", "song": "Kometa", "hint": "Jaromír N_______"},
     ]
 }
+
 
 # Active music quizzes
 active_music_quiz = {}
