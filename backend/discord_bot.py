@@ -855,6 +855,186 @@ async def send_commands_info(ctx):
     
     await ctx.send(embed=xp_embed)
 
+@bot.command(name="herniinfo")
+@commands.has_permissions(administrator=True)
+async def send_game_info(ctx):
+    """!herniinfo - Pošle trvalou zprávu s herními příkazy do kanálu 1468355022159872073 (jen admin)"""
+    
+    # Delete the command message
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+    
+    # Získání cílového kanálu
+    target_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+    if not target_channel:
+        await ctx.send("❌ Nepodařilo se najít cílový kanál!", delete_after=10)
+        return
+    
+    # === HLAVNÍ EMBED - HERNÍ PŘÍKAZY ===
+    main_embed = discord.Embed(
+        title="🎮 HERNÍ SYSTÉM - PŘÍKAZY",
+        description="Kompletní přehled herních příkazů a jak získat XP",
+        color=discord.Color.green()
+    )
+    
+    main_embed.add_field(
+        name="📊 `/gamelevel` nebo `!level`",
+        value="**Zobrazí tvůj herní profil:**\n"
+              "• Aktuální level a XP\n"
+              "• Počet odehraných kvízů\n"
+              "• Přesnost odpovědí\n"
+              "• Aktuální streak\n"
+              "• Progress do dalšího levelu\n"
+              "💡 *Můžeš zadat i jiného hráče: `/gamelevel @hrac`*",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="🏆 `/top` nebo `!top`",
+        value="**Zobrazí žebříček TOP 10 hráčů:**\n"
+              "• Seřazeno podle XP\n"
+              "• Vidíš level, XP a badge každého hráče\n"
+              "• Soutěž s ostatními o první místo!",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="🎁 `/daily` nebo `!daily`",
+        value="**Denní bonus - získej ZDARMA:**\n"
+              "• **+100 XP** každý den\n"
+              "• **+10 XP bonus** za každý den streak\n"
+              "• Streak = po sobě jdoucí dny\n"
+              "• Reset streaku = vynechaný den\n"
+              "⏰ *Resetuje se o půlnoci*",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="🕹️ `/hry` nebo `!hry`",
+        value="**Zobrazí tvé odemčené hry:**\n"
+              "• Seznam her které jsi hrál\n"
+              "• Celkový čas hraní každé hry\n"
+              "• Počet odemčených her\n"
+              "• Emoji podle kategorie hry",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="📋 `/ukoly [hra]` nebo `!ukoly [hra]`",
+        value="**Zobrazí úkoly pro konkrétní hru:**\n"
+              "• Úkoly podle odehraného času\n"
+              "• XP odměny za splnění\n"
+              "• Vidíš které úkoly máš hotové ✅\n"
+              "• Příklad: `/ukoly Minecraft`",
+        inline=False
+    )
+    
+    main_embed.set_footer(text="Tyto odpovědi se automaticky mažou po 1 minutě")
+    
+    # === DRUHÝ EMBED - JAK ZÍSKAT XP ===
+    xp_embed = discord.Embed(
+        title="✨ JAK ZÍSKAT XP",
+        description="Všechny způsoby jak rychle levelovat",
+        color=discord.Color.gold()
+    )
+    
+    xp_embed.add_field(
+        name="🎵 Hudební kvíz `/hudba`",
+        value="**+25 XP** za správnou odpověď\n*Hádej interpreta podle textu*",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎬 Filmový kvíz `/film`",
+        value="**+25 XP** za správnou odpověď\n*Hádej film podle hlášky*",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🤔 Pravda/Lež `/pravda`",
+        value="**+15 XP** za správnou odpověď\n*Je fakt pravdivý?*",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎮 Hraní her na PC",
+        value="**+5 XP** za každých 10 minut hraní\n"
+              "**+25 XP** bonus za odemčení nové hry\n"
+              "**Max 200 XP/den** z hraní\n"
+              "*Automaticky detekuje hry přes Discord*",
+        inline=False
+    )
+    
+    xp_embed.add_field(
+        name="🎁 Denní bonus",
+        value="**+100 XP** každý den\n"
+              "**+10 XP** bonus za streak",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🏅 Splněné úkoly",
+        value="**+50 až +1500 XP**\n"
+              "Podle náročnosti úkolu",
+        inline=True
+    )
+    
+    # === TŘETÍ EMBED - LEVEL SYSTÉM ===
+    level_embed = discord.Embed(
+        title="📈 LEVEL SYSTÉM",
+        description="Čím víc XP, tím vyšší level a lepší badge!",
+        color=discord.Color.purple()
+    )
+    
+    level_embed.add_field(
+        name="🏅 Odznaky podle levelu",
+        value="🌱 **Lvl 1** → Nováček\n"
+              "🌿 **Lvl 2** → Začátečník\n"
+              "🌳 **Lvl 3** → Hráč\n"
+              "⭐ **Lvl 4** → Pokročilý\n"
+              "🌟 **Lvl 5** → Zkušený\n"
+              "💫 **Lvl 10** → Veterán\n"
+              "🔥 **Lvl 15** → Expert\n"
+              "💎 **Lvl 20** → Mistr\n"
+              "👑 **Lvl 25** → Šampion\n"
+              "🏆 **Lvl 30** → Legenda",
+        inline=True
+    )
+    
+    level_embed.add_field(
+        name="📊 XP potřebné pro level",
+        value="**Lvl 2:** 100 XP\n"
+              "**Lvl 3:** 400 XP\n"
+              "**Lvl 5:** 1,600 XP\n"
+              "**Lvl 10:** 8,100 XP\n"
+              "**Lvl 15:** 19,600 XP\n"
+              "**Lvl 20:** 36,100 XP\n"
+              "**Lvl 25:** 57,600 XP\n"
+              "**Lvl 30:** 84,100 XP",
+        inline=True
+    )
+    
+    level_embed.add_field(
+        name="💡 TIPY",
+        value="• Hraj kvízy každý den pro rychlé XP\n"
+              "• Nezapomeň na `/daily` bonus\n"
+              "• Hraj hry na PC pro pasivní XP\n"
+              "• Plň úkoly pro velké bonusy",
+        inline=False
+    )
+    
+    level_embed.set_footer(text="🎮 Hraj, sbírej XP a staň se legendou!")
+    
+    # Odeslání všech embedů do cílového kanálu (trvalé zprávy)
+    await target_channel.send(embed=main_embed)
+    await target_channel.send(embed=xp_embed)
+    await target_channel.send(embed=level_embed)
+    
+    # Potvrzení v původním kanálu
+    await ctx.send(f"✅ Herní info bylo odesláno do kanálu <#{GAME_NOTIFICATION_CHANNEL}>!", delete_after=10)
+
 # ============== GAME LEVEL SYSTEM ==============
 
 LEVEL_BADGES = {
