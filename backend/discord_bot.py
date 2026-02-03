@@ -323,8 +323,8 @@ async def prefix_help(ctx):
         inline=False
     )
     embed.add_field(
-        name="⏱️ Formáty",
-        value="`30s`, `2m`, `1h`, `1d`",
+        name="🎵 Hudební kvíz",
+        value="`!hudba [rap/pop/rock/classic]`",
         inline=False
     )
     await ctx.send(embed=embed)
