@@ -29,8 +29,70 @@ users_collection = db["game_users"]
 # Bot setup
 intents = discord.Intents.default()
 intents.message_content = True
+intents.presences = True  # Pro sledování her
+intents.members = True    # Pro sledování členů
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+# ============== GAME TRACKING SYSTEM ==============
+
+# Bonusové hry - při prvním hraní dostane hráč +25 XP bonus
+BONUS_GAMES = {
+    # Populární hry
+    "Counter-Strike 2": {"emoji": "🎯", "category": "FPS"},
+    "Counter-Strike: Global Offensive": {"emoji": "🎯", "category": "FPS"},
+    "Minecraft": {"emoji": "⛏️", "category": "Sandbox"},
+    "Fortnite": {"emoji": "🏝️", "category": "Battle Royale"},
+    "League of Legends": {"emoji": "⚔️", "category": "MOBA"},
+    "VALORANT": {"emoji": "🔫", "category": "FPS"},
+    "Apex Legends": {"emoji": "🦊", "category": "Battle Royale"},
+    "Rocket League": {"emoji": "🚗", "category": "Sport"},
+    "GTA V": {"emoji": "🚔", "category": "Akce"},
+    "Grand Theft Auto V": {"emoji": "🚔", "category": "Akce"},
+    "Roblox": {"emoji": "🧱", "category": "Sandbox"},
+    "Overwatch 2": {"emoji": "🦸", "category": "FPS"},
+    "Dota 2": {"emoji": "🗡️", "category": "MOBA"},
+    "Call of Duty": {"emoji": "💣", "category": "FPS"},
+    "Warzone": {"emoji": "💣", "category": "Battle Royale"},
+    "FIFA 24": {"emoji": "⚽", "category": "Sport"},
+    "EA SPORTS FC 24": {"emoji": "⚽", "category": "Sport"},
+    "Destiny 2": {"emoji": "🌌", "category": "MMO"},
+    "World of Warcraft": {"emoji": "🐉", "category": "MMO"},
+    "Diablo IV": {"emoji": "😈", "category": "RPG"},
+    "Path of Exile": {"emoji": "⚡", "category": "RPG"},
+    "Elden Ring": {"emoji": "🗡️", "category": "RPG"},
+    "Hogwarts Legacy": {"emoji": "🧙", "category": "RPG"},
+    "Cyberpunk 2077": {"emoji": "🤖", "category": "RPG"},
+    "The Witcher 3": {"emoji": "🐺", "category": "RPG"},
+    "Baldur's Gate 3": {"emoji": "🎲", "category": "RPG"},
+    "Terraria": {"emoji": "🌳", "category": "Sandbox"},
+    "Stardew Valley": {"emoji": "🌾", "category": "Simulace"},
+    "Among Us": {"emoji": "🚀", "category": "Party"},
+    "Phasmophobia": {"emoji": "👻", "category": "Horor"},
+    "Dead by Daylight": {"emoji": "🔪", "category": "Horor"},
+    "Rust": {"emoji": "🏚️", "category": "Survival"},
+    "ARK: Survival Evolved": {"emoji": "🦖", "category": "Survival"},
+    "Sea of Thieves": {"emoji": "🏴‍☠️", "category": "Dobrodružství"},
+    "Euro Truck Simulator 2": {"emoji": "🚛", "category": "Simulace"},
+    "Cities: Skylines": {"emoji": "🏙️", "category": "Simulace"},
+    "The Sims 4": {"emoji": "🏠", "category": "Simulace"},
+    "Spotify": {"emoji": "🎵", "category": "Hudba"},
+    "YouTube": {"emoji": "📺", "category": "Video"},
+    "Visual Studio Code": {"emoji": "💻", "category": "Kódování"},
+    "Escape from Tarkov": {"emoji": "🎒", "category": "FPS"},
+    "Rainbow Six Siege": {"emoji": "🛡️", "category": "FPS"},
+    "Lethal Company": {"emoji": "💀", "category": "Horor"},
+    "Palworld": {"emoji": "🐾", "category": "Survival"},
+    "Helldivers 2": {"emoji": "🪖", "category": "Akce"},
+}
+
+# Game XP settings
+GAME_XP_PER_10_MIN = 5
+GAME_XP_DAILY_LIMIT = 200
+GAME_UNLOCK_BONUS = 25
+
+# Track active gaming sessions {user_id: {"game": name, "start": datetime, "guild_id": id}}
+active_gaming_sessions = {}
 
 # ============== XP/LEVEL SYSTEM ==============
 
