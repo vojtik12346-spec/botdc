@@ -1102,21 +1102,20 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
             start_time = session["start"]
             minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
             
+            print(f"[GAME] ⏹️ {session['user_name']} skončil hrát: {session['game']} ({minutes_played} min)", flush=True)
+            
             if minutes_played >= 10:
-                # Find channel for notification
-                channel = after.guild.system_channel
+                # Get notification channel
+                channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
                 if not channel:
-                    for ch in after.guild.text_channels:
-                        if ch.permissions_for(after.guild.me).send_messages:
-                            channel = ch
-                            break
+                    channel = after.guild.system_channel
                 
                 xp_earned = await add_game_xp(
                     session["guild_id"],
                     user_id,
                     session["user_name"],
                     minutes_played,
-                    session["game"],  # Pass game name for quests
+                    session["game"],
                     channel
                 )
                 
