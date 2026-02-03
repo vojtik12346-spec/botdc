@@ -290,7 +290,7 @@ async def slash_help(interaction: discord.Interaction):
     )
     embed.add_field(
         name="🎬 Filmový kvíz",
-        value="`/film-quiz [žánr]` - české, hollywood, komedie, akční, horor, scifi",
+        value="`/film [žánr]` - české, hollywood, komedie, akční, horor, scifi",
         inline=False
     )
     embed.add_field(
