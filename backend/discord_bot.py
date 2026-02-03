@@ -573,6 +573,20 @@ async def on_ready():
         upsert=True
     )
     
+    # Uložit seznam serverů
+    for guild in bot.guilds:
+        users_collection.database.bot_guilds.update_one(
+            {"id": str(guild.id)},
+            {"$set": {
+                "id": str(guild.id),
+                "name": guild.name,
+                "icon": str(guild.icon.url) if guild.icon else None,
+                "memberCount": guild.member_count,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+    
     try:
         synced = await bot.tree.sync()
         print(f'✅ Synchronizováno {len(synced)} slash příkazů', flush=True)
