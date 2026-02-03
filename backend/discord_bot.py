@@ -668,7 +668,7 @@ async def prefix_odpocet(ctx, cas: str, *, duvod: str = None):
 @bot.tree.command(name="help", description="Zobraz nápovědu")
 async def slash_help(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="🤖 Bot Příkazy",
+        title="⚔️ Valhalla Bot - Příkazy",
         color=discord.Color.blue()
     )
     embed.add_field(
@@ -717,7 +717,7 @@ async def slash_help(interaction: discord.Interaction):
 async def prefix_help(ctx):
     """!pomoc - Zobraz nápovědu"""
     embed = discord.Embed(
-        title="🤖 Bot Příkazy",
+        title="⚔️ Valhalla Bot - Příkazy",
         color=discord.Color.blue()
     )
     embed.add_field(
@@ -771,7 +771,7 @@ async def send_commands_info(ctx):
     
     # Main embed
     embed = discord.Embed(
-        title="🤖 BOT PŘÍKAZY",
+        title="⚔️ VALHALLA BOT - PŘÍKAZY",
         description="Kompletní přehled všech dostupných příkazů",
         color=discord.Color.blue()
     )
