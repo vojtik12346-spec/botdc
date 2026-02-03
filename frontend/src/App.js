@@ -13,7 +13,7 @@ import "./App.css";
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Discord OAuth URLs
-const DISCORD_CLIENT_ID = "1336454706620063826";
+const DISCORD_CLIENT_ID = "1466110673875374201";
 const REDIRECT_URI = "https://xpquest-discbot.preview.emergentagent.com";
 const DISCORD_INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&permissions=8&scope=bot%20applications.commands`;
 const DISCORD_LOGIN_URL = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=identify%20guilds`;
