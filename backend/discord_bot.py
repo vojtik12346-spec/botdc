@@ -1012,6 +1012,8 @@ async def slash_top(interaction: discord.Interaction):
     embed.set_footer(text="Získej XP hraním kvízů! • /hudba /film /pravda")
     
     await interaction.response.send_message(embed=embed)
+    msg = await interaction.original_response()
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.command(name="top", aliases=["leaderboard", "lb", "zebricek"])
 async def prefix_top(ctx):
@@ -1021,7 +1023,8 @@ async def prefix_top(ctx):
     ).sort("xp", -1).limit(10))
     
     if not top_users:
-        await ctx.send("📊 Zatím nikdo nehrál! Začni s `!hudba` nebo `!film`")
+        msg = await ctx.send("📊 Zatím nikdo nehrál! Začni s `!hudba` nebo `!film`")
+        asyncio.create_task(delete_after(msg, 300))
         return
     
     embed = discord.Embed(title="🏆 TOP HRÁČI", color=discord.Color.gold())
