@@ -669,10 +669,15 @@ async def prefix_help_custom(ctx):
 # ============== RUN BOT ==============
 
 if __name__ == "__main__":
+    import sys
+    # Force unbuffered output for supervisor
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+    
     token = os.environ.get('DISCORD_BOT_TOKEN')
     if not token:
-        print("❌ DISCORD_BOT_TOKEN není nastaven!")
+        print("❌ DISCORD_BOT_TOKEN není nastaven!", flush=True)
         exit(1)
     
-    print("🚀 Spouštím Quiz Bot...")
+    print("🚀 Spouštím Quiz Bot...", flush=True)
     bot.run(token)
