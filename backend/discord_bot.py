@@ -1050,6 +1050,9 @@ async def prefix_daily(ctx):
 async def on_presence_update(before: discord.Member, after: discord.Member):
     """Track when users start/stop playing games"""
     
+    # Debug - log all presence changes
+    print(f"[PRESENCE] {after.display_name} - activities: {[a.name for a in after.activities]}", flush=True)
+    
     # Get the game activity
     before_game = None
     after_game = None
