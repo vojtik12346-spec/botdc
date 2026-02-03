@@ -324,7 +324,7 @@ async def prefix_help(ctx):
 
 NUMBER_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 
-# Store active polls: {poll_id: {votes: {user_id: option_index}, ...}}
+# Store active polls: {poll_id: {votes: {user_id: option_index}, names: {user_id: name}, ...}}
 active_polls = {}
 
 class PollView(discord.ui.View):
@@ -354,6 +354,7 @@ class PollView(discord.ui.View):
                 return
             
             user_id = interaction.user.id
+            user_name = interaction.user.display_name  # Get display name directly
             
             # Check if user already voted
             if user_id in poll_data["votes"]:
@@ -367,6 +368,7 @@ class PollView(discord.ui.View):
                 else:
                     # Change vote
                     poll_data["votes"][user_id] = option_index
+                    poll_data["names"][user_id] = user_name  # Update name
                     await interaction.response.send_message(
                         f"🔄 Změnil jsi hlas na **{self.options[option_index]}**!",
                         ephemeral=True
@@ -374,6 +376,7 @@ class PollView(discord.ui.View):
             else:
                 # New vote
                 poll_data["votes"][user_id] = option_index
+                poll_data["names"][user_id] = user_name  # Store name
                 await interaction.response.send_message(
                     f"✅ Hlasoval jsi pro **{self.options[option_index]}**!",
                     ephemeral=True
