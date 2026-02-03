@@ -1040,7 +1040,8 @@ async def prefix_top(ctx):
         leaderboard.append(f"{medal} {badge} **{name}** • Level {level} • {user['xp']} XP")
     
     embed.description = "\n".join(leaderboard)
-    await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.tree.command(name="daily", description="Získej denní bonus XP!")
 async def slash_daily(interaction: discord.Interaction):
