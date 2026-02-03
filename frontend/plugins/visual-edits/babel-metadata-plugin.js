@@ -609,7 +609,12 @@ const babelMetadataPlugin = ({ types: t }) => {
   /**
    * Analyzes a member expression like item.name or obj.prop.value
    */
-  function analyzeMemberExpression(exprPath, state) {
+  function analyzeMemberExpression(exprPath, state, depth = 0) {
+    // Prevent infinite recursion
+    if (depth > 10) {
+      return null;
+    }
+    
     const node = exprPath.node;
 
     // Build the property path (e.g., "name" or "address.city")
@@ -627,7 +632,7 @@ const babelMetadataPlugin = ({ types: t }) => {
       const rootName = rootObj.name;
 
       // Check if we're inside an array iteration (like .map())
-      const arrayContext = getArrayIterationContext(exprPath, state);
+      const arrayContext = getArrayIterationContext(exprPath, state, depth + 1);
 
       if (arrayContext && arrayContext.itemParam === rootName) {
         // This is item.property where item comes from array.map(item => ...)
