@@ -1399,8 +1399,11 @@ async def run_film_quiz(channel, channel_id: int):
     """Run multiple rounds of film quiz"""
     import random
     
+    print(f"[FILM QUIZ] run_film_quiz started for channel {channel_id}", flush=True)
+    
     quiz_data = active_film_quiz.get(channel_id)
     if not quiz_data:
+        print(f"[FILM QUIZ] No quiz data found for channel {channel_id}", flush=True)
         return
     
     genre = quiz_data["genre"]
@@ -1424,6 +1427,8 @@ async def run_film_quiz(channel, channel_id: int):
             "year": film_data["year"],
             "hint": film_data["hint"]
         }
+        
+        print(f"[FILM QUIZ] Round {round_num}: Question set - {film_data['film']}", flush=True)
         
         embed = discord.Embed(
             title=f"🎬 OTÁZKA {round_num}/{total_rounds}",
