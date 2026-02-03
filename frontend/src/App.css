@@ -1,4 +1,4 @@
-/* ============== Valhalla Bot Admin Panel Styles ============== */
+/* ============== Valhalla Bot Styles ============== */
 
 * {
   margin: 0;
@@ -13,6 +13,7 @@
   --accent-gold: #c9a227;
   --accent-gold-light: #e6c656;
   --accent-red: #8b0000;
+  --discord-blue: #5865F2;
   --text-primary: #f5f5f5;
   --text-secondary: #a0a0a0;
   --border-color: #2a2a3a;
@@ -31,58 +32,282 @@ body {
   flex-direction: column;
 }
 
-/* ============== Header ============== */
+/* ============== Landing Page ============== */
 
-.header {
-  background: linear-gradient(135deg, #1a1a24 0%, #0f0f14 100%);
-  border-bottom: 2px solid var(--accent-gold);
-  padding: 1.5rem 2rem;
+.landing-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.header-content {
-  max-width: 1200px;
+.hero-section {
+  width: 100%;
+  padding: 4rem 2rem;
+  background: linear-gradient(180deg, #1a1a24 0%, var(--bg-dark) 100%);
+  border-bottom: 2px solid var(--accent-gold);
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 800px;
   margin: 0 auto;
 }
 
-.logo {
+.hero-icon {
+  font-size: 5rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.hero-features {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.feature-item span:first-child {
+  font-size: 1.5rem;
+}
+
+.add-bot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--discord-blue);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.add-bot-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(88, 101, 242, 0.4);
+}
+
+.add-bot-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* ============== Servers Section ============== */
+
+.servers-section {
+  width: 100%;
+  max-width: 900px;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.servers-section h2 {
+  font-size: 1.75rem;
+  color: var(--accent-gold);
+  margin-bottom: 0.5rem;
+}
+
+.servers-hint {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.servers-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.server-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.server-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-gold);
+  transform: translateX(5px);
+}
+
+.server-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #000;
+  overflow: hidden;
+}
+
+.server-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.server-info {
+  flex: 1;
+  text-align: left;
+}
+
+.server-name {
+  display: block;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.server-members {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.server-arrow {
+  font-size: 1.5rem;
+  color: var(--accent-gold);
+}
+
+/* ============== Stats Preview ============== */
+
+.stats-preview {
+  padding: 2rem;
+  text-align: center;
+}
+
+.stats-preview h2 {
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.stat-text {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ============== Settings Page ============== */
+
+.settings-page {
+  flex: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.back-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.current-server {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.logo-icon {
-  font-size: 2.5rem;
-}
-
-.logo h1 {
-  font-size: 2rem;
+.server-icon-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #000;
+  overflow: hidden;
 }
 
-.status-badge {
-  margin-left: 1rem;
-}
-
-.header-subtitle {
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-  margin-left: 3.5rem;
-  font-size: 0.9rem;
-}
-
-/* ============== Main Content ============== */
-
-.main-content {
-  flex: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+.server-icon-small img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
+
+.server-name-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* ============== Tabs ============== */
 
 .settings-tabs {
   width: 100%;
@@ -184,50 +409,22 @@ body {
   color: var(--text-secondary);
 }
 
-/* ============== XP Grid ============== */
-
 .xp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
 
-/* ============== Switch ============== */
-
-.switch-group {
-  margin-bottom: 2rem;
-}
-
-.switch-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: var(--bg-dark);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-
-.switch-info {
-  flex: 1;
-}
-
-.switch-info label {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  display: block;
-}
-
-/* ============== Commands List ============== */
-
-.commands-list {
-  margin-top: 1rem;
-}
+/* ============== Commands ============== */
 
 .commands-list h3 {
   color: var(--accent-gold);
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  margin: 1.5rem 0 1rem 0;
+  font-size: 1rem;
+}
+
+.commands-list h3:first-child {
+  margin-top: 0;
 }
 
 .command-grid {
@@ -265,69 +462,7 @@ body {
   gap: 0.5rem;
 }
 
-.commands-list h3 {
-  color: var(--accent-gold);
-  margin: 1.5rem 0 1rem 0;
-  font-size: 1rem;
-}
-
-.commands-list h3:first-child {
-  margin-top: 0;
-}
-
-/* ============== Stats ============== */
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.stat-card {
-  background: var(--bg-dark);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-gold);
-}
-
-.stat-icon {
-  font-size: 2rem;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--accent-gold);
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.refresh-btn {
-  background: var(--bg-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.refresh-btn:hover {
-  border-color: var(--accent-gold);
-  background: var(--bg-card-hover);
-}
-
-/* ============== Save Section ============== */
+/* ============== Save Button ============== */
 
 .save-section {
   margin-top: 2rem;
@@ -371,19 +506,19 @@ body {
 /* ============== Responsive ============== */
 
 @media (max-width: 768px) {
-  .header {
-    padding: 1rem;
+  .hero-title {
+    font-size: 2.5rem;
   }
 
-  .logo h1 {
-    font-size: 1.5rem;
+  .hero-features {
+    gap: 1rem;
   }
 
-  .logo-icon {
-    font-size: 2rem;
+  .stats-row {
+    gap: 1.5rem;
   }
 
-  .main-content {
+  .settings-page {
     padding: 1rem;
   }
 
