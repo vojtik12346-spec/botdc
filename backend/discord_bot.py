@@ -455,8 +455,8 @@ def format_time(seconds: int) -> str:
     return " ".join(parts)
 
 # Auto-delete helper
-async def delete_after(message, seconds: int = 300):
-    """Delete message after specified seconds (default 5 min)"""
+async def delete_after(message, seconds: int = 60):
+    """Delete message after specified seconds (default 1 min)"""
     await asyncio.sleep(seconds)
     try:
         await message.delete()
@@ -753,7 +753,7 @@ async def prefix_help(ctx):
         inline=False
     )
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 300))  # Smaže po 5 min
+    asyncio.create_task(delete_after(msg, 60))  # Smaže po 5 min
 
 @bot.command(name="prikazy")
 @commands.has_permissions(administrator=True)
@@ -945,7 +945,7 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.command(name="level", aliases=["lvl", "gamelevel", "rank", "xp"])
 async def prefix_gamelevel(ctx, hrac: discord.Member = None):
@@ -981,7 +981,7 @@ async def prefix_gamelevel(ctx, hrac: discord.Member = None):
     embed.set_footer(text="Získej XP hraním kvízů!")
     
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.tree.command(name="top", description="Zobraz žebříček hráčů")
 async def slash_top(interaction: discord.Interaction):
@@ -1014,7 +1014,7 @@ async def slash_top(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.command(name="top", aliases=["leaderboard", "lb", "zebricek"])
 async def prefix_top(ctx):
@@ -1025,7 +1025,7 @@ async def prefix_top(ctx):
     
     if not top_users:
         msg = await ctx.send("📊 Zatím nikdo nehrál! Začni s `!hudba` nebo `!film`")
-        asyncio.create_task(delete_after(msg, 300))
+        asyncio.create_task(delete_after(msg, 60))
         return
     
     embed = discord.Embed(title="🏆 TOP HRÁČI", color=discord.Color.gold())
@@ -1042,7 +1042,7 @@ async def prefix_top(ctx):
     
     embed.description = "\n".join(leaderboard)
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.tree.command(name="daily", description="Získej denní bonus XP!")
 async def slash_daily(interaction: discord.Interaction):
@@ -1108,7 +1108,7 @@ async def slash_daily(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
     
     # Level up check
     if new_level > old_level:
@@ -1169,7 +1169,7 @@ async def prefix_daily(ctx):
     embed.set_footer(text="Vrať se zítra pro další bonus!")
     
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 # ============== GAME TRACKING ==============
 
@@ -1339,7 +1339,7 @@ async def slash_hry(interaction: discord.Interaction, hrac: discord.Member = Non
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.command(name="hry", aliases=["games", "achievements"])
 async def prefix_hry(ctx, hrac: discord.Member = None):
@@ -1371,7 +1371,7 @@ async def prefix_hry(ctx, hrac: discord.Member = None):
     
     embed.set_footer(text=f"+{GAME_XP_PER_10_MIN} XP / 10 min • Max {GAME_XP_DAILY_LIMIT} XP/den")
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.tree.command(name="ukoly", description="Zobraz úkoly pro konkrétní hru")
 @app_commands.describe(hra="Vyber hru pro zobrazení úkolů")
@@ -1428,7 +1428,7 @@ async def slash_ukoly(interaction: discord.Interaction, hra: str):
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 @bot.command(name="ukoly", aliases=["quests", "mise", "tasks"])
 async def prefix_ukoly(ctx, *, hra: str = None):
@@ -1451,7 +1451,7 @@ async def prefix_ukoly(ctx, *, hra: str = None):
         embed.add_field(name="Dostupné hry", value="\n".join(game_list), inline=False)
         embed.set_footer(text="Nebo hraj jakoukoli hru - budeš mít základní úkoly!")
         msg = await ctx.send(embed=embed)
-        asyncio.create_task(delete_after(msg, 300))
+        asyncio.create_task(delete_after(msg, 60))
         return
     
     # Find matching game
@@ -1500,7 +1500,7 @@ async def prefix_ukoly(ctx, *, hra: str = None):
     embed.add_field(name="✅ Splněno", value=f"{len(completed)}/{len(quests)}", inline=True)
     
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 300))
+    asyncio.create_task(delete_after(msg, 60))
 
 # ============== POLL SYSTEM ==============
 
