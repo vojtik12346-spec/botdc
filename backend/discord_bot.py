@@ -616,7 +616,8 @@ async def slash_poll(interaction: discord.Interaction, otazka: str, moznosti: st
         options,
         interaction.user,
         otazka,
-        end_time
+        end_time,
+        interaction.guild
     ))
 
 @bot.command(name="poll", aliases=["anketa", "hlasovani"])
