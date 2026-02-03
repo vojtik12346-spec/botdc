@@ -386,8 +386,9 @@ class PollView(discord.ui.View):
 
 def get_poll_results(poll_id: str, options: list, guild) -> str:
     """Generate poll results text with voter names"""
-    poll_data = active_polls.get(poll_id, {"votes": {}})
+    poll_data = active_polls.get(poll_id, {"votes": {}, "names": {}})
     votes = poll_data["votes"]
+    names = poll_data.get("names", {})
     
     total_votes = len(votes)
     vote_counts = [0] * len(options)
@@ -395,12 +396,9 @@ def get_poll_results(poll_id: str, options: list, guild) -> str:
     
     for user_id, option_index in votes.items():
         vote_counts[option_index] += 1
-        # Get member name
-        member = guild.get_member(user_id)
-        if member:
-            voters_by_option[option_index].append(member.display_name)
-        else:
-            voters_by_option[option_index].append(f"User#{user_id}")
+        # Get stored name
+        user_name = names.get(user_id, f"User#{user_id}")
+        voters_by_option[option_index].append(user_name)
     
     results = []
     for i, option in enumerate(options):
@@ -424,17 +422,17 @@ def get_poll_results(poll_id: str, options: list, guild) -> str:
 
 def get_live_options_text(options: list, poll_id: str, guild) -> str:
     """Generate options text with live vote counts and voter names"""
-    poll_data = active_polls.get(poll_id, {"votes": {}})
+    poll_data = active_polls.get(poll_id, {"votes": {}, "names": {}})
     votes = poll_data["votes"]
+    names = poll_data.get("names", {})
     total_votes = len(votes)
     vote_counts = [0] * len(options)
     voters_by_option = [[] for _ in options]
     
     for user_id, option_index in votes.items():
         vote_counts[option_index] += 1
-        member = guild.get_member(user_id)
-        if member:
-            voters_by_option[option_index].append(member.display_name)
+        user_name = names.get(user_id, f"User#{user_id}")
+        voters_by_option[option_index].append(user_name)
     
     lines = []
     for i, opt in enumerate(options):
@@ -445,10 +443,10 @@ def get_live_options_text(options: list, poll_id: str, guild) -> str:
         
         # Show voter names (max 5 in live view)
         if voters_by_option[i]:
-            names = ", ".join(voters_by_option[i][:5])
+            voter_names = ", ".join(voters_by_option[i][:5])
             if len(voters_by_option[i]) > 5:
-                names += f" +{len(voters_by_option[i]) - 5}"
-            voters_text = f"\n   👤 {names}"
+                voter_names += f" +{len(voters_by_option[i]) - 5}"
+            voters_text = f"\n   👤 {voter_names}"
         else:
             voters_text = ""
         
