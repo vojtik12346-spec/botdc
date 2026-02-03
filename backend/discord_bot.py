@@ -1239,6 +1239,131 @@ async def prefix_hry(ctx, hrac: discord.Member = None):
     embed.set_footer(text=f"+{GAME_XP_PER_10_MIN} XP / 10 min • Max {GAME_XP_DAILY_LIMIT} XP/den")
     await ctx.send(embed=embed)
 
+@bot.tree.command(name="ukoly", description="Zobraz úkoly pro konkrétní hru")
+@app_commands.describe(hra="Vyber hru pro zobrazení úkolů")
+@app_commands.choices(hra=[
+    app_commands.Choice(name="🎯 Counter-Strike 2", value="Counter-Strike 2"),
+    app_commands.Choice(name="⛏️ Minecraft", value="Minecraft"),
+    app_commands.Choice(name="⚔️ League of Legends", value="League of Legends"),
+    app_commands.Choice(name="🏝️ Fortnite", value="Fortnite"),
+    app_commands.Choice(name="🔫 VALORANT", value="VALORANT"),
+    app_commands.Choice(name="🚔 GTA V", value="GTA V"),
+    app_commands.Choice(name="🚗 Rocket League", value="Rocket League"),
+])
+async def slash_ukoly(interaction: discord.Interaction, hra: str):
+    user_data = get_user_data(interaction.guild_id, interaction.user.id)
+    game_time = user_data.get("game_times", {}).get(hra, 0)
+    completed = user_data.get("completed_quests", {}).get(hra, [])
+    quests = get_game_quests(hra)
+    
+    game_emoji = BONUS_GAMES.get(hra, {}).get("emoji", "🎮")
+    
+    embed = discord.Embed(
+        title=f"{game_emoji} Úkoly - {hra}",
+        description=f"Tvůj čas: **{game_time // 60}h {game_time % 60}m**",
+        color=discord.Color.purple()
+    )
+    
+    quest_list = []
+    total_xp = 0
+    earned_xp = 0
+    
+    for i, quest in enumerate(quests):
+        total_xp += quest["xp"]
+        hours = quest["minutes"] // 60
+        mins = quest["minutes"] % 60
+        time_str = f"{hours}h" if hours > 0 else f"{mins}m"
+        if hours > 0 and mins > 0:
+            time_str = f"{hours}h {mins}m"
+        
+        if i in completed:
+            quest_list.append(f"✅ {quest['emoji']} **{quest['name']}** - {time_str} (+{quest['xp']} XP)")
+            earned_xp += quest["xp"]
+        elif game_time >= quest["minutes"]:
+            # Ready to claim (should auto-complete, but just in case)
+            quest_list.append(f"🎁 {quest['emoji']} **{quest['name']}** - {time_str} (+{quest['xp']} XP)")
+        else:
+            progress = min(100, (game_time / quest["minutes"]) * 100)
+            quest_list.append(f"🔒 {quest['emoji']} {quest['name']} - {time_str} (+{quest['xp']} XP) [{progress:.0f}%]")
+    
+    embed.add_field(name="📋 Úkoly", value="\n".join(quest_list), inline=False)
+    embed.add_field(name="💰 Získáno XP", value=f"{earned_xp}/{total_xp} XP", inline=True)
+    embed.add_field(name="✅ Splněno", value=f"{len(completed)}/{len(quests)}", inline=True)
+    
+    embed.set_footer(text="Hraj hru a úkoly se automaticky splní!")
+    
+    await interaction.response.send_message(embed=embed)
+
+@bot.command(name="ukoly", aliases=["quests", "mise", "tasks"])
+async def prefix_ukoly(ctx, *, hra: str = None):
+    """!ukoly [hra] - Zobraz úkoly pro hru"""
+    if not hra:
+        # Show available games
+        embed = discord.Embed(
+            title="🎯 Herní úkoly",
+            description="Vyber hru pro zobrazení úkolů:",
+            color=discord.Color.purple()
+        )
+        games_with_quests = list(GAME_QUESTS.keys())
+        games_with_quests.remove("default")
+        
+        game_list = []
+        for game in games_with_quests:
+            emoji = BONUS_GAMES.get(game, {}).get("emoji", "🎮")
+            game_list.append(f"{emoji} `!ukoly {game}`")
+        
+        embed.add_field(name="Dostupné hry", value="\n".join(game_list), inline=False)
+        embed.set_footer(text="Nebo hraj jakoukoli hru - budeš mít základní úkoly!")
+        await ctx.send(embed=embed)
+        return
+    
+    # Find matching game
+    game_name = None
+    for name in GAME_QUESTS.keys():
+        if name.lower() == hra.lower() or hra.lower() in name.lower():
+            game_name = name
+            break
+    
+    if not game_name or game_name == "default":
+        # Use the input as game name with default quests
+        game_name = hra
+    
+    user_data = get_user_data(ctx.guild.id, ctx.author.id)
+    game_time = user_data.get("game_times", {}).get(game_name, 0)
+    completed = user_data.get("completed_quests", {}).get(game_name, [])
+    quests = get_game_quests(game_name)
+    
+    game_emoji = BONUS_GAMES.get(game_name, {}).get("emoji", "🎮")
+    
+    embed = discord.Embed(
+        title=f"{game_emoji} Úkoly - {game_name}",
+        description=f"Tvůj čas: **{game_time // 60}h {game_time % 60}m**",
+        color=discord.Color.purple()
+    )
+    
+    quest_list = []
+    total_xp = 0
+    earned_xp = 0
+    
+    for i, quest in enumerate(quests):
+        total_xp += quest["xp"]
+        hours = quest["minutes"] // 60
+        mins = quest["minutes"] % 60
+        time_str = f"{hours}h" if hours > 0 else f"{mins}m"
+        
+        if i in completed:
+            quest_list.append(f"✅ {quest['emoji']} **{quest['name']}** (+{quest['xp']} XP)")
+            earned_xp += quest["xp"]
+        else:
+            progress = min(100, (game_time / quest["minutes"]) * 100) if quest["minutes"] > 0 else 0
+            quest_list.append(f"🔒 {quest['emoji']} {quest['name']} - {time_str} [{progress:.0f}%]")
+    
+    embed.add_field(name="📋 Úkoly", value="\n".join(quest_list), inline=False)
+    embed.add_field(name="💰 XP", value=f"{earned_xp}/{total_xp}", inline=True)
+    embed.add_field(name="✅ Splněno", value=f"{len(completed)}/{len(quests)}", inline=True)
+    
+    await ctx.send(embed=embed)
+
 # ============== POLL SYSTEM ==============
 
 NUMBER_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
