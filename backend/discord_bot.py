@@ -828,6 +828,8 @@ async def slash_hudba(interaction: discord.Interaction, zanr: str = "random"):
     import random
     
     channel_id = interaction.channel_id
+    guild_id = interaction.guild_id
+    quiz_time = get_quiz_time(guild_id)
     
     # Check if quiz already active
     if channel_id in active_music_quiz and active_music_quiz[channel_id]["active"]:
@@ -860,13 +862,13 @@ async def slash_hudba(interaction: discord.Interaction, zanr: str = "random"):
     embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
     embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
     embed.add_field(name="🎸 Žánr", value=genre_names.get(zanr, zanr), inline=True)
-    embed.add_field(name="⏰ Čas", value="30 sekund", inline=True)
+    embed.add_field(name="⏰ Čas", value=f"{quiz_time} sekund", inline=True)
     embed.set_footer(text="Napiš jméno interpreta do chatu! První správná odpověď vyhrává!")
     
     await interaction.response.send_message(embed=embed)
     
-    # Wait for answer (30 seconds)
-    await asyncio.sleep(30)
+    # Wait for answer
+    await asyncio.sleep(quiz_time)
     
     # Check if someone won
     quiz_data = active_music_quiz.get(channel_id)
