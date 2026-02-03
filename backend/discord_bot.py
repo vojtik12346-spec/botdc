@@ -1215,16 +1215,60 @@ async def prefix_hudba(ctx, zanr: str = "random"):
 
 FILM_DATABASE = {
     "ceske": [
+        # Pelíšky
         {"quote": "Nechte zvířátka žít!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
         {"quote": "Koho chleba jíš, toho píseň zpívej", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "A hele, támhle leze hroch!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Já mám rád demokracii!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Takhle vypadá česká klasika!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        # Samotáři
         {"quote": "Ty vole, to je bomba!", "film": "Samotáři", "year": "2000", "hint": "S_______"},
         {"quote": "Láska je jako voda, musí téct", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Prostě blbá nálada, to je celý", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Život je pes a pak umřeš", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        # Vratné lahve
         {"quote": "Víš co, tak já půjdu...", "film": "Vratné lahve", "year": "2007", "hint": "Vratné l____"},
+        {"quote": "Člověk musí mít v životě štěstí", "film": "Vratné lahve", "year": "2007", "hint": "Vratné l____"},
+        # Kolja
+        {"quote": "To je ale kravina!", "film": "Kolja", "year": "1996", "hint": "K____"},
+        {"quote": "Malej, pojď sem!", "film": "Kolja", "year": "1996", "hint": "K____"},
+        {"quote": "Rusáci, to jsou svině", "film": "Kolja", "year": "1996", "hint": "K____"},
+        # Obecná škola
+        {"quote": "Děti, co byste chtěli k večeři?", "film": "Obecná škola", "year": "1991", "hint": "Obecná š____"},
+        {"quote": "Dneska máme volno!", "film": "Obecná škola", "year": "1991", "hint": "Obecná š____"},
+        # Vesničko má středisková
+        {"quote": "Kubo, co to děláš?", "film": "Vesničko má středisková", "year": "1985", "hint": "Vesničko má s__________"},
+        {"quote": "Pane předsedo, to nejde!", "film": "Vesničko má středisková", "year": "1985", "hint": "Vesničko má s__________"},
+        {"quote": "Soudruhu, to je omyl!", "film": "Vesničko má středisková", "year": "1985", "hint": "Vesničko má s__________"},
+        # Marečku, podejte mi pero
+        {"quote": "Marečku, podejte mi pero!", "film": "Marečku, podejte mi pero", "year": "1976", "hint": "Marečku, p_____"},
+        {"quote": "Kdo se směje naposled, ten se směje nejlíp", "film": "Marečku, podejte mi pero", "year": "1976", "hint": "Marečku, p_____"},
+        {"quote": "To je síla, pane kolego!", "film": "Marečku, podejte mi pero", "year": "1976", "hint": "Marečku, p_____"},
+        # Na samotě u lesa
+        {"quote": "Láďo, co to děláš?", "film": "Na samotě u lesa", "year": "1976", "hint": "Na samotě u l___"},
+        {"quote": "Takhle se chová slušnej člověk!", "film": "Na samotě u lesa", "year": "1976", "hint": "Na samotě u l___"},
+        # S tebou mě baví svět
+        {"quote": "Hele, támhle je pramen!", "film": "S tebou mě baví svět", "year": "1982", "hint": "S tebou mě b___ s___"},
+        {"quote": "To je ale výlet!", "film": "S tebou mě baví svět", "year": "1982", "hint": "S tebou mě b___ s___"},
+        # Slunce, seno
+        {"quote": "Ty jsi ale kráva!", "film": "Slunce, seno, jahody", "year": "1983", "hint": "Slunce, seno, j_____"},
+        {"quote": "Konečně prázdniny!", "film": "Slunce, seno, jahody", "year": "1983", "hint": "Slunce, seno, j_____"},
+        {"quote": "To je ale vedro!", "film": "Slunce, seno, jahody", "year": "1983", "hint": "Slunce, seno, j_____"},
+        # Bílá paní
+        {"quote": "Pane purkmistr, ona mluví!", "film": "Bílá paní", "year": "1965", "hint": "Bílá p___"},
+        # Limonádový Joe
+        {"quote": "Piju jen limonádu!", "film": "Limonádový Joe", "year": "1964", "hint": "Limonádový J__"},
+        {"quote": "Kolaloka zabíjí!", "film": "Limonádový Joe", "year": "1964", "hint": "Limonádový J__"},
+        # Jáchyme, hoď ho do stroje
+        {"quote": "Jáchyme, hoď ho do stroje!", "film": "Jáchyme, hoď ho do stroje", "year": "1974", "hint": "Jáchyme, h__ h_ d_ s_____"},
+        {"quote": "Soudruhu řediteli!", "film": "Jáchyme, hoď ho do stroje", "year": "1974", "hint": "Jáchyme, h__ h_ d_ s_____"},
+        # Kameňák
+        {"quote": "Hele, támhle letí ptáček!", "film": "Kameňák", "year": "2003", "hint": "K______"},
+        {"quote": "To je ale trapas!", "film": "Kameňák", "year": "2003", "hint": "K______"},
+        # Další české filmy
         {"quote": "Život je boj a já jsem bojovník", "film": "Román pro ženy", "year": "2005", "hint": "Román pro ž___"},
         {"quote": "Tak co, holky, jdeme na to?", "film": "Účastníci zájezdu", "year": "2006", "hint": "Účastníci z______"},
         {"quote": "Musíš se na to dívat z nadhledu", "film": "Pupendo", "year": "2003", "hint": "P______"},
-        {"quote": "To je ale kravina!", "film": "Kolja", "year": "1996", "hint": "K____"},
-        {"quote": "Děti, co byste chtěli k večeři?", "film": "Obecná škola", "year": "1991", "hint": "Obecná š____"},
         {"quote": "Já jsem ten, kdo klepe!", "film": "Tmavomodrý svět", "year": "2001", "hint": "Tmavomodrý s___"},
         {"quote": "Země je kulatá a já jsem její střed", "film": "Želary", "year": "2003", "hint": "Ž_____"},
         {"quote": "Nemám čas na kecy, musím pracovat", "film": "Babovřesky", "year": "2013", "hint": "B________"},
@@ -1232,9 +1276,14 @@ FILM_DATABASE = {
         {"quote": "Všechno bude dobrý, uvidíš", "film": "Horem pádem", "year": "2004", "hint": "Horem p____"},
         {"quote": "To je moje holka!", "film": "Musíme si pomáhat", "year": "2000", "hint": "Musíme si p______"},
         {"quote": "Nikdy neříkej nikdy", "film": "Grandhotel", "year": "2006", "hint": "G________"},
-        {"quote": "A hele, támhle leze hroch!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
-        {"quote": "Já mám rád demokracii!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
-        {"quote": "Prostě blbá nálada, to je celý", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Hele, támhle je Ježíšek!", "film": "Anděl Páně", "year": "2005", "hint": "Anděl P___"},
+        {"quote": "Petroníle, co to děláš?", "film": "Anděl Páně", "year": "2005", "hint": "Anděl P___"},
+        {"quote": "Uriáši, pozor!", "film": "Anděl Páně", "year": "2005", "hint": "Anděl P___"},
+        {"quote": "Peklo je prázdné!", "film": "Anděl Páně 2", "year": "2016", "hint": "Anděl P___ _"},
+        {"quote": "Já jsem princ!", "film": "Tři oříšky pro Popelku", "year": "1973", "hint": "Tři oříšky pro P______"},
+        {"quote": "Popelko, kde jsi?", "film": "Tři oříšky pro Popelku", "year": "1973", "hint": "Tři oříšky pro P______"},
+        {"quote": "Král je nahý!", "film": "Císařův pekař", "year": "1951", "hint": "Císařův p____"},
+        {"quote": "To je ale voňavka!", "film": "Dívka na koštěti", "year": "1972", "hint": "Dívka na k______"},
     ],
     "hollywood": [
         {"quote": "Já se vrátím", "film": "Terminátor", "year": "1984", "hint": "T________"},
