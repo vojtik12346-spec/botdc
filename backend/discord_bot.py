@@ -1581,13 +1581,16 @@ async def prefix_stop_quiz(ctx):
 # Listen for quiz answers
 @bot.event
 async def on_message(message):
+    # Debug - log every message
+    print(f"[ON_MESSAGE] Received: '{message.content}' from {message.author} (bot: {message.author.bot})", flush=True)
+    
     if message.author.bot:
         return
     
     channel_id = message.channel.id
     
     # Debug log
-    print(f"[DEBUG] Message from {message.author}: '{message.content}' in channel {channel_id}", flush=True)
+    print(f"[DEBUG] Processing message in channel {channel_id}", flush=True)
     print(f"[DEBUG] Active music quizzes: {list(active_music_quiz.keys())}", flush=True)
     print(f"[DEBUG] Active film quizzes: {list(active_film_quiz.keys())}", flush=True)
     
