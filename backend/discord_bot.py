@@ -381,16 +381,23 @@ class PollView(discord.ui.View):
         
         return callback
 
-def get_poll_results(poll_id: str, options: list) -> str:
-    """Generate poll results text"""
+def get_poll_results(poll_id: str, options: list, guild) -> str:
+    """Generate poll results text with voter names"""
     poll_data = active_polls.get(poll_id, {"votes": {}})
     votes = poll_data["votes"]
     
     total_votes = len(votes)
     vote_counts = [0] * len(options)
+    voters_by_option = [[] for _ in options]
     
-    for option_index in votes.values():
+    for user_id, option_index in votes.items():
         vote_counts[option_index] += 1
+        # Get member name
+        member = guild.get_member(user_id)
+        if member:
+            voters_by_option[option_index].append(member.display_name)
+        else:
+            voters_by_option[option_index].append(f"User#{user_id}")
     
     results = []
     for i, option in enumerate(options):
@@ -398,27 +405,51 @@ def get_poll_results(poll_id: str, options: list) -> str:
         percentage = (count / total_votes * 100) if total_votes > 0 else 0
         bar_length = int(percentage / 10)
         bar = "█" * bar_length + "░" * (10 - bar_length)
-        results.append(f"{NUMBER_EMOJIS[i]} **{option}**\n`{bar}` {percentage:.1f}% ({count})")
+        
+        # Format voter names
+        if voters_by_option[i]:
+            voter_names = ", ".join(voters_by_option[i][:10])  # Max 10 names
+            if len(voters_by_option[i]) > 10:
+                voter_names += f" +{len(voters_by_option[i]) - 10} dalších"
+            voters_text = f"\n👤 {voter_names}"
+        else:
+            voters_text = ""
+        
+        results.append(f"{NUMBER_EMOJIS[i]} **{option}**\n`{bar}` {percentage:.1f}% ({count}){voters_text}")
     
     return "\n\n".join(results)
 
-def get_live_options_text(options: list, poll_id: str) -> str:
-    """Generate options text with live vote counts"""
+def get_live_options_text(options: list, poll_id: str, guild) -> str:
+    """Generate options text with live vote counts and voter names"""
     poll_data = active_polls.get(poll_id, {"votes": {}})
     votes = poll_data["votes"]
     total_votes = len(votes)
     vote_counts = [0] * len(options)
+    voters_by_option = [[] for _ in options]
     
-    for option_index in votes.values():
+    for user_id, option_index in votes.items():
         vote_counts[option_index] += 1
+        member = guild.get_member(user_id)
+        if member:
+            voters_by_option[option_index].append(member.display_name)
     
     lines = []
     for i, opt in enumerate(options):
         count = vote_counts[i]
         percentage = (count / total_votes * 100) if total_votes > 0 else 0
-        bar_length = int(percentage / 5)  # Shorter bar for live view
+        bar_length = int(percentage / 5)
         bar = "▓" * bar_length + "░" * (20 - bar_length)
-        lines.append(f"{NUMBER_EMOJIS[i]} {opt}\n`{bar}` {percentage:.0f}%")
+        
+        # Show voter names (max 5 in live view)
+        if voters_by_option[i]:
+            names = ", ".join(voters_by_option[i][:5])
+            if len(voters_by_option[i]) > 5:
+                names += f" +{len(voters_by_option[i]) - 5}"
+            voters_text = f"\n   👤 {names}"
+        else:
+            voters_text = ""
+        
+        lines.append(f"{NUMBER_EMOJIS[i]} {opt}\n`{bar}` {percentage:.0f}% ({count}){voters_text}")
     
     return "\n".join(lines)
 
