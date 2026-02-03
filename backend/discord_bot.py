@@ -1356,6 +1356,8 @@ async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
     channel_id = interaction.channel_id
     guild_id = interaction.guild_id
     
+    print(f"[FILM QUIZ] Starting quiz in channel {channel_id}", flush=True)
+    
     if channel_id in active_film_quiz and active_film_quiz[channel_id].get("active"):
         await interaction.response.send_message("❌ V tomto kanálu už běží filmový kvíz!", ephemeral=True)
         return
@@ -1374,6 +1376,8 @@ async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
         "quiz_time": quiz_time,
         "guild_id": guild_id
     }
+    
+    print(f"[FILM QUIZ] Quiz registered: {active_film_quiz[channel_id]}", flush=True)
     
     genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
     
