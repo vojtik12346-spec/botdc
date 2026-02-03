@@ -943,6 +943,8 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
     embed.set_footer(text="Získej XP hraním kvízů! • /hudba /film /pravda")
     
     await interaction.response.send_message(embed=embed)
+    msg = await interaction.original_response()
+    asyncio.create_task(delete_after(msg, 300))
 
 @bot.command(name="level", aliases=["lvl", "gamelevel", "rank", "xp"])
 async def prefix_gamelevel(ctx, hrac: discord.Member = None):
