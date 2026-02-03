@@ -10,17 +10,102 @@ from discord import app_commands
 import asyncio
 import re
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import uuid
+import math
 
 load_dotenv()
+
+# MongoDB setup for XP system
+from pymongo import MongoClient
+
+mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+db_name = os.environ.get("DB_NAME", "quiz_bot")
+mongo_client = MongoClient(mongo_url)
+db = mongo_client[db_name]
+users_collection = db["game_users"]
 
 # Bot setup
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+# ============== XP/LEVEL SYSTEM ==============
+
+def calculate_level(xp: int) -> int:
+    """Calculate level from XP (level = sqrt(xp/100))"""
+    if xp <= 0:
+        return 1
+    return max(1, int(math.sqrt(xp / 100)) + 1)
+
+def xp_for_level(level: int) -> int:
+    """Calculate XP needed for a specific level"""
+    if level <= 1:
+        return 0
+    return ((level - 1) ** 2) * 100
+
+def get_user_data(guild_id: int, user_id: int) -> dict:
+    """Get or create user data"""
+    user = users_collection.find_one({"guild_id": guild_id, "user_id": user_id})
+    if not user:
+        user = {
+            "guild_id": guild_id,
+            "user_id": user_id,
+            "xp": 0,
+            "total_correct": 0,
+            "total_games": 0,
+            "streak": 0,
+            "last_daily": None,
+            "created_at": datetime.now(timezone.utc)
+        }
+        users_collection.insert_one(user)
+    return user
+
+async def add_xp(guild_id: int, user_id: int, user_name: str, xp_amount: int, channel=None) -> bool:
+    """Add XP to user and check for level up. Returns True if leveled up."""
+    user = get_user_data(guild_id, user_id)
+    old_level = calculate_level(user["xp"])
+    new_xp = user["xp"] + xp_amount
+    new_level = calculate_level(new_xp)
+    
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {"$set": {"xp": new_xp, "name": user_name}}
+    )
+    
+    # Level up notification
+    if new_level > old_level and channel:
+        embed = discord.Embed(
+            title="🎉 LEVEL UP!",
+            description=f"**{user_name}** dosáhl/a **Level {new_level}**!",
+            color=discord.Color.gold()
+        )
+        embed.add_field(name="✨ XP", value=f"{new_xp} XP", inline=True)
+        embed.add_field(name="📈 Další level", value=f"{xp_for_level(new_level + 1)} XP", inline=True)
+        await channel.send(embed=embed)
+        return True
+    return False
+
+def increment_stats(guild_id: int, user_id: int, correct: bool = False):
+    """Increment user game statistics"""
+    update = {"$inc": {"total_games": 1}}
+    if correct:
+        update["$inc"]["total_correct"] = 1
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        update
+    )
+
+# XP rewards
+XP_REWARDS = {
+    "quiz_correct": 25,      # Správná odpověď v kvízu
+    "quiz_win": 50,          # Výhra v kvízu (nejvíc bodů)
+    "truth_correct": 15,     # Správná odpověď pravda/lež
+    "daily": 100,            # Denní bonus
+    "streak_bonus": 10,      # Bonus za streak (per den)
+}
 
 # ============== COUNTDOWN FUNCTIONS ==============
 
