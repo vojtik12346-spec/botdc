@@ -349,8 +349,9 @@ async def unlock_game(guild_id: int, user_id: int, user_name: str, game_name: st
     # Give bonus XP
     await add_xp(guild_id, user_id, user_name, GAME_UNLOCK_BONUS, None)
     
-    # Send notification with role ping
-    if channel and game_name in BONUS_GAMES:
+    # Send notification with role ping - VŽDY do správného kanálu
+    notify_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+    if notify_channel and game_name in BONUS_GAMES:
         game_info = BONUS_GAMES[game_name]
         embed = discord.Embed(
             title="🎮 HRA ODEMČENA!",
@@ -360,7 +361,7 @@ async def unlock_game(guild_id: int, user_id: int, user_name: str, game_name: st
         embed.add_field(name="🏷️ Kategorie", value=game_info["category"], inline=True)
         embed.add_field(name="✨ Bonus", value=f"+{GAME_UNLOCK_BONUS} XP", inline=True)
         embed.set_footer(text="Hraj více her a odemykej achievementy!")
-        await channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
+        await notify_channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
     
     return True
 
