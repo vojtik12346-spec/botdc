@@ -899,6 +899,200 @@ async def prefix_daily(ctx):
     
     await ctx.send(embed=embed)
 
+# ============== GAME TRACKING ==============
+
+@bot.event
+async def on_presence_update(before: discord.Member, after: discord.Member):
+    """Track when users start/stop playing games"""
+    
+    # Get the game activity
+    before_game = None
+    after_game = None
+    
+    for activity in before.activities:
+        if activity.type == discord.ActivityType.playing:
+            before_game = activity.name
+            break
+    
+    for activity in after.activities:
+        if activity.type == discord.ActivityType.playing:
+            after_game = activity.name
+            break
+    
+    user_id = after.id
+    guild_id = after.guild.id
+    
+    # Started playing a game
+    if after_game and not before_game:
+        active_gaming_sessions[user_id] = {
+            "game": after_game,
+            "start": datetime.now(timezone.utc),
+            "guild_id": guild_id,
+            "user_name": after.display_name
+        }
+        
+        # Check if it's a bonus game to unlock
+        if after_game in BONUS_GAMES:
+            # Find a channel to send notification (system channel or first text channel)
+            channel = after.guild.system_channel
+            if not channel:
+                for ch in after.guild.text_channels:
+                    if ch.permissions_for(after.guild.me).send_messages:
+                        channel = ch
+                        break
+            
+            await unlock_game(guild_id, user_id, after.display_name, after_game, channel)
+    
+    # Stopped playing a game
+    elif before_game and not after_game:
+        if user_id in active_gaming_sessions:
+            session = active_gaming_sessions[user_id]
+            start_time = session["start"]
+            minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
+            
+            if minutes_played >= 10:
+                # Find channel for notification
+                channel = after.guild.system_channel
+                if not channel:
+                    for ch in after.guild.text_channels:
+                        if ch.permissions_for(after.guild.me).send_messages:
+                            channel = ch
+                            break
+                
+                xp_earned = await add_game_xp(
+                    session["guild_id"],
+                    user_id,
+                    session["user_name"],
+                    minutes_played,
+                    channel
+                )
+                
+                if xp_earned > 0 and channel:
+                    embed = discord.Embed(
+                        title="🎮 XP za hraní!",
+                        description=f"**{session['user_name']}** hrál/a **{session['game']}**",
+                        color=discord.Color.blue()
+                    )
+                    embed.add_field(name="⏱️ Čas", value=f"{minutes_played} min", inline=True)
+                    embed.add_field(name="✨ XP", value=f"+{xp_earned} XP", inline=True)
+                    
+                    daily_xp = get_daily_game_xp(guild_id, user_id)
+                    embed.add_field(name="📊 Denní limit", value=f"{daily_xp}/{GAME_XP_DAILY_LIMIT}", inline=True)
+                    embed.set_footer(text="Hraj hry a získávej XP!")
+                    await channel.send(embed=embed)
+            
+            del active_gaming_sessions[user_id]
+    
+    # Changed game
+    elif before_game and after_game and before_game != after_game:
+        # End previous session
+        if user_id in active_gaming_sessions:
+            session = active_gaming_sessions[user_id]
+            start_time = session["start"]
+            minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
+            
+            if minutes_played >= 10:
+                await add_game_xp(guild_id, user_id, after.display_name, minutes_played, None)
+        
+        # Start new session
+        active_gaming_sessions[user_id] = {
+            "game": after_game,
+            "start": datetime.now(timezone.utc),
+            "guild_id": guild_id,
+            "user_name": after.display_name
+        }
+        
+        # Check if new game is bonus game
+        if after_game in BONUS_GAMES:
+            channel = after.guild.system_channel
+            if not channel:
+                for ch in after.guild.text_channels:
+                    if ch.permissions_for(after.guild.me).send_messages:
+                        channel = ch
+                        break
+            await unlock_game(guild_id, user_id, after.display_name, after_game, channel)
+
+@bot.tree.command(name="hry", description="Zobraz své odemčené hry a achievementy")
+async def slash_hry(interaction: discord.Interaction, hrac: discord.Member = None):
+    target = hrac or interaction.user
+    user_data = get_user_data(interaction.guild_id, target.id)
+    
+    unlocked = user_data.get("unlocked_games", [])
+    total_time = user_data.get("total_game_time", 0)
+    daily_xp = get_daily_game_xp(interaction.guild_id, target.id)
+    
+    embed = discord.Embed(
+        title=f"🎮 Herní profil - {target.display_name}",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    
+    embed.add_field(name="⏱️ Celkový čas hraní", value=f"{total_time // 60}h {total_time % 60}m", inline=True)
+    embed.add_field(name="📊 Dnešní XP za hry", value=f"{daily_xp}/{GAME_XP_DAILY_LIMIT}", inline=True)
+    embed.add_field(name="🏆 Odemčeno her", value=f"{len(unlocked)}/{len(BONUS_GAMES)}", inline=True)
+    
+    # Show unlocked games
+    if unlocked:
+        game_list = []
+        for game in unlocked[:15]:  # Max 15
+            if game in BONUS_GAMES:
+                emoji = BONUS_GAMES[game]["emoji"]
+                game_list.append(f"{emoji} {game}")
+            else:
+                game_list.append(f"🎮 {game}")
+        
+        embed.add_field(
+            name="✅ Odemčené hry",
+            value="\n".join(game_list) if game_list else "Žádné",
+            inline=False
+        )
+        
+        if len(unlocked) > 15:
+            embed.add_field(name="", value=f"... a {len(unlocked) - 15} dalších", inline=False)
+    else:
+        embed.add_field(name="✅ Odemčené hry", value="Zatím žádné. Začni hrát!", inline=False)
+    
+    # Show some locked games as hints
+    locked = [g for g in list(BONUS_GAMES.keys())[:10] if g not in unlocked]
+    if locked:
+        hints = [f"🔒 {g}" for g in locked[:5]]
+        embed.add_field(name="🔒 K odemčení", value="\n".join(hints), inline=False)
+    
+    embed.set_footer(text=f"Hraj hry a získávej +{GAME_XP_PER_10_MIN} XP za 10 min • Max {GAME_XP_DAILY_LIMIT} XP/den")
+    
+    await interaction.response.send_message(embed=embed)
+
+@bot.command(name="hry", aliases=["games", "achievements"])
+async def prefix_hry(ctx, hrac: discord.Member = None):
+    """!hry - Zobraz odemčené hry"""
+    target = hrac or ctx.author
+    user_data = get_user_data(ctx.guild.id, target.id)
+    
+    unlocked = user_data.get("unlocked_games", [])
+    total_time = user_data.get("total_game_time", 0)
+    daily_xp = get_daily_game_xp(ctx.guild.id, target.id)
+    
+    embed = discord.Embed(
+        title=f"🎮 Herní profil - {target.display_name}",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    embed.add_field(name="⏱️ Celkový čas", value=f"{total_time // 60}h {total_time % 60}m", inline=True)
+    embed.add_field(name="📊 Dnešní XP", value=f"{daily_xp}/{GAME_XP_DAILY_LIMIT}", inline=True)
+    embed.add_field(name="🏆 Odemčeno", value=f"{len(unlocked)}/{len(BONUS_GAMES)}", inline=True)
+    
+    if unlocked:
+        game_list = []
+        for game in unlocked[:10]:
+            emoji = BONUS_GAMES.get(game, {}).get("emoji", "🎮")
+            game_list.append(f"{emoji} {game}")
+        embed.add_field(name="✅ Odemčené hry", value="\n".join(game_list), inline=False)
+    else:
+        embed.add_field(name="✅ Odemčené hry", value="Zatím žádné", inline=False)
+    
+    embed.set_footer(text=f"+{GAME_XP_PER_10_MIN} XP / 10 min • Max {GAME_XP_DAILY_LIMIT} XP/den")
+    await ctx.send(embed=embed)
+
 # ============== POLL SYSTEM ==============
 
 NUMBER_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
