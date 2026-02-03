@@ -280,13 +280,13 @@ class QuizView(discord.ui.View):
 
 @bot.event
 async def on_ready():
-    print(f'🤖 Bot {bot.user} je online!')
-    print(f'📊 Připojen k {len(bot.guilds)} serverům')
+    print(f'🤖 Bot {bot.user} je online!', flush=True)
+    print(f'📊 Připojen k {len(bot.guilds)} serverům', flush=True)
     try:
         synced = await bot.tree.sync()
-        print(f'✅ Synchronizováno {len(synced)} slash příkazů')
+        print(f'✅ Synchronizováno {len(synced)} slash příkazů', flush=True)
     except Exception as e:
-        print(f'❌ Chyba při synchronizaci: {e}')
+        print(f'❌ Chyba při synchronizaci: {e}', flush=True)
 
 # ---------- QUIZ COMMANDS ----------
 
