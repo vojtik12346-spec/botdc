@@ -20,7 +20,7 @@ const DISCORD_LOGIN_URL = `https://discord.com/oauth2/authorize?client_id=${DISC
 
 // ============== Landing Page ==============
 
-function LandingPage({ onLogin, stats }) {
+function LandingPage({ onLogin, onViewLeaderboard, stats }) {
   return (
     <div className="landing-page">
       <div className="hero-section">
@@ -68,6 +68,14 @@ function LandingPage({ onLogin, stats }) {
         </div>
       </div>
 
+      <div className="public-section">
+        <div className="section-buttons">
+          <button onClick={onViewLeaderboard} className="section-btn">
+            🏆 Žebříček hráčů
+          </button>
+        </div>
+      </div>
+
       <div className="info-section">
         <h2>🛡️ Jak to funguje?</h2>
         <div className="steps-grid">
@@ -78,13 +86,13 @@ function LandingPage({ onLogin, stats }) {
           </div>
           <div className="step-card">
             <span className="step-number">2</span>
-            <h3>Přihlaš se</h3>
-            <p>Přihlaš se přes Discord pro správu nastavení</p>
+            <h3>Hraj kvízy</h3>
+            <p>Použij /hudba, /film nebo /pravda a sbírej XP</p>
           </div>
           <div className="step-card">
             <span className="step-number">3</span>
-            <h3>Nastav bota</h3>
-            <p>Vyber svůj server a uprav nastavení podle sebe</p>
+            <h3>Stoupej v žebříčku</h3>
+            <p>Získej nejvíc XP a staň se legendou!</p>
           </div>
         </div>
       </div>
@@ -109,9 +117,217 @@ function LandingPage({ onLogin, stats }) {
   );
 }
 
+// ============== Leaderboard Page ==============
+
+function LeaderboardPage({ onBack, onViewProfile }) {
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/leaderboard`);
+      if (response.ok) {
+        const data = await response.json();
+        setPlayers(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch leaderboard");
+    }
+    setLoading(false);
+  };
+
+  const getRankEmoji = (rank) => {
+    if (rank === 1) return "🥇";
+    if (rank === 2) return "🥈";
+    if (rank === 3) return "🥉";
+    return `#${rank}`;
+  };
+
+  const getLevelBadge = (level) => {
+    if (level >= 30) return "🏆";
+    if (level >= 25) return "👑";
+    if (level >= 20) return "💎";
+    if (level >= 15) return "🔥";
+    if (level >= 10) return "💫";
+    if (level >= 5) return "🌟";
+    return "🌱";
+  };
+
+  return (
+    <div className="leaderboard-page">
+      <div className="page-header">
+        <button className="back-btn" onClick={onBack}>← Zpět</button>
+        <h1>🏆 Žebříček hráčů</h1>
+      </div>
+
+      {loading ? (
+        <div className="loading">Načítám...</div>
+      ) : (
+        <div className="leaderboard-list">
+          {players.map((player, index) => (
+            <div 
+              key={player.user_id} 
+              className={`leaderboard-item ${index < 3 ? 'top-three' : ''}`}
+              onClick={() => onViewProfile(player)}
+            >
+              <span className="rank">{getRankEmoji(index + 1)}</span>
+              <div className="player-info">
+                <span className="player-name">{player.name || "Neznámý"}</span>
+                <span className="player-level">{getLevelBadge(player.level)} Level {player.level}</span>
+              </div>
+              <div className="player-stats">
+                <span className="player-xp">⚡ {player.xp?.toLocaleString()} XP</span>
+                <span className="player-games">🎮 {player.total_games || 0} her</span>
+              </div>
+              <span className="view-arrow">→</span>
+            </div>
+          ))}
+          {players.length === 0 && (
+            <div className="no-data">Zatím žádní hráči</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== Player Profile Page ==============
+
+function PlayerProfilePage({ player, onBack }) {
+  const [profile, setProfile] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+    fetchHistory();
+  }, [player]);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/player/${player.user_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile");
+    }
+    setLoading(false);
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/player/${player.user_id}/history`);
+      if (response.ok) {
+        const data = await response.json();
+        setHistory(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch history");
+    }
+  };
+
+  const getLevelBadge = (level) => {
+    if (level >= 30) return "🏆";
+    if (level >= 25) return "👑";
+    if (level >= 20) return "💎";
+    if (level >= 15) return "🔥";
+    if (level >= 10) return "💫";
+    if (level >= 5) return "🌟";
+    return "🌱";
+  };
+
+  const data = profile || player;
+
+  return (
+    <div className="profile-page">
+      <div className="page-header">
+        <button className="back-btn" onClick={onBack}>← Zpět</button>
+        <h1>Profil hráče</h1>
+      </div>
+
+      <div className="profile-content">
+        <Card className="profile-card">
+          <CardContent className="profile-main">
+            <div className="profile-header">
+              <div className="profile-avatar">
+                {getLevelBadge(data.level || 1)}
+              </div>
+              <div className="profile-info">
+                <h2>{data.name || "Neznámý hráč"}</h2>
+                <span className="profile-level">Level {data.level || 1}</span>
+              </div>
+            </div>
+
+            <div className="profile-stats-grid">
+              <div className="profile-stat">
+                <span className="stat-value">⚡ {data.xp?.toLocaleString() || 0}</span>
+                <span className="stat-label">Celkem XP</span>
+              </div>
+              <div className="profile-stat">
+                <span className="stat-value">🎮 {data.total_games || 0}</span>
+                <span className="stat-label">Odehraných her</span>
+              </div>
+              <div className="profile-stat">
+                <span className="stat-value">✅ {data.total_correct || 0}</span>
+                <span className="stat-label">Správných odpovědí</span>
+              </div>
+              <div className="profile-stat">
+                <span className="stat-value">🔥 {data.streak || 0}</span>
+                <span className="stat-label">Dnů streak</span>
+              </div>
+              <div className="profile-stat">
+                <span className="stat-value">🎯 {data.total_games > 0 ? Math.round((data.total_correct / data.total_games) * 100) : 0}%</span>
+                <span className="stat-label">Přesnost</span>
+              </div>
+              <div className="profile-stat">
+                <span className="stat-value">🕹️ {data.unlocked_games?.length || 0}</span>
+                <span className="stat-label">Odemčených her</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="history-card">
+          <CardHeader>
+            <CardTitle>📜 Historie kvízů</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {history.length > 0 ? (
+              <div className="history-list">
+                {history.map((item, index) => (
+                  <div key={index} className="history-item">
+                    <span className="history-type">
+                      {item.type === 'music' ? '🎵' : item.type === 'film' ? '🎬' : '🤔'}
+                    </span>
+                    <div className="history-info">
+                      <span className="history-result">
+                        {item.won ? '🏆 Výhra' : item.correct ? '✅ Správně' : '❌ Špatně'}
+                      </span>
+                      <span className="history-date">{new Date(item.date).toLocaleDateString('cs-CZ')}</span>
+                    </div>
+                    <span className="history-xp">+{item.xp_earned} XP</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-data">Zatím žádná historie</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 // ============== Dashboard (after login) ==============
 
-function Dashboard({ user, servers, onSelectServer, onLogout }) {
+function Dashboard({ user, servers, onSelectServer, onLogout, onViewLeaderboard }) {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -122,9 +338,14 @@ function Dashboard({ user, servers, onSelectServer, onLogout }) {
             <span className="user-tag">Přihlášen přes Discord</span>
           </div>
         </div>
-        <button onClick={onLogout} className="logout-btn">
-          Odhlásit se
-        </button>
+        <div className="header-actions">
+          <button onClick={onViewLeaderboard} className="leaderboard-btn">
+            🏆 Žebříček
+          </button>
+          <button onClick={onLogout} className="logout-btn">
+            Odhlásit se
+          </button>
+        </div>
       </div>
 
       <div className="servers-section">
@@ -511,6 +732,8 @@ function App() {
   const [botGuilds, setBotGuilds] = useState([]);
   const [stats, setStats] = useState({ guildCount: 0, totalUsers: 0, totalXp: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState('landing'); // landing, leaderboard, profile
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   useEffect(() => {
     // Check for OAuth callback
@@ -610,6 +833,20 @@ function App() {
     toast.success('Odhlášen');
   };
 
+  const handleViewLeaderboard = () => {
+    setCurrentPage('leaderboard');
+  };
+
+  const handleViewProfile = (player) => {
+    setSelectedPlayer(player);
+    setCurrentPage('profile');
+  };
+
+  const handleBackToMain = () => {
+    setCurrentPage('landing');
+    setSelectedPlayer(null);
+  };
+
   // Update servers with bot installation status
   useEffect(() => {
     if (servers.length > 0 && botGuilds.length > 0) {
@@ -630,12 +867,37 @@ function App() {
     );
   }
 
+  // Page routing
+  if (currentPage === 'leaderboard') {
+    return (
+      <div className="app-container">
+        <Toaster position="top-right" richColors />
+        <LeaderboardPage onBack={handleBackToMain} onViewProfile={handleViewProfile} />
+        <footer className="footer">
+          <p>⚔️ Valhalla Bot</p>
+        </footer>
+      </div>
+    );
+  }
+
+  if (currentPage === 'profile' && selectedPlayer) {
+    return (
+      <div className="app-container">
+        <Toaster position="top-right" richColors />
+        <PlayerProfilePage player={selectedPlayer} onBack={() => setCurrentPage('leaderboard')} />
+        <footer className="footer">
+          <p>⚔️ Valhalla Bot</p>
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       <Toaster position="top-right" richColors />
       
       {!user ? (
-        <LandingPage onLogin={handleLogin} stats={stats} />
+        <LandingPage onLogin={handleLogin} onViewLeaderboard={handleViewLeaderboard} stats={stats} />
       ) : selectedServer ? (
         <ServerSettings 
           server={selectedServer} 
@@ -647,6 +909,7 @@ function App() {
           servers={servers}
           onSelectServer={setSelectedServer}
           onLogout={handleLogout}
+          onViewLeaderboard={handleViewLeaderboard}
         />
       )}
 
