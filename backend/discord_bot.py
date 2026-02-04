@@ -2617,7 +2617,7 @@ async def send_game_info(ctx):
               "• Přesnost odpovědí\n"
               "• Aktuální streak\n"
               "• Progress do dalšího levelu\n"
-              "💡 *Můžeš zadat i jiného hráče: `/gamelevel @hrac`*",
+              "💡 *Můžeš zadat i jiného hráče: `/hry @hrac`*",
         inline=False
     )
     
