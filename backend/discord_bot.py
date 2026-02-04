@@ -1135,14 +1135,35 @@ async def radio_command(interaction: discord.Interaction, stanice: str):
         await interaction.response.send_message("❌ Neznámá stanice!", ephemeral=True)
         return
     
+    await interaction.response.defer()
+    
     radio = RADIO_STREAMS[stanice]
     voice_channel = interaction.user.voice.channel
     voice_client = interaction.guild.voice_client
     
-    # Připojit se k voice
-    if not voice_client:
-        voice_client = await voice_channel.connect()
-    elif voice_client.channel != voice_channel:
+    # Připojit se k voice - vylepšená logika
+    try:
+        if voice_client:
+            # Bot je už někde připojený
+            if voice_client.is_playing():
+                voice_client.stop()
+            if voice_client.channel != voice_channel:
+                await voice_client.move_to(voice_channel)
+        else:
+            # Bot není připojený - připoj se
+            voice_client = await voice_channel.connect(timeout=10.0, reconnect=True)
+    except asyncio.TimeoutError:
+        await interaction.followup.send("❌ Nepodařilo se připojit k voice kanálu (timeout). Zkus to znovu.", ephemeral=True)
+        return
+    except Exception as e:
+        # Zkus odpojit a znovu připojit
+        try:
+            if voice_client:
+                await voice_client.disconnect(force=True)
+            voice_client = await voice_channel.connect(timeout=10.0, reconnect=True)
+        except:
+            await interaction.followup.send(f"❌ Chyba připojení k voice: {e}", ephemeral=True)
+            return
         await voice_client.move_to(voice_channel)
     
     # Zastavit aktuální přehrávání
