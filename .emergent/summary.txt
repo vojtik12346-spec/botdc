@@ -1,160 +1,168 @@
-<analysis>An analysis of the conversation for the handover summary.
-
-**original_problem_statement:**
-Původní požadavek byl vytvořit bota s otázkami a matematickou minihrou. Během konverzace se požadavky vyvinuly do následujících funkcí:
-
-1.  **Discord Bot:** Hlavní platforma má být Discord bot, nikoli webová stránka.
-2.  **Příkazy:**
-    *   : Příkaz pro nastavení odpočtu.
-    *   : Příkaz pro vytváření anket s více možnostmi, časovým limitem a zobrazením jmen hlasujících.
-    *   : Hudební kvíz, kde uživatelé hádají interpreta podle textu písně. Podporuje více kol a administrátorské nastavení počtu kol a času na odpověď.
-    *   : Nový filmový kvíz (právě ve vývoji).
-3.  **Webové Rozhraní:** Vytvoření webového dashboardu pro správu a nastavení bota, s přihlášením přes Discord.
-4.  **Technické požadavky:**
-    *   Integrace s Mee6 pro udělování XP byla zkoumána, ale zamítnuta kvůli chybějícímu veřejnému API. Místo toho byl implementován vlastní XP a leaderboard systém, který byl později odstraněn.
-    *   Tmavý, herní design pro webový dashboard.
+<analysis>**original_problem_statement:**
+Původní požadavek byl na Discord bota s kvízy a herním XP systémem. Požadavky se rozšířily o:
+1.  **Herní a kvízové příkazy:** , , , , , , , .
+2.  **XP a Level Systém:** Sběr XP za aktivitu v kvízech a za hraní her na PC, včetně úkolů a denních odměn.
+3.  **Administrace a Notifikace:** Omezení kvízů na adminy, směrování notifikací do určeného kanálu a pingnutí role.
+4.  **Přejmenování a Rebranding:** Změna jména a textů bota na Valhalla Bot.
+5.  **Webový Admin Panel:** Vytvoření webového rozhraní (jako MEE6) pro správu bota, které vyžaduje přihlášení přes Discord. Panel má zobrazovat statistiky, žebříčky, profily hráčů a umožňovat nastavení bota pro konkrétní server.
+6.  **Nové Funkce Bota:**
+    *   Giveaway systém ().
+    *   Statistiky serveru () s interaktivními tlačítky.
+    *   Hudební přehrávač pro přehrávání z YouTube a rádiových stanic.
 
 **User's preferred language**: čeština
 
 **what currently exists?**
-- **Backend**:
-    1.  : Skript pro Discord bota napsaný v . Obsahuje logiku pro příkazy , ,  a rozpracovaný . Běží jako služba pod .
-    2.  : FastAPI server, který poskytuje API pro webový dashboard. Zajišťuje Discord OAuth autentizaci a poskytuje endpointy pro získání nastavení a dat z bota (např. seznam písní). Běží jako služba pod .
-- **Frontend**:
-    - React aplikace (), která slouží jako webový dashboard. Umožňuje přihlášení přes Discord a zobrazuje nastavení bota.
-- **Databáze**:
-    - MongoDB se používá pro ukládání session tokenů pro webový dashboard. Stav bota (aktivní kvízy, ankety) je momentálně ukládán v paměti v Python slovnících.
+-   **Backend ():** Plně funkční Discord bot s kvízy, komplexním XP/level systémem, sledováním herní aktivity, giveaway systémem, statistikami serveru a přehráváním rádia. Všechna logika je v tomto monolitickém souboru.
+-   **Backend ():** FastAPI server, který obsluhuje webový admin panel. Obsahuje API endpointy pro Discord OAuth2 autentizaci, získávání statistik serveru, žebříčků, profilů hráčů a načítání nastavení bota.
+-   **Frontend (, ):** React aplikace, která slouží jako webový admin panel. Obsahuje landing page s tlačítky Přidat na Discord a Přihlásit se. Po přihlášení zobrazí seznam serverů, kde je uživatel admin, a umožňuje přístup k dashboardu s nastaveními a statistikami pro vybraný server.
+-   **Database (MongoDB):** Ukládá data o uživatelích (), serverech (), statistikách (, ) a další.
 
 **Last working item**:
-- **Last item agent was working**: Implementace příkazu . Agent přidal základní datovou strukturu s filmovými hláškami a vytvořil kostru příkazu v .
-- **Reasoning**: Uživatel si vyžádal přidání filmového kvízu jako další zábavné funkce pro bota. Agent identifikoval, že stávající logika pro zpracování odpovědí () a ukončení kvízu () je pevně svázaná s hudebním kvízem a je třeba ji zobecnit, aby podporovala více typů kvízů (hudební i filmový).
-- **Status**: IN PROGRESS
-- **Agent Testing Done**: N
-- **Which testing method agent to use?**: Manuální testování. Agent musí spustit bota a ověřit na Discordu, že:
-    1.  Nový příkaz  funguje.
-    2.  Příkaz  stále funguje.
-    3.  Příkaz  správně ukončí jak filmový, tak hudební kvíz.
-    4.  Odpovědi v chatu jsou správně zpracovávány pro oba typy kvízů.
-- **User Testing Done**: N
+-   **Last item agent was working**: Uživatel požádal o opravu příkazu , konkrétně zobrazení statistik Celkový čas hraní a Dnešní XP za hry, které nezobrazovaly správná data. Zároveň chtěl odstranit hru Counter-Strike: Global Offensive a ponechat pouze Counter-Strike 2. Agent provedl úpravy v souboru  k nápravě těchto problémů.
+-   **Status**: USER VERIFICATION PENDING
+-   **Agent Testing Done**: N
+-   **Which testing method agent to use?**: Manual testing on Discord. Je potřeba, aby uživatel spustil příkaz  a ověřil, že:
+    1.  Hra Counter-Strike: Global Offensive již není v seznamu her.
+    2.  Pole Celkový čas hraní a Dnešní XP za hry nyní zobrazují správné hodnoty a postup.
+-   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-  - **Issue 1**: Dokončení implementace filmového kvízu (P0)
+-   **Issue 1**: Přehrávání hudby z YouTube a Spotify nefunguje (P0)
+-   **Issue 2**: Propojení nastavení oprávnění z webového panelu s botem (P1)
 
 **Issues Detail**:
-  - **Issue 1**: Dokončení implementace filmového kvízu
-     - **Attempted fixes**: Byla přidána datová struktura a základní příkaz. Agent se zastavil před refaktoringem sdílené logiky.
-     - **Next debug checklist**:
-        1. V souboru  upravit event handler  tak, aby obecně kontroloval aktivní kvízy v kanálu (např. ). Následně musí z uložených dat v  zjistit typ kvízu (filmový/hudební) a validovat odpověď proti správné datové sadě.
-        2. V souboru  upravit příkaz  (a jeho prefixovou variantu), aby správně ukončil jakýkoliv běžící kvíz v kanálu a odstranil jeho data z .
-        3. Aktualizovat příkaz , aby obsahoval informace o novém příkazu .
-        4. (Volitelně) Rozšířit webový dashboard ( a ) o nastavení pro filmový kvíz (čas, počet kol).
-     - **Why fix this issue and what will be achieved with the fix?**: Dokončení nového herního módu podle požadavku uživatele a vytvoření robustnějšího systému, který umožní snadnější přidávání dalších typů kvízů v budoucnu.
-     - **Status**: IN PROGRESS
-     - **Is recurring issue?**: N
-     - **Should Test frontend/backend/both after fix?**: backend
-     - **Blocked on other issue**: None
+-   **Issue 1**: Přehrávání hudby z YouTube a Spotify nefunguje
+    -   **Attempted fixes**: Agent se pokusil implementovat přehrávání z YouTube pomocí . Všechny pokusy selhaly kvůli chybě , což znamená, že YouTube aktivně blokuje požadavky z cloudového hostingu. Agent správně identifikoval, že Spotify API neposkytuje přímé audio streamy. Jako workaround implementoval přehrávání rádiových stanic přes přímé stream URL, což funguje.
+    -   **Next debug checklist**:
+        1.  Jasně komunikovat uživateli, že YouTube/Spotify je na tomto hostingu blokováno a nelze to snadno obejít.
+        2.  Navrhnout alternativy:
+            *   Rozšířit seznam rádiových stanic v příkazu .
+            *   Nabídnout uživateli pomoc s přípravou bota pro lokální hostování na jeho vlastním PC, kde by YouTube fungovalo.
+    -   **Why fix this issue and what will be achieved with the fix?**: Jedná se o klíčovou funkci, kterou si uživatel přál.
+    -   **Status**: BLOCKED
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Blocked on other issue**: Hosting/External Service Limitation
+
+-   **Issue 2**: Propojení nastavení oprávnění z webového panelu s botem
+    -   **Attempted fixes**: Žádné. Agent vytvořil na frontendu přepínače (toggles) pro nastavení oprávnění příkazů (Admin/Všichni), ale tato nastavení se nikam neukládají a bot na ně nereaguje.
+    -   **Next debug checklist**:
+        1.  V  upravit endpoint pro ukládání nastavení () tak, aby přijímal a ukládal do databáze (kolekce ) oprávnění pro jednotlivé příkazy.
+        2.  Ve  implementovat logiku, která při kliknutí na Uložit nastavení odešle aktuální stav přepínačů na tento API endpoint.
+        3.  V  upravit logiku pro kontrolu oprávnění u každého příkazu tak, aby se nejprve podívala na konfiguraci v databázi pro daný server, a až poté použila výchozí hodnotu.
+    -   **Why fix this issue and what will be achieved with the fix?**: Dokončí se klíčová funkce admin panelu a umožní se dynamická správa bota bez nutnosti úpravy kódu.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on other issue**: None
 
 **In progress Task List**:
- - **Task 1**: Generalizace logiky kvízu
-     - **Where to resume**: V souboru , konkrétně úpravou funkcí  a /, jak bylo identifikováno v posledním kroku.
-     - **What will be achieved with this?**: Umožní to bezproblémové fungování více typů kvízů současně a zjednoduší budoucí rozšíření.
-     - **Status**: IN PROGRESS
-     - **Should Test frontend/backend/both after fix?**: backend
-     - **Blocked on something**: None
+-   Žádné.
 
 **Upcoming and Future Tasks**
-- Uživatel zatím nemá dlouhodobý plán a vybírá si nové funkce ze seznamů nápadů, které mu agent předkládá. Dalším krokem po dokončení filmového kvízu bude pravděpodobně nabídnout další seznam herních, utilitních nebo komunitních funkcí.
+-   **Emoji kvíz** (): Hádání filmu/seriálu podle emoji. (P1)
+-   **Matematický kvíz** (): Rychlé matematické úlohy. (P2)
+-   **Moderace:** Příkazy  a logování. (P2)
+-   **Uvítací zprávy:** Automatická zpráva pro nové členy. (P2)
+-   **Reaction roles:** Získání role kliknutím na emoji reakci. (P2)
+-   **Web Dashboard - Historie kvízů:** Dokončit implementaci zobrazení historie odehraných kvízů. (P2)
 
 **Completed work in this session**
-- **Discord Bot**:
-  - Základní struktura bota běžícího jako služba pod .
-  - Příkaz  pro odpočítávání času.
-  - Příkaz  pro ankety s časovým limitem, živými výsledky a jmény hlasujících.
-  - Komplexní příkaz  pro hudební kvíz s podporou více kol, administrátorským nastavením a rozsáhlou databází (~169) českých písní.
-- **Web Dashboard**:
-  - Vytvořen webový dashboard (React + FastAPI) pro správu bota.
-  - Implementováno přihlašování přes Discord (OAuth2).
-  - Vytvořen API endpoint () pro zobrazení seznamu písní na webu.
-- **Původní projekt (Zahozen)**:
-  - Byla vytvořena plně funkční webová aplikace pro kvízy, která byla následně zahozená, protože uživatel požadoval Discord bota.
+-   Opraven problém s odesíláním notifikací do špatného kanálu.
+-   Změněno automatické mazání odpovědí bota z 5 minut na 1 minutu.
+-   Implementován příkaz  pro zobrazení trvalé zprávy s nápovědou.
+-   Bot byl přejmenován na Valhalla Bot, včetně všech textů a embedů.
+-   Kompletně přestavěn frontend na webový admin panel ve stylu MEE6.
+-   Implementován plnohodnotný Discord OAuth2 login pro webový panel.
+-   Do admin panelu přidány živé statistiky, žebříček hráčů a profily hráčů.
+-   Implementován giveaway systém s příkazy  a .
+-   Implementován příkaz  s interaktivními tlačítky pro zobrazení statistik serveru.
+-   Jako workaround pro blokovaný YouTube byl implementován robustní  systém s více než 35 stanicemi.
+-   Opraven příkaz  pro správné zobrazení herních statistik.
 
 **Earlier issues found/mentioned but not fixed**
-- Žádné. Všechny předchozí problémy (špatné pochopení zadání,  error u bota) byly identifikovány a vyřešeny.
+-   **Issue 1**: Monolitický soubor 
+    -   **Debug checklist**: Rozdělit soubor  (nyní přes 4500 řádků) do samostatných modulů (Cogs) podle funkcionality (např. , , , ).
+    -   **Why to solve this issue and what will be achieved with this?**: Současný stav je neudržitelný, zpomaluje vývoj a zvyšuje riziko zanesení chyb. Refaktoring zlepší čitelnost, spravovatelnost a stabilitu kódu.
+    -   **Should Test frontend/backend/both after fix**: backend
+    -   **Is recurring issue?**: Y
 
 **Known issue recurrence from previous fork**
-- None
+-   Problém s notifikacemi do špatného kanálu byl v této session opraven.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend**: Python, , FastAPI, Supervisor
-- **Frontend**: JavaScript, React
-- **Database**: MongoDB (pro sessions webového dashboardu)
-- **State Management**: Stav bota (aktivní kvízy, ankety) je momentálně řešen pomocí globálních slovníků v paměti.
-- **Authentication**: Discord OAuth2 pro webový dashboard.
+-   **Backend**: Python,  (včetně , , , ), FastAPI, MongoDB (), Supervisor, .
+-   **Frontend**: JavaScript, React, CSS.
+-   **Authentication**: Discord OAuth2 pro přihlášení na web.
+-   **Database**: MongoDB.
 
 **key DB schema**
-- **MongoDB  collection**: 
+-   ****: Data o uživatelích (XP, level, statistiky her, úkoly).
+-   ****: Konfigurace pro jednotlivé servery (ID kanálů, role, oprávnění příkazů - zatím neimplementováno).
+-   ****: Agregovaná data o aktivitě na serveru (zprávy, voice).
+-   ****: Globální statistiky bota (počet serverů).
 
 **changes in tech stack**
-- Proběhl zásadní pivot z původního konceptu samostatné webové aplikace na architekturu Discord bota doplněného o webový dashboard.
+-   Přidány  a  pro hudební funkce.
 
 **All files of reference**
-- : Logika Discord bota.
-- : API pro webový dashboard.
-- : Uživatelské rozhraní dashboardu.
-- : Konfigurace pro spouštění bota jako služby.
-- : Obsahuje , , .
+-    (Hlavní soubor s logikou bota)
+-    (Backend pro web)
+-    (Frontend pro web)
+-    (Styly pro web)
+-    (Klíče a konfigurace)
 
 **Areas that need refactoring**:
-- **State Management v **: Současné použití globálních slovníků (, , ) pro ukládání stavu není škálovatelné a může vést k problémům. Bylo by vhodné zvážit refaktoring do tříd nebo přesunout perzistentní nastavení (jako ) do databáze (MongoDB).
-- **Quiz Logic**: Kód pro zpracování kvízů v  se stává komplexním. Po dokončení filmového kvízu by bylo vhodné zvážit vytvoření obecnější třídy nebo sady funkcí pro správu kvízů, aby se předešlo duplicitě a zjednodušilo přidávání dalších typů.
+-   Soubor  je kriticky nutné refaktorovat do menších, spravovatelných modulů (Cogs). Přidáním hudebního systému, statistik a giveaways se jeho velikost stala neudržitelnou.
 
 **key api endpoints**
-- : Spuštění OAuth flow.
-- : Zpracování callbacku z Discordu.
-- : Získání informací o přihlášeném uživateli.
-- : Získání seznamu serverů, kde je uživatel a bot.
-- : Uložení nastavení pro daný server.
-- : Získání seznamu všech písní pro hudební kvíz.
+-   : Výměna OAuth kódu za token.
+-   : Získání dat o přihlášeném uživateli.
+-   : Seznam serverů, kde je bot.
+-   : Získání dat pro žebříček.
+-   : Získání dat pro profil hráče.
+-   : Získání statistik pro dashboard.
+-   : Získání nastavení pro server.
+-   : Uložení nastavení pro server (zatím nepropojeno).
 
 **Critical Info for New Agent**
-- Projekt se dynamicky mění na základě přání uživatele. Uživatel preferuje dostávat seznam nápadů a z nich si vybírat další funkci.
-- Aktuální architektura se skládá ze dvou oddělených, ale spolupracujících backend procesů ( a ). Nezapomeňte restartovat oba (backend: stopped
-discord_bot: stopped
-backend: started
-discord_bot: started), pokud měníte sdílené věci nebo .
-- Klíčová logika pro bota je v paměti, takže restart služby  smaže všechny probíhající hry a ankety. Nastavení (čas kvízu, počet kol) jsou také v paměti a po restartu se resetují na výchozí hodnoty.
+-   **YouTube/Spotify je blokováno!** Neplýtvejte časem na pokusy o opravu. Zaměřte se na alternativy, jako je rozšíření  příkazu, nebo komunikujte s uživatelem o možnosti lokálního hostování.
+-   **Webový panel není plně funkční.** Přepínače oprávnění na záložce Příkazy jsou pouze UI prvek. Je třeba implementovat backendovou logiku pro jejich ukládání a použití.
+-   **Refaktoring je nutný.** Práce se souborem  je velmi obtížná. Navrhněte uživateli refaktoring jako prioritu pro zlepšení stability a budoucího vývoje.
+-   Komunikujte s uživatelem v **češtině**.
 
 **documents and test reports created in this job**
-- 
-- 
-- 
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **user**: Přidej filmový kvíz. (DONE - started)
-2.  **agent**: Přidává filmový kvíz... (IN PROGRESS)
-3.  **agent**: Přidává data pro filmový kvíz... (IN PROGRESS)
-4.  **agent**: Přidává příkaz pro filmový kvíz... (IN PROGRESS)
-5.  **agent**: Teď musím aktualizovat příkaz  a  pro podporu více kvízů. (IN PROGRESS - This is the current state)
-Uživatel čeká na dokončení filmového kvízu.
+1.  **user**: funguje co dal ? (po implementaci )
+2.  **agent**: Navrhuje nové funkce (hry, moderace, automatizace).
+3.  **user**: Požaduje opravu  (zobrazení času hraní a denních XP) a odstranění hry Counter-Strike: Global Offensive.
+4.  **agent**: Začíná s analýzou a opravou.
+5.  **agent**: Upravuje kód  pro opravu zobrazení statistik a odstranění hry.
+6.  **agent**: Dokončil implementaci a žádá uživatele o otestování.
 
 **Project Health Check:**
-- **Broken**: Nic není aktuálně rozbité, ale implementace filmového kvízu je nedokončená.
-- **Mocked**: Žádné.
+-   **Broken**: Přehrávání hudby z YouTube/Spotify.
+-   **Mocked**: Funkce pro ukládání nastavení oprávnění příkazů z webového admin panelu. Přepínače v UI existují, ale nejsou napojeny na backend.
 
 **3rd Party Integrations**
-- Discord API (prostřednictvím knihovny ) - pro bota i pro OAuth ve webovém dashboardu.
+-   **Discord API** (přes )
+-   **MongoDB** (přes )
+-   **yt-dlp**: Pro přehrávání audia z přímých streamů (rádia).
 
 **Testing status**
-- **testing agent used after significant changes**: YES (pro webový dashboard).
-- **Troubleshoot agent used after agent stuck in loop**: NO.
-- **Test files created**: Žádné.
-- **Known regressions**: Žádné.
+-   **testing agent used after significant changes**: NO
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: []
+-   **Known regressions**: None
 
 **Credentials to test flow:**
-- Všechny potřebné klíče (, , , ) jsou uloženy v .
+-   Všechny potřebné tokeny a klíče jsou v .
 
 **What agent forgot to execute**
-- Agent si správně naplánoval další kroky pro dokončení filmového kvízu (úprava  a ), ale ještě je neprovedl. Toto je hlavní úkol pro dalšího agenta.</analysis>
+-   Agent nepropojil UI přepínače pro oprávnění příkazů ve webovém panelu s backendovou logikou. Uživatel tak může měnit nastavení, ale reálně se nic neděje.</analysis>
