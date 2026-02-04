@@ -2392,6 +2392,10 @@ def create_progress_bar(current: int, total: int, length: int = 10) -> str:
 
 @bot.tree.command(name="gamelevel", description="Zobraz svůj herní level a statistiky")
 async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member = None):
+    # Check permission from database
+    if not await check_command_permission(interaction, "gamelevel"):
+        return
+    
     target = hrac or interaction.user
     user_data = get_user_data(interaction.guild_id, target.id)
     
