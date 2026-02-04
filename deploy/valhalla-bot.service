@@ -1,0 +1,15 @@
+[Unit]
+Description=Valhalla Discord Bot
+After=network.target mongod.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/valhalla-bot
+Environment=PATH=/opt/valhalla-bot/venv/bin
+ExecStart=/opt/valhalla-bot/venv/bin/python3 discord_bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
