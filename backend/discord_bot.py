@@ -2906,6 +2906,10 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
 
 @bot.tree.command(name="hry", description="Zobraz své odemčené hry a achievementy")
 async def slash_hry(interaction: discord.Interaction, hrac: discord.Member = None):
+    # Check permission from database
+    if not await check_command_permission(interaction, "hry"):
+        return
+    
     target = hrac or interaction.user
     user_data = get_user_data(interaction.guild_id, target.id)
     
