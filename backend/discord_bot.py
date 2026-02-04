@@ -879,6 +879,7 @@ YTDL_OPTIONS = {
 
 FFMPEG_OPTIONS = {
     'options': '-vn',
+    'executable': '/usr/bin/ffmpeg',
 }
 
 # Předdefinované radio streamy
