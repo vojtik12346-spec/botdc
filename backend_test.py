@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 class DiscordBotDashboardTester:
-    def __init__(self, base_url="https://discord-gamify.preview.emergentagent.com"):
+    def __init__(self, base_url="https://quizmaster-hub-6.preview.emergentagent.com"):
         self.base_url = base_url
         self.session_token = "test_session_1770142950030"  # Provided test token
         self.tests_run = 0
