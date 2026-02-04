@@ -1300,25 +1300,55 @@ async def nowplaying_command(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed)
 
-# ============== DEEZER MUSIC SEARCH ==============
+# ============== SOUNDCLOUD MUSIC SEARCH ==============
 
-DEEZER_API_URL = "https://api.deezer.com"
+SOUNDCLOUD_CLIENT_ID = os.environ.get("SOUNDCLOUD_CLIENT_ID", "")
+SOUNDCLOUD_API_URL = "https://api.soundcloud.com"
 
-async def search_deezer(query: str, limit: int = 5) -> list:
-    """Vyhledej písničky na Deezer API"""
+async def search_soundcloud(query: str, limit: int = 5) -> list:
+    """Vyhledej písničky na SoundCloud API"""
+    if not SOUNDCLOUD_CLIENT_ID:
+        print("[SOUNDCLOUD] Missing client_id!", flush=True)
+        return []
+    
     async with aiohttp.ClientSession() as session:
-        url = f"{DEEZER_API_URL}/search"
-        params = {"q": query, "limit": limit}
+        url = f"{SOUNDCLOUD_API_URL}/tracks"
+        params = {
+            "q": query,
+            "limit": limit,
+            "client_id": SOUNDCLOUD_CLIENT_ID
+        }
         try:
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    return data.get("data", [])
+                    print(f"[SOUNDCLOUD] Found {len(data)} tracks for '{query}'", flush=True)
+                    return data
+                else:
+                    print(f"[SOUNDCLOUD] API error: {resp.status}", flush=True)
         except Exception as e:
-            print(f"[DEEZER] Search error: {e}", flush=True)
+            print(f"[SOUNDCLOUD] Search error: {e}", flush=True)
     return []
 
-class DeezerSearchView(discord.ui.View):
+async def get_soundcloud_stream_url(track_id: int) -> str:
+    """Získej stream URL pro SoundCloud track"""
+    if not SOUNDCLOUD_CLIENT_ID:
+        return None
+    
+    async with aiohttp.ClientSession() as session:
+        url = f"{SOUNDCLOUD_API_URL}/tracks/{track_id}/stream"
+        params = {"client_id": SOUNDCLOUD_CLIENT_ID}
+        try:
+            async with session.get(url, params=params, allow_redirects=False) as resp:
+                if resp.status in [301, 302]:
+                    return resp.headers.get("Location")
+                elif resp.status == 200:
+                    return url + f"?client_id={SOUNDCLOUD_CLIENT_ID}"
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Stream error: {e}", flush=True)
+    return None
+
+class SoundCloudSearchView(discord.ui.View):
     def __init__(self, tracks: list, requester: discord.Member, guild_id: int):
         super().__init__(timeout=120)
         self.tracks = tracks
@@ -1330,7 +1360,7 @@ class DeezerSearchView(discord.ui.View):
             button = discord.ui.Button(
                 label=f"{i+1}",
                 style=discord.ButtonStyle.primary,
-                custom_id=f"deezer_play_{i}"
+                custom_id=f"sc_play_{i}"
             )
             button.callback = self.create_callback(i)
             self.add_item(button)
@@ -1348,6 +1378,8 @@ class DeezerSearchView(discord.ui.View):
             await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
             return
         
+        await interaction.response.defer()
+        
         voice_channel = interaction.user.voice.channel
         voice_client = interaction.guild.voice_client
         
@@ -1363,56 +1395,66 @@ class DeezerSearchView(discord.ui.View):
         
         queue_data = get_music_queue(interaction.guild_id)
         
-        preview_url = track.get("preview")
-        if not preview_url:
-            await interaction.response.send_message("❌ Tato písnička nemá dostupný preview!", ephemeral=True)
+        # Získej stream URL
+        stream_url = track.get("stream_url")
+        if stream_url:
+            stream_url = f"{stream_url}?client_id={SOUNDCLOUD_CLIENT_ID}"
+        else:
+            stream_url = await get_soundcloud_stream_url(track["id"])
+        
+        if not stream_url:
+            await interaction.followup.send("❌ Tato písnička není dostupná pro streaming!", ephemeral=True)
             return
         
+        duration_ms = track.get("duration", 0)
+        duration_sec = duration_ms // 1000
+        
         song = {
-            "title": f"{track['artist']['name']} - {track['title']}",
-            "url": preview_url,
-            "duration": 30,
+            "title": f"{track.get('user', {}).get('username', 'Unknown')} - {track['title']}",
+            "url": stream_url,
+            "duration": duration_sec,
             "requester": interaction.user.display_name,
-            "thumbnail": track.get("album", {}).get("cover_medium")
+            "thumbnail": track.get("artwork_url")
         }
         queue_data["current"] = song
         
         try:
-            source = discord.FFmpegPCMAudio(preview_url, **FFMPEG_OPTIONS)
+            source = discord.FFmpegPCMAudio(stream_url, **FFMPEG_OPTIONS)
             source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
             voice_client.play(source)
             
             embed = discord.Embed(
-                title="🎵 Nyní hraje (30s preview)",
+                title="🎵 Nyní hraje",
                 description=f"**{track['title']}**",
-                color=discord.Color.green()
+                color=discord.Color.orange()
             )
-            embed.add_field(name="🎤 Interpret", value=track['artist']['name'], inline=True)
-            embed.add_field(name="💿 Album", value=track.get('album', {}).get('title', 'N/A'), inline=True)
+            embed.add_field(name="🎤 Umělec", value=track.get('user', {}).get('username', 'Unknown'), inline=True)
+            embed.add_field(name="⏱️ Délka", value=f"{duration_sec // 60}:{duration_sec % 60:02d}", inline=True)
             embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
             
-            if track.get("album", {}).get("cover_medium"):
-                embed.set_thumbnail(url=track["album"]["cover_medium"])
+            if track.get("artwork_url"):
+                embed.set_thumbnail(url=track["artwork_url"])
             
-            embed.set_footer(text="⚔️ Valhalla Bot • 30s preview z Deezer")
+            embed.set_footer(text="⚔️ Valhalla Bot • Powered by SoundCloud")
             
             # Disable all buttons
             for child in self.children:
                 child.disabled = True
             
-            await interaction.response.edit_message(embed=interaction.message.embeds[0], view=self)
+            await interaction.edit_original_response(view=self)
             await interaction.followup.send(embed=embed)
             
         except Exception as e:
-            await interaction.response.send_message(f"❌ Chyba přehrávání: {e}", ephemeral=True)
+            print(f"[SOUNDCLOUD] Play error: {e}", flush=True)
+            await interaction.followup.send(f"❌ Chyba přehrávání: {e}", ephemeral=True)
 
-@bot.tree.command(name="search", description="Vyhledej a přehraj písničku (30s preview)")
+@bot.tree.command(name="search", description="Vyhledej a přehraj písničku ze SoundCloud")
 @app_commands.describe(query="Název písničky nebo interpreta")
 async def search_command(interaction: discord.Interaction, query: str):
-    """Vyhledá písničky na Deezer a nabídne výběr"""
+    """Vyhledá písničky na SoundCloud a nabídne výběr"""
     await interaction.response.defer()
     
-    tracks = await search_deezer(query, limit=5)
+    tracks = await search_soundcloud(query, limit=5)
     
     if not tracks:
         await interaction.followup.send(f"❌ Nic nenalezeno pro: **{query}**", ephemeral=True)
@@ -1420,47 +1462,56 @@ async def search_command(interaction: discord.Interaction, query: str):
     
     embed = discord.Embed(
         title=f"🔍 Výsledky pro: {query}",
-        description="Klikni na číslo pro přehrání 30s preview:",
-        color=discord.Color.blue()
+        description="Klikni na číslo pro přehrání:",
+        color=discord.Color.orange()
     )
     
     for i, track in enumerate(tracks[:5]):
-        duration_str = f"{track['duration'] // 60}:{track['duration'] % 60:02d}"
+        duration_ms = track.get("duration", 0)
+        duration_sec = duration_ms // 1000
+        duration_str = f"{duration_sec // 60}:{duration_sec % 60:02d}"
+        artist = track.get('user', {}).get('username', 'Unknown')
         embed.add_field(
-            name=f"{i+1}. {track['title']}",
-            value=f"🎤 {track['artist']['name']} • ⏱️ {duration_str}",
+            name=f"{i+1}. {track['title'][:50]}",
+            value=f"🎤 {artist} • ⏱️ {duration_str}",
             inline=False
         )
     
-    if tracks[0].get("album", {}).get("cover_medium"):
-        embed.set_thumbnail(url=tracks[0]["album"]["cover_medium"])
+    if tracks[0].get("artwork_url"):
+        embed.set_thumbnail(url=tracks[0]["artwork_url"])
     
-    embed.set_footer(text="⚔️ Valhalla Bot • Powered by Deezer")
+    embed.set_footer(text="⚔️ Valhalla Bot • Powered by SoundCloud")
     
-    view = DeezerSearchView(tracks, interaction.user, interaction.guild_id)
+    view = SoundCloudSearchView(tracks, interaction.user, interaction.guild_id)
     await interaction.followup.send(embed=embed, view=view)
 
 @bot.tree.command(name="playtrack", description="Rychle přehraj první výsledek vyhledávání")
 @app_commands.describe(query="Název písničky nebo interpreta")
 async def playtrack_command(interaction: discord.Interaction, query: str):
-    """Přehraje první výsledek vyhledávání"""
+    """Přehraje první výsledek vyhledávání ze SoundCloud"""
     if not interaction.user.voice:
         await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
         return
     
     await interaction.response.defer()
     
-    tracks = await search_deezer(query, limit=1)
+    tracks = await search_soundcloud(query, limit=1)
     
     if not tracks:
         await interaction.followup.send(f"❌ Nic nenalezeno pro: **{query}**", ephemeral=True)
         return
     
     track = tracks[0]
-    preview_url = track.get("preview")
     
-    if not preview_url:
-        await interaction.followup.send("❌ Tato písnička nemá dostupný preview!", ephemeral=True)
+    # Získej stream URL
+    stream_url = track.get("stream_url")
+    if stream_url:
+        stream_url = f"{stream_url}?client_id={SOUNDCLOUD_CLIENT_ID}"
+    else:
+        stream_url = await get_soundcloud_stream_url(track["id"])
+    
+    if not stream_url:
+        await interaction.followup.send("❌ Tato písnička není dostupná pro streaming!", ephemeral=True)
         return
     
     voice_channel = interaction.user.voice.channel
@@ -1478,37 +1529,41 @@ async def playtrack_command(interaction: discord.Interaction, query: str):
     
     queue_data = get_music_queue(interaction.guild_id)
     
+    duration_ms = track.get("duration", 0)
+    duration_sec = duration_ms // 1000
+    
     song = {
-        "title": f"{track['artist']['name']} - {track['title']}",
-        "url": preview_url,
-        "duration": 30,
+        "title": f"{track.get('user', {}).get('username', 'Unknown')} - {track['title']}",
+        "url": stream_url,
+        "duration": duration_sec,
         "requester": interaction.user.display_name,
-        "thumbnail": track.get("album", {}).get("cover_medium")
+        "thumbnail": track.get("artwork_url")
     }
     queue_data["current"] = song
     
     try:
-        source = discord.FFmpegPCMAudio(preview_url, **FFMPEG_OPTIONS)
+        source = discord.FFmpegPCMAudio(stream_url, **FFMPEG_OPTIONS)
         source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
         voice_client.play(source)
         
         embed = discord.Embed(
-            title="🎵 Nyní hraje (30s preview)",
+            title="🎵 Nyní hraje",
             description=f"**{track['title']}**",
-            color=discord.Color.green()
+            color=discord.Color.orange()
         )
-        embed.add_field(name="🎤 Interpret", value=track['artist']['name'], inline=True)
-        embed.add_field(name="💿 Album", value=track.get('album', {}).get('title', 'N/A'), inline=True)
+        embed.add_field(name="🎤 Umělec", value=track.get('user', {}).get('username', 'Unknown'), inline=True)
+        embed.add_field(name="⏱️ Délka", value=f"{duration_sec // 60}:{duration_sec % 60:02d}", inline=True)
         embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
         
-        if track.get("album", {}).get("cover_medium"):
-            embed.set_thumbnail(url=track["album"]["cover_medium"])
+        if track.get("artwork_url"):
+            embed.set_thumbnail(url=track["artwork_url"])
         
-        embed.set_footer(text="⚔️ Valhalla Bot • 30s preview z Deezer")
+        embed.set_footer(text="⚔️ Valhalla Bot • Powered by SoundCloud")
         
         await interaction.followup.send(embed=embed)
         
     except Exception as e:
+        print(f"[SOUNDCLOUD] Play error: {e}", flush=True)
         await interaction.followup.send(f"❌ Chyba přehrávání: {e}")
 
 # ============== GIVEAWAY SYSTEM ==============
