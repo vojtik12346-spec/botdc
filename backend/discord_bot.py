@@ -24,12 +24,14 @@ db_name = os.environ.get("DB_NAME", "quiz_bot")
 mongo_client = MongoClient(mongo_url)
 db = mongo_client[db_name]
 users_collection = db["game_users"]
+server_stats_collection = db["server_stats"]  # Pro statistiky serveru
 
 # Bot setup
 intents = discord.Intents.default()
 intents.message_content = True
 intents.presences = True  # Pro sledování her
 intents.members = True    # Pro sledování členů
+intents.voice_states = True  # Pro sledování voice aktivity
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
