@@ -1875,7 +1875,7 @@ async def slash_help(interaction: discord.Interaction):
     )
     embed.add_field(
         name="🎵 Hudba & Rádio",
-        value="`/search [název]` - vyhledej písničku\n`/playtrack [název]` - rychlé přehrání\n`/radio [stanice]` - přehraj rádio\n`/radiolist` - seznam stanic",
+        value="`/search [název]` - vyhledej na SoundCloud\n`/playtrack [název]` - rychlé přehrání\n`/radio [stanice]` - přehraj rádio\n`/radiolist` - seznam stanic",
         inline=False
     )
     await interaction.response.send_message(embed=embed)
