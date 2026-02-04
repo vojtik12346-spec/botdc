@@ -591,7 +591,7 @@ async def discord_oauth_callback(request: Request):
     if not code:
         raise HTTPException(status_code=400, detail="Missing code")
     
-    client_id = os.environ.get("DISCORD_CLIENT_ID", "1336454706620063826")
+    client_id = os.environ.get("DISCORD_CLIENT_ID", "1466110673875374201")
     client_secret = os.environ.get("DISCORD_CLIENT_SECRET", "")
     
     # Exchange code for token
