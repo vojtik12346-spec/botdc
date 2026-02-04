@@ -859,7 +859,7 @@ async def server_stats_error(interaction: discord.Interaction, error):
 
 import yt_dlp
 
-# YouTube DL options
+# YouTube DL options - upraveno pro obejití 403
 YTDL_OPTIONS = {
     'format': 'bestaudio/best',
     'extractaudio': True,
@@ -874,11 +874,17 @@ YTDL_OPTIONS = {
     'no_warnings': True,
     'default_search': 'ytsearch',
     'source_address': '0.0.0.0',
+    'force_ipv4': True,
+    'cachedir': False,
+    'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    }
 }
 
 FFMPEG_OPTIONS = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-    'options': '-vn',
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -nostdin',
+    'options': '-vn -loglevel warning',
 }
 
 ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
