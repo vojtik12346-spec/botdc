@@ -860,39 +860,40 @@ async def server_stats_error(interaction: discord.Interaction, error):
 import yt_dlp
 import subprocess
 import os
+import aiohttp
 
-# YouTube DL options - pro obejití 403 pomocí PO tokenu
+# Poznámka: YouTube je blokovaný na cloudových serverech
+# Tento systém podporuje přímé audio URL a některé další zdroje
+
 YTDL_OPTIONS = {
-    'format': 'bestaudio[ext=m4a]/bestaudio/best',
+    'format': 'bestaudio/best',
     'outtmpl': '/tmp/music_%(id)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': False,
-    'no_warnings': False,
+    'ignoreerrors': True,
+    'quiet': True,
+    'no_warnings': True,
     'default_search': 'ytsearch',
-    'source_address': '0.0.0.0',
-    'force_ipv4': True,
-    'age_limit': 99,
-    'geo_bypass': True,
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['tv_embedded', 'mediaconnect'],
-        }
-    },
-    'http_headers': {
-        'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.5',
-    },
-    'socket_timeout': 30,
-    'retries': 3,
+    'extract_flat': False,
 }
 
 FFMPEG_OPTIONS = {
     'options': '-vn',
+}
+
+# Předdefinované radio streamy
+RADIO_STREAMS = {
+    "evropa2": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2.mp3", "name": "Evropa 2"},
+    "frekvence1": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1.mp3", "name": "Frekvence 1"},
+    "impuls": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/IMPULS.mp3", "name": "Rádio Impuls"},
+    "kiss": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/KISS_CZAAC.aac", "name": "Kiss Rádio"},
+    "blanik": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BLANIK.mp3", "name": "Rádio Blaník"},
+    "beat": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BEAT.mp3", "name": "Radio Beat"},
+    "fajn": {"url": "https://ice.actve.net/fajnrock-hi", "name": "Fajn Rock"},
+    "country": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/COUNTRY_RADIO.mp3", "name": "Country Radio"},
+    "chillout": {"url": "http://icecast.omroep.nl/3fm-serioustalent-mp3", "name": "Chill Out"},
+    "lofi": {"url": "https://streams.ilovemusic.de/iloveradio17.mp3", "name": "Lo-Fi Hip Hop"},
 }
 
 ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
