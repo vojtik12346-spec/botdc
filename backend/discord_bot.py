@@ -1164,7 +1164,6 @@ async def radio_command(interaction: discord.Interaction, stanice: str):
         except:
             await interaction.followup.send(f"❌ Chyba připojení k voice: {e}", ephemeral=True)
             return
-        await voice_client.move_to(voice_channel)
     
     # Zastavit aktuální přehrávání
     if voice_client.is_playing():
@@ -1187,9 +1186,9 @@ async def radio_command(interaction: discord.Interaction, stanice: str):
         embed.add_field(name="📡 Typ", value="Živé vysílání", inline=True)
         embed.set_footer(text="⚔️ Valhalla Bot • /musicstop pro zastavení")
         
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
     except Exception as e:
-        await interaction.response.send_message(f"❌ Chyba: {e}", ephemeral=True)
+        await interaction.followup.send(f"❌ Chyba: {e}", ephemeral=True)
 
 @bot.tree.command(name="radiolist", description="Zobraz všechny dostupné rádio stanice")
 async def radiolist_command(interaction: discord.Interaction):
