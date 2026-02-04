@@ -595,6 +595,212 @@ async def on_ready():
     except Exception as e:
         print(f'❌ Chyba při synchronizaci: {e}', flush=True)
 
+# ============== SERVER STATS SYSTEM ==============
+
+# Voice tracking - kdo kdy vstoupil do voice
+voice_sessions = {}  # {user_id: {"join_time": datetime, "channel_id": int, "guild_id": int}}
+
+def get_server_stats(guild_id: int) -> dict:
+    """Získej nebo vytvoř statistiky serveru"""
+    stats = server_stats_collection.find_one({"guild_id": guild_id})
+    if not stats:
+        stats = {
+            "guild_id": guild_id,
+            "total_messages": 0,
+            "total_voice_minutes": 0,
+            "user_messages": {},  # {user_id: count}
+            "user_voice": {},     # {user_id: minutes}
+            "daily_messages": 0,
+            "daily_voice": 0,
+            "last_reset": datetime.now(timezone.utc).isoformat()
+        }
+        server_stats_collection.insert_one(stats)
+    return stats
+
+def increment_message_count(guild_id: int, user_id: int, user_name: str):
+    """Přidej zprávu do statistik"""
+    server_stats_collection.update_one(
+        {"guild_id": guild_id},
+        {
+            "$inc": {
+                "total_messages": 1,
+                "daily_messages": 1,
+                f"user_messages.{user_id}": 1
+            },
+            "$set": {
+                f"user_names.{user_id}": user_name
+            }
+        },
+        upsert=True
+    )
+
+def add_voice_time(guild_id: int, user_id: int, user_name: str, minutes: int):
+    """Přidej voice čas do statistik"""
+    server_stats_collection.update_one(
+        {"guild_id": guild_id},
+        {
+            "$inc": {
+                "total_voice_minutes": minutes,
+                "daily_voice": minutes,
+                f"user_voice.{user_id}": minutes
+            },
+            "$set": {
+                f"user_names.{user_id}": user_name
+            }
+        },
+        upsert=True
+    )
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    """Sledování voice aktivity"""
+    if member.bot:
+        return
+    
+    user_id = member.id
+    guild_id = member.guild.id
+    
+    # Uživatel vstoupil do voice kanálu
+    if before.channel is None and after.channel is not None:
+        voice_sessions[user_id] = {
+            "join_time": datetime.now(timezone.utc),
+            "channel_id": after.channel.id,
+            "guild_id": guild_id
+        }
+        print(f"[VOICE] {member.display_name} vstoupil do {after.channel.name}", flush=True)
+    
+    # Uživatel opustil voice kanál
+    elif before.channel is not None and after.channel is None:
+        if user_id in voice_sessions:
+            session = voice_sessions[user_id]
+            duration = datetime.now(timezone.utc) - session["join_time"]
+            minutes = int(duration.total_seconds() / 60)
+            
+            if minutes > 0:
+                add_voice_time(guild_id, user_id, member.display_name, minutes)
+                print(f"[VOICE] {member.display_name} byl ve voice {minutes} minut", flush=True)
+            
+            del voice_sessions[user_id]
+    
+    # Uživatel přešel do jiného kanálu
+    elif before.channel != after.channel:
+        if user_id in voice_sessions:
+            session = voice_sessions[user_id]
+            duration = datetime.now(timezone.utc) - session["join_time"]
+            minutes = int(duration.total_seconds() / 60)
+            
+            if minutes > 0:
+                add_voice_time(guild_id, user_id, member.display_name, minutes)
+            
+            voice_sessions[user_id] = {
+                "join_time": datetime.now(timezone.utc),
+                "channel_id": after.channel.id,
+                "guild_id": guild_id
+            }
+
+@bot.tree.command(name="serverstats", description="Zobraz statistiky serveru (jen admin)")
+@app_commands.checks.has_permissions(administrator=True)
+async def server_stats_command(interaction: discord.Interaction):
+    """Zobrazí statistiky serveru"""
+    guild = interaction.guild
+    stats = get_server_stats(guild.id)
+    
+    # Základní statistiky
+    total_members = guild.member_count
+    online_members = sum(1 for m in guild.members if m.status != discord.Status.offline)
+    total_messages = stats.get("total_messages", 0)
+    total_voice = stats.get("total_voice_minutes", 0)
+    daily_messages = stats.get("daily_messages", 0)
+    daily_voice = stats.get("daily_voice", 0)
+    
+    # Formátování voice času
+    voice_hours = total_voice // 60
+    voice_mins = total_voice % 60
+    daily_voice_hours = daily_voice // 60
+    daily_voice_mins = daily_voice % 60
+    
+    # Top 5 pisatelů
+    user_messages = stats.get("user_messages", {})
+    user_names = stats.get("user_names", {})
+    sorted_messages = sorted(user_messages.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    # Top 5 voice aktivita
+    user_voice = stats.get("user_voice", {})
+    sorted_voice = sorted(user_voice.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    # Vytvoř embed
+    embed = discord.Embed(
+        title=f"📊 Statistiky serveru",
+        description=f"**{guild.name}**",
+        color=discord.Color.blue()
+    )
+    
+    if guild.icon:
+        embed.set_thumbnail(url=guild.icon.url)
+    
+    # Základní stats
+    embed.add_field(
+        name="👥 Členové",
+        value=f"**{total_members}** celkem\n**{online_members}** online",
+        inline=True
+    )
+    embed.add_field(
+        name="💬 Zprávy",
+        value=f"**{total_messages:,}** celkem\n**{daily_messages:,}** dnes",
+        inline=True
+    )
+    embed.add_field(
+        name="🎤 Voice",
+        value=f"**{voice_hours}h {voice_mins}m** celkem\n**{daily_voice_hours}h {daily_voice_mins}m** dnes",
+        inline=True
+    )
+    
+    # Top pisatelé
+    if sorted_messages:
+        top_writers = []
+        medals = ["🥇", "🥈", "🥉", "4.", "5."]
+        for i, (uid, count) in enumerate(sorted_messages):
+            name = user_names.get(uid, f"User {uid}")
+            top_writers.append(f"{medals[i]} **{name}**: {count:,} zpráv")
+        embed.add_field(
+            name="✍️ Nejaktivnější pisatelé",
+            value="\n".join(top_writers),
+            inline=True
+        )
+    
+    # Top voice
+    if sorted_voice:
+        top_voice = []
+        medals = ["🥇", "🥈", "🥉", "4.", "5."]
+        for i, (uid, mins) in enumerate(sorted_voice):
+            name = user_names.get(uid, f"User {uid}")
+            h = mins // 60
+            m = mins % 60
+            time_str = f"{h}h {m}m" if h > 0 else f"{m}m"
+            top_voice.append(f"{medals[i]} **{name}**: {time_str}")
+        embed.add_field(
+            name="🎤 Nejvíce ve voice",
+            value="\n".join(top_voice),
+            inline=True
+        )
+    
+    # Aktivní ve voice právě teď
+    voice_now = sum(1 for vc in guild.voice_channels for m in vc.members if not m.bot)
+    embed.add_field(
+        name="🔊 Právě ve voice",
+        value=f"**{voice_now}** členů",
+        inline=True
+    )
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • Statistiky se aktualizují průběžně")
+    
+    await interaction.response.send_message(embed=embed)
+
+@server_stats_command.error
+async def server_stats_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("❌ Tento příkaz může použít pouze administrátor!", ephemeral=True)
+
 # ============== GIVEAWAY SYSTEM ==============
 
 active_giveaways = {}
