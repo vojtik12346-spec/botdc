@@ -41,7 +41,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 BONUS_GAMES = {
     # Populární hry
     "Counter-Strike 2": {"emoji": "🎯", "category": "FPS"},
-    "Counter-Strike: Global Offensive": {"emoji": "🎯", "category": "FPS"},
     "Minecraft": {"emoji": "⛏️", "category": "Sandbox"},
     "Fortnite": {"emoji": "🏝️", "category": "Battle Royale"},
     "League of Legends": {"emoji": "⚔️", "category": "MOBA"},
