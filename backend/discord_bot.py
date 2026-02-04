@@ -1037,7 +1037,7 @@ async def radio_command(interaction: discord.Interaction, stanice: str):
 @bot.tree.command(name="play", description="Přehraj hudbu (URL streamu nebo rádio)")
 @app_commands.describe(url="Přímý URL na audio stream")
 async def play_command(interaction: discord.Interaction, url: str):
-    """Přehraje hudbu z YouTube"""
+    """Přehraje audio z přímého URL"""
     if not interaction.user.voice:
         await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
         return
@@ -1053,65 +1053,37 @@ async def play_command(interaction: discord.Interaction, url: str):
     elif voice_client.channel != voice_channel:
         await voice_client.move_to(voice_channel)
     
-    # Získat info o písničce
-    try:
-        loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(query, download=False))
-        
-        if 'entries' in data:
-            data = data['entries'][0]
-        
-        song = {
-            "title": data.get('title', 'Neznámý'),
-            "url": data.get('webpage_url') or query,
-            "duration": data.get('duration', 0),
-            "thumbnail": data.get('thumbnail'),
-            "requester": interaction.user.display_name
-        }
-    except Exception as e:
-        await interaction.followup.send(f"❌ Nepodařilo se najít: {e}")
-        return
+    # Zastavit aktuální přehrávání
+    if voice_client.is_playing():
+        voice_client.stop()
     
     queue_data = get_music_queue(interaction.guild_id)
     
-    # Pokud nic nehraje, přehrát hned
-    if not voice_client.is_playing() and not voice_client.is_paused():
+    # Zkusit přehrát přímo jako stream
+    try:
+        song = {
+            "title": url.split("/")[-1] or "Stream",
+            "url": url,
+            "duration": 0,
+            "requester": interaction.user.display_name
+        }
         queue_data["current"] = song
-        try:
-            source = await YTDLSource.from_url(song["url"], stream=False)
-            source.volume = queue_data["volume"]
-            voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
-                play_next(interaction.guild_id, voice_client), bot.loop))
-            
-            embed = discord.Embed(
-                title="🎵 Nyní hraje",
-                description=f"**{song['title']}**",
-                color=discord.Color.green()
-            )
-            embed.add_field(name="⏱️ Délka", value=format_duration(song['duration']), inline=True)
-            embed.add_field(name="🎧 Požádal", value=song['requester'], inline=True)
-            if song['thumbnail']:
-                embed.set_thumbnail(url=song['thumbnail'])
-            embed.set_footer(text="⚔️ Valhalla Bot • /skip pro přeskočení")
-            
-            await interaction.followup.send(embed=embed)
-        except Exception as e:
-            await interaction.followup.send(f"❌ Chyba přehrávání: {e}")
-    else:
-        # Přidat do fronty
-        queue_data["queue"].append(song)
+        
+        source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
+        source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+        voice_client.play(source)
         
         embed = discord.Embed(
-            title="📋 Přidáno do fronty",
+            title="🎵 Nyní hraje",
             description=f"**{song['title']}**",
-            color=discord.Color.blue()
+            color=discord.Color.green()
         )
-        embed.add_field(name="⏱️ Délka", value=format_duration(song['duration']), inline=True)
-        embed.add_field(name="📍 Pozice", value=f"#{len(queue_data['queue'])}", inline=True)
-        if song['thumbnail']:
-            embed.set_thumbnail(url=song['thumbnail'])
+        embed.add_field(name="🎧 Požádal", value=song['requester'], inline=True)
+        embed.set_footer(text="⚔️ Valhalla Bot • /musicstop pro zastavení\n💡 Tip: Použij /radio pro české stanice!")
         
         await interaction.followup.send(embed=embed)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Nepodařilo se přehrát: {e}\n\n💡 **Tip:** YouTube je na tomto serveru blokovaný. Použij `/radio` pro české stanice nebo přímý URL na audio soubor.")
 
 @bot.tree.command(name="skip", description="Přeskoč aktuální písničku")
 async def skip_command(interaction: discord.Interaction):
