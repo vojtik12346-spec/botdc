@@ -4585,7 +4585,7 @@ async def prefix_pravda(ctx, kategorie: str = "random"):
 # Active film quizzes
 active_film_quiz = {}
 
-@bot.tree.command(name="film", description="Spusť filmový kvíz - hádej film! (Admin)")
+@bot.tree.command(name="film", description="Spusť filmový kvíz - hádej film!")
 @app_commands.describe(zanr="Vyber žánr filmů")
 @app_commands.choices(zanr=[
     app_commands.Choice(name="🇨🇿 České filmy", value="ceske"),
@@ -4596,8 +4596,11 @@ active_film_quiz = {}
     app_commands.Choice(name="🚀 Sci-Fi", value="scifi"),
     app_commands.Choice(name="🎲 Náhodný", value="random"),
 ])
-@app_commands.default_permissions(administrator=True)
 async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
+    # Check permission from database
+    if not await check_command_permission(interaction, "film"):
+        return
+    
     channel_id = interaction.channel_id
     guild_id = interaction.guild_id
     
