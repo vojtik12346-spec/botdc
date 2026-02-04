@@ -218,6 +218,44 @@ def delete_game_session(user_id: int):
     """Smaž herní session z databáze"""
     game_sessions_collection.delete_one({"user_id": user_id})
 
+# Collection pro nastavení serveru
+guild_settings_collection = db["guild_bot_settings"]
+
+def get_guild_settings(guild_id: int) -> dict:
+    """Získej nastavení pro server z databáze"""
+    settings = guild_settings_collection.find_one({"guild_id": str(guild_id)})
+    if not settings:
+        # Výchozí nastavení
+        return {
+            "cmdHudba": True,
+            "cmdFilm": True,
+            "cmdPravda": True,
+            "cmdGamelevel": False,
+            "cmdTop": False,
+            "cmdDaily": False,
+            "cmdHry": False,
+            "cmdUkoly": False,
+            "cmdHerniinfo": True
+        }
+    return settings
+
+def is_command_admin_only(guild_id: int, command_name: str) -> bool:
+    """Zkontroluj zda příkaz vyžaduje admin oprávnění"""
+    settings = get_guild_settings(guild_id)
+    key = f"cmd{command_name.capitalize()}"
+    return settings.get(key, False)
+
+async def check_command_permission(interaction: discord.Interaction, command_name: str) -> bool:
+    """Zkontroluj oprávnění pro příkaz. Vrátí True pokud může pokračovat."""
+    if is_command_admin_only(interaction.guild_id, command_name):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(
+                "❌ Tento příkaz může použít pouze administrátor!",
+                ephemeral=True
+            )
+            return False
+    return True
+
 # ============== XP/LEVEL SYSTEM ==============
 
 def calculate_level(xp: int) -> int:
