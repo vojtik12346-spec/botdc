@@ -2747,9 +2747,13 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
     
     # Stopped playing a game
     elif before_game and not after_game:
-        if user_id in active_gaming_sessions:
-            session = active_gaming_sessions[user_id]
+        # Zkus načíst session z paměti nebo databáze
+        session = active_gaming_sessions.get(user_id) or get_game_session(user_id)
+        
+        if session:
             start_time = session["start"]
+            if isinstance(start_time, str):
+                start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
             
             print(f"[GAME] ⏹️ {session['user_name']} skončil hrát: {session['game']} ({minutes_played} min)", flush=True)
@@ -2781,13 +2785,17 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
                     embed.set_footer(text="Hraj hry a získávej XP!")
                     await channel.send(embed=embed)
             
-            del active_gaming_sessions[user_id]
+            # Smaž z paměti i databáze
+            if user_id in active_gaming_sessions:
+                del active_gaming_sessions[user_id]
+            delete_game_session(user_id)
     
     # Changed game
     elif before_game and after_game and before_game != after_game:
-        # End previous session
-        if user_id in active_gaming_sessions:
-            session = active_gaming_sessions[user_id]
+        # End previous session - zkus z paměti nebo databáze
+        session = active_gaming_sessions.get(user_id) or get_game_session(user_id)
+        
+        if session:
             start_time = session["start"]
             minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
             
