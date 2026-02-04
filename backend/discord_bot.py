@@ -175,6 +175,31 @@ GAME_PING_ROLE = 485172457544744972  # Role pro ping při splnění
 # Track active gaming sessions {user_id: {"game": name, "start": datetime, "guild_id": id}}
 active_gaming_sessions = {}
 
+# Collection pro persistentní herní sessions
+game_sessions_collection = db["game_sessions"]
+
+def save_game_session(user_id: int, guild_id: int, game: str, user_name: str):
+    """Ulož herní session do databáze"""
+    game_sessions_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "user_id": user_id,
+            "guild_id": guild_id,
+            "game": game,
+            "user_name": user_name,
+            "start": datetime.now(timezone.utc)
+        }},
+        upsert=True
+    )
+
+def get_game_session(user_id: int) -> dict:
+    """Načti herní session z databáze"""
+    return game_sessions_collection.find_one({"user_id": user_id})
+
+def delete_game_session(user_id: int):
+    """Smaž herní session z databáze"""
+    game_sessions_collection.delete_one({"user_id": user_id})
+
 # ============== XP/LEVEL SYSTEM ==============
 
 def calculate_level(xp: int) -> int:
