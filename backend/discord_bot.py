@@ -884,16 +884,53 @@ FFMPEG_OPTIONS = {
 
 # Předdefinované radio streamy
 RADIO_STREAMS = {
-    "evropa2": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2.mp3", "name": "Evropa 2"},
-    "frekvence1": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1.mp3", "name": "Frekvence 1"},
-    "impuls": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/IMPULS.mp3", "name": "Rádio Impuls"},
-    "kiss": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/KISS_CZAAC.aac", "name": "Kiss Rádio"},
-    "blanik": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BLANIK.mp3", "name": "Rádio Blaník"},
-    "beat": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BEAT.mp3", "name": "Radio Beat"},
-    "fajn": {"url": "https://ice.actve.net/fajnrock-hi", "name": "Fajn Rock"},
-    "country": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/COUNTRY_RADIO.mp3", "name": "Country Radio"},
-    "chillout": {"url": "http://icecast.omroep.nl/3fm-serioustalent-mp3", "name": "Chill Out"},
-    "lofi": {"url": "https://streams.ilovemusic.de/iloveradio17.mp3", "name": "Lo-Fi Hip Hop"},
+    # České stanice
+    "evropa2": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2.mp3", "name": "🇨🇿 Evropa 2", "category": "cz"},
+    "frekvence1": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1.mp3", "name": "🇨🇿 Frekvence 1", "category": "cz"},
+    "impuls": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/IMPULS.mp3", "name": "🇨🇿 Rádio Impuls", "category": "cz"},
+    "kiss": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/KISS_CZAAC.aac", "name": "🇨🇿 Kiss Rádio", "category": "cz"},
+    "blanik": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BLANIK.mp3", "name": "🇨🇿 Rádio Blaník", "category": "cz"},
+    "beat": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BEAT.mp3", "name": "🇨🇿 Radio Beat", "category": "cz"},
+    "country": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/COUNTRY_RADIO.mp3", "name": "🇨🇿 Country Radio", "category": "cz"},
+    "rockzone": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/ROCKZONE_128.mp3", "name": "🇨🇿 Rock Zone", "category": "cz"},
+    
+    # Lo-Fi & Chill
+    "lofi": {"url": "https://streams.ilovemusic.de/iloveradio17.mp3", "name": "😴 Lo-Fi Hip Hop", "category": "chill"},
+    "chillout": {"url": "https://streams.ilovemusic.de/iloveradio7.mp3", "name": "🌴 Chill Out", "category": "chill"},
+    "sleep": {"url": "https://streams.ilovemusic.de/iloveradio18.mp3", "name": "😴 Sleep", "category": "chill"},
+    "spa": {"url": "http://149.56.155.73:80/RELAXATION", "name": "🧘 Spa & Relax", "category": "chill"},
+    
+    # Electronic & Dance
+    "dance": {"url": "https://streams.ilovemusic.de/iloveradio2.mp3", "name": "💃 Dance", "category": "electronic"},
+    "techno": {"url": "https://streams.ilovemusic.de/iloveradio6.mp3", "name": "🎛️ Techno", "category": "electronic"},
+    "trance": {"url": "http://trance.stream.laut.fm/trance", "name": "🌀 Trance", "category": "electronic"},
+    "house": {"url": "https://streams.ilovemusic.de/iloveradio23.mp3", "name": "🏠 House", "category": "electronic"},
+    "edm": {"url": "https://streams.ilovemusic.de/iloveradio109.mp3", "name": "⚡ EDM Hits", "category": "electronic"},
+    "hardstyle": {"url": "https://streams.ilovemusic.de/iloveradio21.mp3", "name": "💥 Hardstyle", "category": "electronic"},
+    
+    # Rock & Metal
+    "rock": {"url": "https://streams.ilovemusic.de/iloveradio16.mp3", "name": "🎸 Rock", "category": "rock"},
+    "metal": {"url": "http://stream.laut.fm/metal", "name": "🤘 Metal", "category": "rock"},
+    "classicrock": {"url": "https://streams.ilovemusic.de/iloveradio108.mp3", "name": "🎸 Classic Rock", "category": "rock"},
+    
+    # Hip Hop & Rap
+    "hiphop": {"url": "https://streams.ilovemusic.de/iloveradio3.mp3", "name": "🎤 Hip Hop", "category": "hiphop"},
+    "rap": {"url": "https://streams.ilovemusic.de/iloveradio13.mp3", "name": "🔥 Rap", "category": "hiphop"},
+    "oldschool": {"url": "https://streams.ilovemusic.de/iloveradio12.mp3", "name": "📼 Old School Rap", "category": "hiphop"},
+    
+    # Pop & Charts
+    "top100": {"url": "https://streams.ilovemusic.de/iloveradio1.mp3", "name": "📊 Top 100", "category": "pop"},
+    "pop": {"url": "https://streams.ilovemusic.de/iloveradio14.mp3", "name": "🎵 Pop", "category": "pop"},
+    "charts": {"url": "https://streams.ilovemusic.de/iloveradio109.mp3", "name": "📈 Charts", "category": "pop"},
+    "2000s": {"url": "https://streams.ilovemusic.de/iloveradio4.mp3", "name": "💿 2000s Hits", "category": "pop"},
+    "90s": {"url": "https://streams.ilovemusic.de/iloveradio5.mp3", "name": "💽 90s Hits", "category": "pop"},
+    "80s": {"url": "https://streams.ilovemusic.de/iloveradio8.mp3", "name": "📻 80s Hits", "category": "pop"},
+    
+    # Other
+    "jazz": {"url": "http://streaming.radio.co/s3c5f5e27a/listen", "name": "🎷 Jazz", "category": "other"},
+    "classical": {"url": "http://149.56.155.73:80/CLASSIC", "name": "🎻 Classical", "category": "other"},
+    "reggae": {"url": "http://stream.laut.fm/reggae", "name": "🇯🇲 Reggae", "category": "other"},
+    "latina": {"url": "https://streams.ilovemusic.de/iloveradio24.mp3", "name": "💃 Latino", "category": "other"},
 }
 
 ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
