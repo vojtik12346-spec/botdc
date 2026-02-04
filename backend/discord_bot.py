@@ -2648,6 +2648,10 @@ async def prefix_top(ctx):
 
 @bot.tree.command(name="daily", description="Získej denní bonus XP!")
 async def slash_daily(interaction: discord.Interaction):
+    # Check permission from database
+    if not await check_command_permission(interaction, "daily"):
+        return
+    
     guild_id = interaction.guild_id
     user_id = interaction.user.id
     user_data = get_user_data(guild_id, user_id)
