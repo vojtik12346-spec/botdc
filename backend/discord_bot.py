@@ -977,9 +977,66 @@ async def play_next(guild_id: int, voice_client):
         print(f"[MUSIC] Error playing: {e}", flush=True)
         await play_next(guild_id, voice_client)
 
-@bot.tree.command(name="play", description="Přehraj hudbu z YouTube")
-@app_commands.describe(query="URL nebo název písničky")
-async def play_command(interaction: discord.Interaction, query: str):
+@bot.tree.command(name="radio", description="Přehraj české rádio")
+@app_commands.describe(stanice="Vyber rádio stanici")
+@app_commands.choices(stanice=[
+    app_commands.Choice(name="🎵 Evropa 2", value="evropa2"),
+    app_commands.Choice(name="🎸 Frekvence 1", value="frekvence1"),
+    app_commands.Choice(name="📻 Rádio Impuls", value="impuls"),
+    app_commands.Choice(name="💋 Kiss Rádio", value="kiss"),
+    app_commands.Choice(name="🎶 Rádio Blaník", value="blanik"),
+    app_commands.Choice(name="🥁 Radio Beat", value="beat"),
+    app_commands.Choice(name="🤠 Country Radio", value="country"),
+    app_commands.Choice(name="😴 Lo-Fi Hip Hop", value="lofi"),
+])
+async def radio_command(interaction: discord.Interaction, stanice: str):
+    """Přehraje české rádio"""
+    if not interaction.user.voice:
+        await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+        return
+    
+    if stanice not in RADIO_STREAMS:
+        await interaction.response.send_message("❌ Neznámá stanice!", ephemeral=True)
+        return
+    
+    radio = RADIO_STREAMS[stanice]
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+    
+    # Připojit se k voice
+    if not voice_client:
+        voice_client = await voice_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+    
+    # Zastavit aktuální přehrávání
+    if voice_client.is_playing():
+        voice_client.stop()
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["current"] = {"title": radio["name"], "url": radio["url"], "duration": 0, "requester": interaction.user.display_name}
+    
+    try:
+        source = discord.FFmpegPCMAudio(radio["url"], **FFMPEG_OPTIONS)
+        source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+        voice_client.play(source)
+        
+        embed = discord.Embed(
+            title="📻 Rádio hraje",
+            description=f"**{radio['name']}**",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
+        embed.add_field(name="📡 Typ", value="Živé vysílání", inline=True)
+        embed.set_footer(text="⚔️ Valhalla Bot • /musicstop pro zastavení")
+        
+        await interaction.response.send_message(embed=embed)
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Chyba: {e}", ephemeral=True)
+
+@bot.tree.command(name="play", description="Přehraj hudbu (URL streamu nebo rádio)")
+@app_commands.describe(url="Přímý URL na audio stream")
+async def play_command(interaction: discord.Interaction, url: str):
     """Přehraje hudbu z YouTube"""
     if not interaction.user.voice:
         await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
