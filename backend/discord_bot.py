@@ -1941,7 +1941,7 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
     )
     embed.add_field(
         name="📅 Denní XP",
-        value=f"**{user_data.get('daily_game_xp', 0)}/{DAILY_XP_LIMIT}**",
+        value=f"**{user_data.get('daily_game_xp', 0)}/{GAME_XP_DAILY_LIMIT}**",
         inline=True
     )
     
