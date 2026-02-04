@@ -964,7 +964,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = ytdl.prepare_filename(data)
         data['filename'] = filename
         
-        return cls(discord.FFmpegPCMAudio(filename, **FFMPEG_OPTIONS), data=data)
+        return cls(discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS), data=data)
 
 # Music queues per guild
 music_queues = {}  # {guild_id: {"queue": [], "current": None, "loop": False}}
