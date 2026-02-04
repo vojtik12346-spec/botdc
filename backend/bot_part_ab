@@ -1,0 +1,1340 @@
+ce_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+    
+    # Zastavit aktuální přehrávání
+    if voice_client.is_playing():
+        voice_client.stop()
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    # Zkusit přehrát přímo jako stream
+    try:
+        song = {
+            "title": url.split("/")[-1] or "Stream",
+            "url": url,
+            "duration": 0,
+            "requester": interaction.user.display_name
+        }
+        queue_data["current"] = song
+        
+        source = discord.FFmpegPCMAudio(url, executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS)
+        source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+        voice_client.play(source)
+        
+        embed = discord.Embed(
+            title="🎵 Nyní hraje",
+            description=f"**{song['title']}**",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🎧 Požádal", value=song['requester'], inline=True)
+        embed.set_footer(text="⚔️ Valhalla Bot • /musicstop pro zastavení\n💡 Tip: Použij /radio pro české stanice!")
+        
+        await interaction.followup.send(embed=embed)
+    except Exception as e:
+        await interaction.followup.send(f"❌ Nepodařilo se přehrát: {e}\n\n💡 **Tip:** YouTube je na tomto serveru blokovaný. Použij `/radio` pro české stanice nebo přímý URL na audio soubor.")
+
+@bot.tree.command(name="skip", description="Přeskoč aktuální písničku")
+async def skip_command(interaction: discord.Interaction):
+    """Přeskočí aktuální písničku"""
+    voice_client = interaction.guild.voice_client
+    
+    if not voice_client or not voice_client.is_connected():
+        await interaction.response.send_message("❌ Bot není ve voice kanálu!", ephemeral=True)
+        return
+    
+    if voice_client.is_playing():
+        voice_client.stop()
+        await interaction.response.send_message("⏭️ Přeskočeno!")
+    else:
+        await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
+
+@bot.tree.command(name="musicstop", description="Zastav hudbu a opusť voice kanál")
+async def stop_music_command(interaction: discord.Interaction):
+    """Zastaví hudbu a odpojí bota"""
+    voice_client = interaction.guild.voice_client
+    
+    if not voice_client:
+        await interaction.response.send_message("❌ Bot není ve voice kanálu!", ephemeral=True)
+        return
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["queue"] = []
+    queue_data["current"] = None
+    
+    await voice_client.disconnect()
+    await interaction.response.send_message("🛑 Hudba zastavena, bot odpojen!")
+
+@bot.tree.command(name="pause", description="Pozastav hudbu")
+async def pause_command(interaction: discord.Interaction):
+    """Pozastaví přehrávání"""
+    voice_client = interaction.guild.voice_client
+    
+    if voice_client and voice_client.is_playing():
+        voice_client.pause()
+        await interaction.response.send_message("⏸️ Hudba pozastavena!")
+    else:
+        await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
+
+@bot.tree.command(name="resume", description="Pokračuj v přehrávání")
+async def resume_command(interaction: discord.Interaction):
+    """Pokračuje v přehrávání"""
+    voice_client = interaction.guild.voice_client
+    
+    if voice_client and voice_client.is_paused():
+        voice_client.resume()
+        await interaction.response.send_message("▶️ Pokračuji v přehrávání!")
+    else:
+        await interaction.response.send_message("❌ Hudba není pozastavena!", ephemeral=True)
+
+@bot.tree.command(name="queue", description="Zobraz frontu písniček")
+async def queue_command(interaction: discord.Interaction):
+    """Zobrazí frontu písniček"""
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    embed = discord.Embed(
+        title="🎵 Fronta písniček",
+        color=discord.Color.purple()
+    )
+    
+    # Aktuální písnička
+    if queue_data["current"]:
+        current = queue_data["current"]
+        embed.add_field(
+            name="▶️ Nyní hraje",
+            value=f"**{current['title']}** ({format_duration(current['duration'])})",
+            inline=False
+        )
+    
+    # Fronta
+    if queue_data["queue"]:
+        queue_list = []
+        for i, song in enumerate(queue_data["queue"][:10], 1):
+            queue_list.append(f"`{i}.` **{song['title']}** ({format_duration(song['duration'])})")
+        
+        embed.add_field(
+            name=f"📋 Další v pořadí ({len(queue_data['queue'])})",
+            value="\n".join(queue_list),
+            inline=False
+        )
+        
+        if len(queue_data["queue"]) > 10:
+            embed.set_footer(text=f"...a dalších {len(queue_data['queue']) - 10} písniček")
+    else:
+        if not queue_data["current"]:
+            embed.description = "Fronta je prázdná! Použij `/play` pro přidání hudby."
+    
+    # Loop status
+    if queue_data["loop"]:
+        embed.add_field(name="🔁 Opakování", value="Zapnuto", inline=True)
+    
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="loop", description="Zapni/vypni opakování aktuální písničky")
+async def loop_command(interaction: discord.Interaction):
+    """Zapne/vypne opakování"""
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["loop"] = not queue_data["loop"]
+    
+    if queue_data["loop"]:
+        await interaction.response.send_message("🔁 Opakování zapnuto!")
+    else:
+        await interaction.response.send_message("➡️ Opakování vypnuto!")
+
+@bot.tree.command(name="volume", description="Nastav hlasitost (0-100)")
+@app_commands.describe(level="Hlasitost 0-100")
+async def volume_command(interaction: discord.Interaction, level: int):
+    """Nastaví hlasitost"""
+    if level < 0 or level > 100:
+        await interaction.response.send_message("❌ Hlasitost musí být 0-100!", ephemeral=True)
+        return
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["volume"] = level / 100
+    
+    voice_client = interaction.guild.voice_client
+    if voice_client and voice_client.source:
+        voice_client.source.volume = level / 100
+    
+    await interaction.response.send_message(f"🔊 Hlasitost nastavena na **{level}%**")
+
+@bot.tree.command(name="nowplaying", description="Zobraz co právě hraje")
+async def nowplaying_command(interaction: discord.Interaction):
+    """Zobrazí aktuální písničku"""
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    if not queue_data["current"]:
+        await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
+        return
+    
+    song = queue_data["current"]
+    embed = discord.Embed(
+        title="🎵 Nyní hraje",
+        description=f"**{song['title']}**",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="⏱️ Délka", value=format_duration(song['duration']), inline=True)
+    embed.add_field(name="🎧 Požádal", value=song['requester'], inline=True)
+    embed.add_field(name="🔁 Loop", value="Ano" if queue_data["loop"] else "Ne", inline=True)
+    if song.get('thumbnail'):
+        embed.set_thumbnail(url=song['thumbnail'])
+    embed.set_footer(text="⚔️ Valhalla Bot")
+    
+    await interaction.response.send_message(embed=embed)
+
+# ============== SOUNDCLOUD MUSIC SEARCH ==============
+
+SOUNDCLOUD_CLIENT_ID = os.environ.get("SOUNDCLOUD_CLIENT_ID", "")
+SOUNDCLOUD_CLIENT_SECRET = os.environ.get("SOUNDCLOUD_CLIENT_SECRET", "")
+SOUNDCLOUD_API_URL = "https://api.soundcloud.com"
+
+# Cache pro SoundCloud access token
+soundcloud_token_cache = {"token": None, "expires": None}
+
+async def get_soundcloud_token() -> str:
+    """Získej OAuth2 access token pro SoundCloud"""
+    global soundcloud_token_cache
+    
+    # Zkontroluj cache
+    if soundcloud_token_cache["token"] and soundcloud_token_cache["expires"]:
+        if datetime.now(timezone.utc) < soundcloud_token_cache["expires"]:
+            return soundcloud_token_cache["token"]
+    
+    if not SOUNDCLOUD_CLIENT_ID or not SOUNDCLOUD_CLIENT_SECRET:
+        print("[SOUNDCLOUD] Missing credentials!", flush=True)
+        return None
+    
+    async with aiohttp.ClientSession() as session:
+        url = f"{SOUNDCLOUD_API_URL}/oauth2/token"
+        data = {
+            "client_id": SOUNDCLOUD_CLIENT_ID,
+            "client_secret": SOUNDCLOUD_CLIENT_SECRET,
+            "grant_type": "client_credentials"
+        }
+        try:
+            async with session.post(url, data=data) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    token = result.get("access_token")
+                    # Token vyprší za 1 hodinu, refreshneme za 50 minut
+                    soundcloud_token_cache["token"] = token
+                    soundcloud_token_cache["expires"] = datetime.now(timezone.utc) + timedelta(minutes=50)
+                    print("[SOUNDCLOUD] Got new access token", flush=True)
+                    return token
+                else:
+                    print(f"[SOUNDCLOUD] Token error: {resp.status}", flush=True)
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Token error: {e}", flush=True)
+    return None
+
+async def search_soundcloud(query: str, limit: int = 5) -> list:
+    """Vyhledej písničky na SoundCloud API"""
+    token = await get_soundcloud_token()
+    if not token:
+        print("[SOUNDCLOUD] No token available!", flush=True)
+        return []
+    
+    async with aiohttp.ClientSession() as session:
+        url = f"{SOUNDCLOUD_API_URL}/tracks"
+        params = {"q": query, "limit": limit}
+        headers = {"Authorization": f"Bearer {token}"}
+        try:
+            async with session.get(url, params=params, headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    print(f"[SOUNDCLOUD] Found {len(data)} tracks for '{query}'", flush=True)
+                    return data
+                else:
+                    print(f"[SOUNDCLOUD] API error: {resp.status}", flush=True)
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Search error: {e}", flush=True)
+    return []
+
+async def get_soundcloud_stream_url(track: dict) -> str:
+    """Získej stream URL pro SoundCloud track"""
+    token = await get_soundcloud_token()
+    if not token:
+        return None
+    
+    track_id = track.get("id")
+    if not track_id:
+        return None
+    
+    async with aiohttp.ClientSession() as session:
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        # Použij /streams endpoint pro získání MP3 URL
+        streams_url = f"{SOUNDCLOUD_API_URL}/tracks/{track_id}/streams"
+        try:
+            async with session.get(streams_url, headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    # Preferuj http_mp3_128_url, pak hls varianty
+                    stream_api_url = (
+                        data.get("http_mp3_128_url") or 
+                        data.get("hls_mp3_128_url") or 
+                        data.get("hls_aac_160_url")
+                    )
+                    if stream_api_url:
+                        # Musíme získat skutečnou CDN URL pomocí Authorization header
+                        try:
+                            async with session.get(stream_api_url, headers=headers, allow_redirects=True) as stream_resp:
+                                if stream_resp.status == 200:
+                                    # Finální URL po redirectu je skutečná stream URL
+                                    final_url = str(stream_resp.url)
+                                    print(f"[SOUNDCLOUD] Got CDN stream URL for track {track_id}", flush=True)
+                                    return final_url
+                                else:
+                                    print(f"[SOUNDCLOUD] Stream redirect error: {stream_resp.status}", flush=True)
+                        except Exception as e:
+                            print(f"[SOUNDCLOUD] Stream redirect error: {e}", flush=True)
+                else:
+                    print(f"[SOUNDCLOUD] Streams API error: {resp.status}", flush=True)
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Stream error: {e}", flush=True)
+    
+    return None
+
+class SoundCloudSearchView(discord.ui.View):
+    def __init__(self, tracks: list, requester: discord.Member, guild_id: int):
+        super().__init__(timeout=120)
+        self.tracks = tracks
+        self.requester = requester
+        self.guild_id = guild_id
+        
+        # Přidej tlačítka pro každý track (max 5)
+        for i, track in enumerate(tracks[:5]):
+            button = discord.ui.Button(
+                label=f"{i+1}",
+                style=discord.ButtonStyle.primary,
+                custom_id=f"sc_play_{i}"
+            )
+            button.callback = self.create_callback(i)
+            self.add_item(button)
+    
+    def create_callback(self, index: int):
+        async def callback(interaction: discord.Interaction):
+            await self.play_track(interaction, index)
+        return callback
+    
+    async def play_track(self, interaction: discord.Interaction, index: int):
+        track = self.tracks[index]
+        
+        # Zkontroluj voice
+        if not interaction.user.voice:
+            await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+            return
+        
+        await interaction.response.defer()
+        
+        voice_channel = interaction.user.voice.channel
+        voice_client = interaction.guild.voice_client
+        
+        # Připojit se k voice
+        if not voice_client:
+            voice_client = await voice_channel.connect()
+        elif voice_client.channel != voice_channel:
+            await voice_client.move_to(voice_channel)
+        
+        # Zastavit aktuální přehrávání
+        if voice_client.is_playing():
+            voice_client.stop()
+        
+        queue_data = get_music_queue(interaction.guild_id)
+        
+        # Získej stream URL
+        stream_url = await get_soundcloud_stream_url(track)
+        
+        if not stream_url:
+            await interaction.followup.send("❌ Tato písnička není dostupná pro streaming!", ephemeral=True)
+            return
+        
+        duration_ms = track.get("duration", 0)
+        duration_sec = duration_ms // 1000
+        
+        song = {
+            "title": f"{track.get('user', {}).get('username', 'Unknown')} - {track['title']}",
+            "url": stream_url,
+            "duration": duration_sec,
+            "requester": interaction.user.display_name,
+            "thumbnail": track.get("artwork_url")
+        }
+        queue_data["current"] = song
+        
+        try:
+            source = discord.FFmpegPCMAudio(stream_url, executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS)
+            source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+            voice_client.play(source)
+            
+            embed = discord.Embed(
+                title="🎵 Nyní hraje",
+                description=f"**{track['title']}**",
+                color=discord.Color.orange()
+            )
+            embed.add_field(name="🎤 Umělec", value=track.get('user', {}).get('username', 'Unknown'), inline=True)
+            embed.add_field(name="⏱️ Délka", value=f"{duration_sec // 60}:{duration_sec % 60:02d}", inline=True)
+            embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
+            
+            if track.get("artwork_url"):
+                embed.set_thumbnail(url=track["artwork_url"])
+            
+            embed.set_footer(text="⚔️ Valhalla Bot • Powered by SoundCloud")
+            
+            # Disable all buttons
+            for child in self.children:
+                child.disabled = True
+            
+            await interaction.edit_original_response(view=self)
+            await interaction.followup.send(embed=embed)
+            
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Play error: {e}", flush=True)
+            await interaction.followup.send(f"❌ Chyba přehrávání: {e}", ephemeral=True)
+
+@bot.tree.command(name="search", description="Vyhledej a přehraj písničku ze SoundCloud")
+@app_commands.describe(query="Název písničky nebo interpreta")
+async def search_command(interaction: discord.Interaction, query: str):
+    """Vyhledá písničky na SoundCloud a nabídne výběr"""
+    await interaction.response.defer()
+    
+    tracks = await search_soundcloud(query, limit=5)
+    
+    if not tracks:
+        await interaction.followup.send(f"❌ Nic nenalezeno pro: **{query}**", ephemeral=True)
+        return
+    
+    embed = discord.Embed(
+        title=f"🔍 Výsledky pro: {query}",
+        description="Klikni na číslo pro přehrání:",
+        color=discord.Color.orange()
+    )
+    
+    for i, track in enumerate(tracks[:5]):
+        duration_ms = track.get("duration", 0)
+        duration_sec = duration_ms // 1000
+        duration_str = f"{duration_sec // 60}:{duration_sec % 60:02d}"
+        artist = track.get('user', {}).get('username', 'Unknown')
+        embed.add_field(
+            name=f"{i+1}. {track['title'][:50]}",
+            value=f"🎤 {artist} • ⏱️ {duration_str}",
+            inline=False
+        )
+    
+    if tracks[0].get("artwork_url"):
+        embed.set_thumbnail(url=tracks[0]["artwork_url"])
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • Powered by SoundCloud")
+    
+    view = SoundCloudSearchView(tracks, interaction.user, interaction.guild_id)
+    await interaction.followup.send(embed=embed, view=view)
+
+@bot.tree.command(name="playtrack", description="Rychle přehraj první výsledek vyhledávání")
+@app_commands.describe(query="Název písničky nebo interpreta")
+async def playtrack_command(interaction: discord.Interaction, query: str):
+    """Přehraje první výsledek vyhledávání ze SoundCloud"""
+    if not interaction.user.voice:
+        await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+        return
+    
+    await interaction.response.defer()
+    
+    tracks = await search_soundcloud(query, limit=1)
+    
+    if not tracks:
+        await interaction.followup.send(f"❌ Nic nenalezeno pro: **{query}**", ephemeral=True)
+        return
+    
+    track = tracks[0]
+    
+    # Získej stream URL
+    stream_url = await get_soundcloud_stream_url(track)
+    
+    if not stream_url:
+        await interaction.followup.send("❌ Tato písnička není dostupná pro streaming!", ephemeral=True)
+        return
+    
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+    
+    # Připojit se k voice
+    if not voice_client:
+        voice_client = await voice_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+    
+    # Zastavit aktuální přehrávání
+    if voice_client.is_playing():
+        voice_client.stop()
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    duration_ms = track.get("duration", 0)
+    duration_sec = duration_ms // 1000
+    
+    song = {
+        "title": f"{track.get('user', {}).get('username', 'Unknown')} - {track['title']}",
+        "url": stream_url,
+        "duration": duration_sec,
+        "requester": interaction.user.display_name,
+        "thumbnail": track.get("artwork_url")
+    }
+    queue_data["current"] = song
+    
+    try:
+        source = discord.FFmpegPCMAudio(stream_url, executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS)
+        source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+        voice_client.play(source)
+        
+        embed = discord.Embed(
+            title="🎵 Nyní hraje",
+            description=f"**{track['title']}**",
+            color=discord.Color.orange()
+        )
+        embed.add_field(name="🎤 Umělec", value=track.get('user', {}).get('username', 'Unknown'), inline=True)
+        embed.add_field(name="⏱️ Délka", value=f"{duration_sec // 60}:{duration_sec % 60:02d}", inline=True)
+        embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
+        
+        if track.get("artwork_url"):
+            embed.set_thumbnail(url=track["artwork_url"])
+        
+        embed.set_footer(text="⚔️ Valhalla Bot • Powered by SoundCloud")
+        
+        await interaction.followup.send(embed=embed)
+        
+    except Exception as e:
+        print(f"[SOUNDCLOUD] Play error: {e}", flush=True)
+        await interaction.followup.send(f"❌ Chyba přehrávání: {e}")
+
+# ============== GIVEAWAY SYSTEM ==============
+
+active_giveaways = {}
+
+class GiveawayView(discord.ui.View):
+    def __init__(self, giveaway_id: str, prize: str, end_time: datetime, host_id: int):
+        super().__init__(timeout=None)
+        self.giveaway_id = giveaway_id
+        self.prize = prize
+        self.end_time = end_time
+        self.host_id = host_id
+        self.participants = set()
+    
+    @discord.ui.button(label="🎉 Zúčastnit se", style=discord.ButtonStyle.green, custom_id="giveaway_join")
+    async def join_giveaway(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = interaction.user.id
+        
+        if user_id in self.participants:
+            self.participants.discard(user_id)
+            await interaction.response.send_message("❌ Odhlásil ses ze soutěže!", ephemeral=True)
+        else:
+            self.participants.add(user_id)
+            await interaction.response.send_message("✅ Jsi přihlášen do soutěže! Hodně štěstí! 🍀", ephemeral=True)
+        
+        # Update embed with participant count
+        await self.update_embed(interaction.message)
+    
+    async def update_embed(self, message):
+        embed = message.embeds[0]
+        embed.set_field_at(1, name="👥 Účastníků", value=str(len(self.participants)), inline=True)
+        await message.edit(embed=embed)
+
+@bot.tree.command(name="giveaway", description="Vytvoř novou soutěž (jen admin)")
+@app_commands.describe(
+    cas="Doba trvání soutěže (např. 1h, 1d, 7d)",
+    vyhry="Počet výherců",
+    cena="Co se vyhrává"
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def giveaway_command(interaction: discord.Interaction, cas: str, vyhry: int, cena: str):
+    """Vytvoří novou giveaway soutěž"""
+    seconds = parse_time(cas)
+    
+    if seconds is None:
+        await interaction.response.send_message("❌ Neplatný formát času! Použij např. 1h, 1d, 7d", ephemeral=True)
+        return
+    
+    if vyhry < 1:
+        await interaction.response.send_message("❌ Počet výherců musí být alespoň 1!", ephemeral=True)
+        return
+    
+    end_time = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+    giveaway_id = f"{interaction.guild_id}_{interaction.channel_id}_{int(datetime.now().timestamp())}"
+    
+    # Create embed
+    embed = discord.Embed(
+        title="🎁 GIVEAWAY!",
+        description=f"**{cena}**",
+        color=discord.Color.gold()
+    )
+    embed.add_field(name="🏆 Počet výherců", value=str(vyhry), inline=True)
+    embed.add_field(name="👥 Účastníků", value="0", inline=True)
+    embed.add_field(name="⏰ Končí", value=f"<t:{int(end_time.timestamp())}:R>", inline=True)
+    embed.add_field(name="🎮 Hostitel", value=interaction.user.mention, inline=False)
+    embed.set_footer(text="Klikni na tlačítko pro účast!")
+    
+    # Create view
+    view = GiveawayView(giveaway_id, cena, end_time, interaction.user.id)
+    view.winners_count = vyhry
+    
+    await interaction.response.send_message(embed=embed, view=view)
+    message = await interaction.original_response()
+    
+    # Store giveaway
+    active_giveaways[giveaway_id] = {
+        "message_id": message.id,
+        "channel_id": interaction.channel_id,
+        "guild_id": interaction.guild_id,
+        "prize": cena,
+        "winners_count": vyhry,
+        "end_time": end_time,
+        "host_id": interaction.user.id,
+        "view": view
+    }
+    
+    # Schedule end
+    bot.loop.create_task(end_giveaway_after(giveaway_id, seconds))
+
+async def end_giveaway_after(giveaway_id: str, seconds: int):
+    """End giveaway after specified time"""
+    await asyncio.sleep(seconds)
+    await end_giveaway(giveaway_id)
+
+async def end_giveaway(giveaway_id: str):
+    """End a giveaway and pick winners"""
+    if giveaway_id not in active_giveaways:
+        return
+    
+    giveaway = active_giveaways[giveaway_id]
+    view = giveaway["view"]
+    
+    channel = bot.get_channel(giveaway["channel_id"])
+    if not channel:
+        return
+    
+    try:
+        message = await channel.fetch_message(giveaway["message_id"])
+    except:
+        return
+    
+    participants = list(view.participants)
+    winners_count = min(giveaway["winners_count"], len(participants))
+    
+    if winners_count == 0:
+        # No participants
+        embed = discord.Embed(
+            title="🎁 GIVEAWAY UKONČEN",
+            description=f"**{giveaway['prize']}**\n\n😢 Nikdo se nezúčastnil!",
+            color=discord.Color.red()
+        )
+        await message.edit(embed=embed, view=None)
+    else:
+        # Pick winners
+        import random
+        winners = random.sample(participants, winners_count)
+        winners_mentions = ", ".join([f"<@{w}>" for w in winners])
+        
+        embed = discord.Embed(
+            title="🎉 GIVEAWAY UKONČEN!",
+            description=f"**{giveaway['prize']}**",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🏆 Výherci", value=winners_mentions, inline=False)
+        embed.add_field(name="👥 Celkem účastníků", value=str(len(participants)), inline=True)
+        
+        await message.edit(embed=embed, view=None)
+        
+        # Announce winners
+        await channel.send(f"🎉 Gratulujeme {winners_mentions}! Vyhráli jste **{giveaway['prize']}**!")
+    
+    # Remove from active
+    del active_giveaways[giveaway_id]
+
+@bot.tree.command(name="greroll", description="Znovu vylosuj výherce (jen admin)")
+@app_commands.describe(message_id="ID zprávy s giveaway")
+@app_commands.checks.has_permissions(administrator=True)
+async def giveaway_reroll(interaction: discord.Interaction, message_id: str):
+    """Reroll giveaway winners"""
+    try:
+        message = await interaction.channel.fetch_message(int(message_id))
+    except:
+        await interaction.response.send_message("❌ Zpráva nenalezena!", ephemeral=True)
+        return
+    
+    # Find giveaway in history or just pick random from reactions
+    await interaction.response.send_message("🎲 Funkce reroll bude brzy dostupná!", ephemeral=True)
+
+@giveaway_command.error
+async def giveaway_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("❌ Pouze administrátor může vytvářet soutěže!", ephemeral=True)
+    else:
+        await interaction.response.send_message(f"❌ Chyba: {error}", ephemeral=True)
+
+# ============== COUNTDOWN COMMANDS ==============
+
+@bot.tree.command(name="odpocet", description="Spusť odpočet (např. 2m, 5m, 1h)")
+@app_commands.describe(
+    cas="Čas odpočtu (např. 30s, 2m, 1h, 1d)",
+    duvod="Důvod/popis odpočtu (volitelné)"
+)
+async def slash_odpocet(interaction: discord.Interaction, cas: str, duvod: str = None):
+    seconds = parse_time(cas)
+    
+    if seconds is None:
+        await interaction.response.send_message(
+            "❌ Neplatný formát času! Použij např. `30s`, `2m`, `1h`, `1d`",
+            ephemeral=True
+        )
+        return
+    
+    if seconds < 5:
+        await interaction.response.send_message("❌ Minimální čas je 5 sekund!", ephemeral=True)
+        return
+    
+    if seconds > 86400 * 7:
+        await interaction.response.send_message("❌ Maximální čas je 7 dní!", ephemeral=True)
+        return
+    
+    countdown_id = str(uuid.uuid4())
+    end_time = int(datetime.now(timezone.utc).timestamp()) + seconds
+    
+    embed = discord.Embed(
+        title="⏰ ODPOČET",
+        description=f"**{duvod}**" if duvod else "Odpočet běží...",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="⏳ Zbývá", value=f"**{format_time(seconds)}**", inline=True)
+    embed.add_field(name="👤 Spustil", value=interaction.user.mention, inline=True)
+    embed.set_footer(text=f"Končí: {datetime.fromtimestamp(end_time).strftime('%H:%M:%S')}")
+    
+    view = CountdownView(countdown_id, interaction.user.id)
+    
+    await interaction.response.send_message(embed=embed, view=view)
+    message = await interaction.original_response()
+    
+    active_countdowns[countdown_id] = {"cancelled": False}
+    
+    asyncio.create_task(run_countdown(
+        interaction.channel,
+        message,
+        end_time,
+        countdown_id,
+        interaction.user,
+        duvod
+    ))
+
+@bot.command(name="odpocet", aliases=["countdown", "timer"])
+async def prefix_odpocet(ctx, cas: str, *, duvod: str = None):
+    """!odpocet 2m [důvod] - Spusť odpočet"""
+    seconds = parse_time(cas)
+    
+    if seconds is None:
+        await ctx.send("❌ Neplatný formát času! Použij např. `30s`, `2m`, `1h`, `1d`")
+        return
+    
+    if seconds < 5:
+        await ctx.send("❌ Minimální čas je 5 sekund!")
+        return
+    
+    if seconds > 86400 * 7:
+        await ctx.send("❌ Maximální čas je 7 dní!")
+        return
+    
+    countdown_id = str(uuid.uuid4())
+    end_time = int(datetime.now(timezone.utc).timestamp()) + seconds
+    
+    embed = discord.Embed(
+        title="⏰ ODPOČET",
+        description=f"**{duvod}**" if duvod else "Odpočet běží...",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="⏳ Zbývá", value=f"**{format_time(seconds)}**", inline=True)
+    embed.add_field(name="👤 Spustil", value=ctx.author.mention, inline=True)
+    embed.set_footer(text=f"Končí: {datetime.fromtimestamp(end_time).strftime('%H:%M:%S')}")
+    
+    view = CountdownView(countdown_id, ctx.author.id)
+    
+    message = await ctx.send(embed=embed, view=view)
+    
+    active_countdowns[countdown_id] = {"cancelled": False}
+    
+    asyncio.create_task(run_countdown(
+        ctx.channel,
+        message,
+        end_time,
+        countdown_id,
+        ctx.author,
+        duvod
+    ))
+
+@bot.tree.command(name="help", description="Zobraz nápovědu")
+async def slash_help(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="⚔️ Valhalla Bot - Příkazy",
+        color=discord.Color.blue()
+    )
+    embed.add_field(
+        name="⏰ Odpočet",
+        value="`/odpocet [čas] [důvod]`",
+        inline=False
+    )
+    embed.add_field(
+        name="📊 Ankety",
+        value="`/poll [otázka] [možnosti] [čas]`",
+        inline=False
+    )
+    embed.add_field(
+        name="🎵 Hudební kvíz",
+        value="`/hudba [žánr]` - rap, pop, rock, classic",
+        inline=False
+    )
+    embed.add_field(
+        name="🎬 Filmový kvíz",
+        value="`/film [žánr]` - české, hollywood, komedie, akční, horor, scifi",
+        inline=False
+    )
+    embed.add_field(
+        name="🤔 Pravda/Lež",
+        value="`/pravda [kategorie]` - zvířata, věda, historie, tělo, jídlo, česko, bizarní",
+        inline=False
+    )
+    embed.add_field(
+        name="🛑 Zastavit kvíz",
+        value="`/stop` - zastaví běžící kvíz",
+        inline=False
+    )
+    embed.add_field(
+        name="⏱️ Formáty času",
+        value="`30s`, `2m`, `1h`, `1d`",
+        inline=False
+    )
+    embed.add_field(
+        name="🏆 Level systém",
+        value="`/gamelevel` `/top` `/daily` `/hry` `/ukoly`",
+        inline=False
+    )
+    embed.add_field(
+        name="🎵 Hudba & Rádio",
+        value="`/search [název]` - vyhledej na SoundCloud\n`/playtrack [název]` - rychlé přehrání\n`/radio [stanice]` - přehraj rádio\n`/radiolist` - seznam stanic",
+        inline=False
+    )
+    await interaction.response.send_message(embed=embed)
+
+@bot.command(name="pomoc")
+async def prefix_help(ctx):
+    """!pomoc - Zobraz nápovědu"""
+    embed = discord.Embed(
+        title="⚔️ Valhalla Bot - Příkazy",
+        color=discord.Color.blue()
+    )
+    embed.add_field(
+        name="⏰ Odpočet",
+        value="`!odpocet [čas] [důvod]`",
+        inline=False
+    )
+    embed.add_field(
+        name="📊 Ankety",
+        value="`!poll 5m Otázka? | Možnost1, Možnost2`",
+        inline=False
+    )
+    embed.add_field(
+        name="🎵 Hudební kvíz",
+        value="`!hudba [rap/pop/rock/classic]`",
+        inline=False
+    )
+    embed.add_field(
+        name="🎬 Filmový kvíz",
+        value="`!film [ceske/hollywood/komedie/akcni/horor/scifi]`",
+        inline=False
+    )
+    embed.add_field(
+        name="🤔 Pravda/Lež",
+        value="`!pravda [kategorie]` - zvirata, veda, historie, telo, jidlo, cesko, bizarni",
+        inline=False
+    )
+    embed.add_field(
+        name="🛑 Zastavit kvíz",
+        value="`!stop` - zastaví běžící kvíz",
+        inline=False
+    )
+    embed.add_field(
+        name="🏆 Level systém",
+        value="`!level` `!top` `!daily` `!hry` `!ukoly`",
+        inline=False
+    )
+    msg = await ctx.send(embed=embed)
+    asyncio.create_task(delete_after(msg, 60))  # Smaže po 5 min
+
+@bot.command(name="prikazy")
+@commands.has_permissions(administrator=True)
+async def send_commands_info(ctx):
+    """!prikazy - Pošle trvalou zprávu s přehledem příkazů (jen admin)"""
+    
+    # Delete the command message
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+    
+    # Main embed
+    embed = discord.Embed(
+        title="⚔️ VALHALLA BOT - PŘÍKAZY",
+        description="Kompletní přehled všech dostupných příkazů",
+        color=discord.Color.blue()
+    )
+    
+    # Kvízy
+    embed.add_field(
+        name="🎵 HUDEBNÍ KVÍZ",
+        value="```/hudba [žánr]\n!hudba [rap/pop/rock/classic]```\nHádej interpreta podle textu písně!\n**+25 XP** za správnou odpověď",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🎬 FILMOVÝ KVÍZ",
+        value="```/film [žánr]\n!film [ceske/hollywood/komedie/akcni/horor/scifi]```\nHádej film podle slavné hlášky!\n**+25 XP** za správnou odpověď",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🤔 PRAVDA NEBO LEŽ",
+        value="```/pravda [kategorie]\n!pravda [zvirata/veda/historie/telo/jidlo/cesko/bizarni]```\nJe tento fakt pravdivý?\n**+15 XP** za správnou odpověď",
+        inline=False
+    )
+    
+    # Level systém
+    embed.add_field(
+        name="📊 LEVEL SYSTÉM",
+        value="```/gamelevel nebo !level``` Zobraz svůj level a statistiky\n```/top nebo !top``` Žebříček TOP 10 hráčů\n```/daily nebo !daily``` Denní bonus **+100 XP** + streak",
+        inline=False
+    )
+    
+    # Herní systém
+    embed.add_field(
+        name="🎮 HRY NA PC",
+        value="```/hry nebo !hry``` Tvé odemčené hry a čas hraní\n```/ukoly [hra] nebo !ukoly [hra]``` Úkoly pro konkrétní hru\n\n**Automatické XP za hraní:**\n• +5 XP za 10 minut hraní\n• Max 200 XP/den\n• +25 XP za odemčení nové hry",
+        inline=False
+    )
+    
+    # Utility
+    embed.add_field(
+        name="⏰ UTILITY",
+        value="```/odpocet [čas] [důvod]\n!odpocet 5m Přestávka```\nSpustí odpočet s notifikací\n```/poll [otázka] [možnosti] [čas]\n!poll 5m Otázka? | Ano, Ne```\nVytvoří anketu s hlasováním",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🛑 OSTATNÍ",
+        value="```/stop nebo !stop``` Zastaví běžící kvíz\n```/help nebo !pomoc``` Zobrazí nápovědu",
+        inline=False
+    )
+    
+    embed.set_footer(text="💡 Valhalla Bot • Hraj hry, plň úkoly a staň se legendou!")
+    
+    await ctx.send(embed=embed)
+    
+    # Second embed - XP info
+    xp_embed = discord.Embed(
+        title="✨ JAK ZÍSKAT XP",
+        color=discord.Color.gold()
+    )
+    
+    xp_embed.add_field(
+        name="🎯 Kvízy",
+        value="• Hudební/Filmový kvíz: **+25 XP**\n• Pravda/Lež: **+15 XP**",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎮 Hraní her",
+        value="• 10 minut hraní: **+5 XP**\n• Odemčení hry: **+25 XP**\n• Max denně: **200 XP**",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎁 Bonusy",
+        value="• Denní bonus: **+100 XP**\n• Streak bonus: **+10 XP/den**\n• Splněný úkol: **+50-1500 XP**",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="📈 LEVELY",
+        value="🌱 Lvl 1 → 🌿 Lvl 2 → 🌳 Lvl 3 → ⭐ Lvl 4 → 🌟 Lvl 5 → 💫 Lvl 10 → 🔥 Lvl 15 → 💎 Lvl 20 → 👑 Lvl 25 → 🏆 Lvl 30",
+        inline=False
+    )
+    
+    await ctx.send(embed=xp_embed)
+
+@bot.command(name="herniinfo")
+@commands.has_permissions(administrator=True)
+async def send_game_info(ctx):
+    """!herniinfo - Pošle trvalou zprávu s herními příkazy do kanálu 1468355022159872073 (jen admin)"""
+    
+    # Delete the command message
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+    
+    # Získání cílového kanálu
+    target_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+    if not target_channel:
+        await ctx.send("❌ Nepodařilo se najít cílový kanál!", delete_after=10)
+        return
+    
+    # === HLAVNÍ EMBED - HERNÍ PŘÍKAZY ===
+    main_embed = discord.Embed(
+        title="🎮 HERNÍ SYSTÉM - PŘÍKAZY",
+        description="Kompletní přehled herních příkazů a jak získat XP",
+        color=discord.Color.green()
+    )
+    
+    main_embed.add_field(
+        name="📊 `/gamelevel` nebo `!level`",
+        value="**Zobrazí tvůj herní profil:**\n"
+              "• Aktuální level a XP\n"
+              "• Počet odehraných kvízů\n"
+              "• Přesnost odpovědí\n"
+              "• Aktuální streak\n"
+              "• Progress do dalšího levelu\n"
+              "💡 *Můžeš zadat i jiného hráče: `/gamelevel @hrac`*",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="🏆 `/top` nebo `!top`",
+        value="**Zobrazí žebříček TOP 10 hráčů:**\n"
+              "• Seřazeno podle XP\n"
+              "• Vidíš level, XP a badge každého hráče\n"
+              "• Soutěž s ostatními o první místo!",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="🎁 `/daily` nebo `!daily`",
+        value="**Denní bonus - získej ZDARMA:**\n"
+              "• **+100 XP** každý den\n"
+              "• **+10 XP bonus** za každý den streak\n"
+              "• Streak = po sobě jdoucí dny\n"
+              "• Reset streaku = vynechaný den\n"
+              "⏰ *Resetuje se o půlnoci*",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="🕹️ `/hry` nebo `!hry`",
+        value="**Zobrazí tvé odemčené hry:**\n"
+              "• Seznam her které jsi hrál\n"
+              "• Celkový čas hraní každé hry\n"
+              "• Počet odemčených her\n"
+              "• Emoji podle kategorie hry",
+        inline=False
+    )
+    
+    main_embed.add_field(
+        name="📋 `/ukoly [hra]` nebo `!ukoly [hra]`",
+        value="**Zobrazí úkoly pro konkrétní hru:**\n"
+              "• Úkoly podle odehraného času\n"
+              "• XP odměny za splnění\n"
+              "• Vidíš které úkoly máš hotové ✅\n"
+              "• Příklad: `/ukoly Minecraft`",
+        inline=False
+    )
+    
+    main_embed.set_footer(text="Tyto odpovědi se automaticky mažou po 1 minutě")
+    
+    # === DRUHÝ EMBED - JAK ZÍSKAT XP ===
+    xp_embed = discord.Embed(
+        title="✨ JAK ZÍSKAT XP",
+        description="Všechny způsoby jak rychle levelovat",
+        color=discord.Color.gold()
+    )
+    
+    xp_embed.add_field(
+        name="🎵 Hudební kvíz `/hudba`",
+        value="**+25 XP** za správnou odpověď\n*Hádej interpreta podle textu*",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎬 Filmový kvíz `/film`",
+        value="**+25 XP** za správnou odpověď\n*Hádej film podle hlášky*",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🤔 Pravda/Lež `/pravda`",
+        value="**+15 XP** za správnou odpověď\n*Je fakt pravdivý?*",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🎮 Hraní her na PC",
+        value="**+5 XP** za každých 10 minut hraní\n"
+              "**+25 XP** bonus za odemčení nové hry\n"
+              "**Max 200 XP/den** z hraní\n"
+              "*Automaticky detekuje hry přes Discord*",
+        inline=False
+    )
+    
+    xp_embed.add_field(
+        name="🎁 Denní bonus",
+        value="**+100 XP** každý den\n"
+              "**+10 XP** bonus za streak",
+        inline=True
+    )
+    
+    xp_embed.add_field(
+        name="🏅 Splněné úkoly",
+        value="**+50 až +1500 XP**\n"
+              "Podle náročnosti úkolu",
+        inline=True
+    )
+    
+    # === TŘETÍ EMBED - LEVEL SYSTÉM ===
+    level_embed = discord.Embed(
+        title="📈 LEVEL SYSTÉM",
+        description="Čím víc XP, tím vyšší level a lepší badge!",
+        color=discord.Color.purple()
+    )
+    
+    level_embed.add_field(
+        name="🏅 Odznaky podle levelu",
+        value="🌱 **Lvl 1** → Nováček\n"
+              "🌿 **Lvl 2** → Začátečník\n"
+              "🌳 **Lvl 3** → Hráč\n"
+              "⭐ **Lvl 4** → Pokročilý\n"
+              "🌟 **Lvl 5** → Zkušený\n"
+              "💫 **Lvl 10** → Veterán\n"
+              "🔥 **Lvl 15** → Expert\n"
+              "💎 **Lvl 20** → Mistr\n"
+              "👑 **Lvl 25** → Šampion\n"
+              "🏆 **Lvl 30** → Legenda",
+        inline=True
+    )
+    
+    level_embed.add_field(
+        name="📊 XP potřebné pro level",
+        value="**Lvl 2:** 100 XP\n"
+              "**Lvl 3:** 400 XP\n"
+              "**Lvl 5:** 1,600 XP\n"
+              "**Lvl 10:** 8,100 XP\n"
+              "**Lvl 15:** 19,600 XP\n"
+              "**Lvl 20:** 36,100 XP\n"
+              "**Lvl 25:** 57,600 XP\n"
+              "**Lvl 30:** 84,100 XP",
+        inline=True
+    )
+    
+    level_embed.add_field(
+        name="💡 TIPY",
+        value="• Hraj kvízy každý den pro rychlé XP\n"
+              "• Nezapomeň na `/daily` bonus\n"
+              "• Hraj hry na PC pro pasivní XP\n"
+              "• Plň úkoly pro velké bonusy",
+        inline=False
+    )
+    
+    level_embed.set_footer(text="⚔️ Valhalla Bot • Hraj, sbírej XP a staň se legendou!")
+    
+    # Odeslání všech embedů do cílového kanálu (trvalé zprávy)
+    await target_channel.send(embed=main_embed)
+    await target_channel.send(embed=xp_embed)
+    await target_channel.send(embed=level_embed)
+    
+    # Potvrzení v původním kanálu
+    await ctx.send(f"✅ Herní info bylo odesláno do kanálu <#{GAME_NOTIFICATION_CHANNEL}>!", delete_after=10)
+
+@send_game_info.error
+async def send_game_info_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("❌ Tento příkaz může použít pouze administrátor!", delete_after=10)
+    else:
+        print(f"[ERROR] herniinfo: {error}", flush=True)
+        await ctx.send(f"❌ Nastala chyba: {error}", delete_after=10)
+
+# ============== GAME LEVEL SYSTEM ==============
+
+LEVEL_BADGES = {
+    1: "🌱", 2: "🌿", 3: "🌳", 4: "⭐", 5: "🌟",
+    10: "💫", 15: "🔥", 20: "💎", 25: "👑", 30: "🏆",
+    40: "🎯", 50: "🚀", 75: "🌈", 100: "🏅"
+}
+
+def get_badge(level: int) -> str:
+    """Get badge for level"""
+    badge = "🌱"
+    for lvl, b in sorted(LEVEL_BADGES.items()):
+        if level >= lvl:
+            badge = b
+    return badge
+
+def create_progress_bar(current: int, total: int, length: int = 10) -> str:
+    """Create a visual progress bar"""
+    if total == 0:
+        return "▓" * length
+    filled = int((current / total) * length)
+    empty = length - filled
+    return "▓" * filled + "░" * empty
+
+@bot.tree.command(name="gamelevel", description="Zobraz svůj herní level a statistiky")
+async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member = None):
+    # Check permission from database
+    if not await check_command_permission(interaction, "gamelevel"):
+        return
+    
+    target = hrac or interaction.user
+    user_data = get_user_data(interaction.guild_id, target.id)
+    
+    level = calculate_level(user_data["xp"])
+    current_level_xp = xp_for_level(level)
+    next_level_xp = xp_for_level(level + 1)
+    xp_progress = user_data["xp"] - current_level_xp
+    xp_needed = next_level_xp - current_level_xp
+    
+    badge = get_badge(level)
+    progress_bar = create_progress_bar(xp_progress, xp_needed, 12)
+    
+    # Přesnost kvízů
+    accuracy = 0
+    if user_data.get("total_games", 0) > 0:
+        accuracy = (user_data.get("total_correct", 0) / user_data["total_games"]) * 100
+    
+    # Herní statistiky
+    unlocked_games = user_data.get("unlocked_games", [])
+    total_game_time = user_data.get("total_game_time", 0)
+    game_times = user_data.get("game_times", {})
+    
+    # Formátování času
+    hours = total_game_time // 60
+    minutes = total_game_time % 60
+    time_str = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+    
+    embed = discord.Embed(
+        title=f"{badge} {target.display_name}",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    
+    # Základní statistiky
+    embed.add_field(
+        name="📊 Level",
+        value=f"**Level {level}**",
+        inline=True
+    )
+    embed.add_field(
+        name="✨ XP",
+        value=f"**{user_data['xp']:,}** XP",
+        inline=True
+    )
+    embed.add_field(
+        name="🔥 Streak",
+        value=f"**{user_data.get('streak', 0)}** dnů",
+        inline=True
+    )
+    
+    # Progress bar
+    embed.add_field(
+        name=f"📈 Progress ({xp_progress:,}/{xp_needed:,} XP)",
+        value=f"`{progress_bar}`",
+        inline=False
+    )
+    
+    # Kvízové statistiky
+    embed.add_field(
+        name="🎮 Kvízů",
+        value=f"**{user_data.get('total_games', 0)}**",
+        inline=True
+    )
+    embed.add_field(
+        name="✅ Správně",
+        value=f"**{user_data.get('total_correct', 0)}**",
+        inline=True
+    )
+    embed.add_field(
+        name="🎯 Přesnost",
+        value=f"**{accuracy:.1f}%**",
+        inline=True
+    )
+    
+    # Herní statistiky (PC hry)
+    embed.add_field(
+        name="🕹️ Odemčené hry",
+        value=f"**{len(unlocked_games)}** her",
+        inline=True
+    )
+    embed.add_field(
+        name="⏱️ Čas hraní",
+        value=f"**{time_str}**",
+        inline=True
+    )
+    embed.add_field(
+        name="📅 Denní XP",
+        value=f"**{user_data.get('daily_game_xp', 0)}/{GAME_XP_DAILY_LIMIT}**",
+        inline=True
+    )
+    
+    # Top 3 nejhranější hry
+    if game_times:
+        sorted_games = sorted(game_times.items(), key=lambda x: x[1], reverse=True)[:3]
+        top_games = []
+        for game, mins in sorted_games:
+            g_hours = mins // 60
+            g_mins = mins % 60
+            g_time = f"{g_hours}h {g_mins}m" if g_hours > 0 else f"{g_mins}m"
+            top_games.append(f"• **{game}**: {g_time}")
+        
+        if top_games:
+            embed.add_field(
+                name="🎮 Nejhranější hry",
+                value="\n".join(top_games),
+                inline=False
+            )
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • /hry pro všechny hry • /ukoly pro úkoly")
+    
+    await interaction.response.send_message(embed=embed)
+    msg = await interaction.original_response()
+    asyncio.create_task(delete_after(msg, 60))
+
+@bot.command(name="level", aliases=["lvl", "gamelevel", "rank", "xp"])
+async def prefix_gamelevel(ctx, hrac: discord.Member = None):
+    """!level - Zobraz svůj level"""
+    target = hrac or ctx.author
+    user_data = get_user_data(ctx.guild.id, target.id)
+    
+    level = calculate_level(user_data["xp"])
+    current_level_xp = xp_for_level(level)
+    next_level_xp = xp_for_level(level + 1)
+    xp_progress = user_data["xp"] - current_level_xp
+    xp_needed = next_level_xp - current_level_xp
+    
+    badge = get_badge(level)
+    progress_bar = create_progress_bar(xp_progress, xp_needed, 12)
+    
+    # Přesnost kvízů
+    accuracy = 0
+    if user_data.get("total_games", 0) > 0:
+        accuracy = (user_data.get("total_correct", 0) / user_data["total_games"]) * 100
+    
+    # Herní statistiky
+    unlocked_games = user_data.get("unlocked_games", [])
+    total_game_time = user_data.get("total_game_time", 0)
+    game_times = user_data.get("game_times", {})
+    
+    # Formátování času
+    hours = total_game_time // 60
+    minutes = total_game_time % 60
+    time_str = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+    
+    embed = discord.Embed(
+        title=f"{badge} {target.display_name}",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    
+    # Základní statistiky
+    embed.add_field(name="📊 Level", value=f"**Level {level}**", inline=True)
+    embed.add_field(name="✨ XP", value=f"**{user_data['xp']:,}** XP", inline=True)
+    embed.add_field(name="🔥 Streak", value=f"**{user_data.get('streak', 0)}** dnů", inline=True)
+    
+    embed.add_field(name=f"📈 Progress ({xp

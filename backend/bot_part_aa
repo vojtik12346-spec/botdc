@@ -1,0 +1,1215 @@
+#!/usr/bin/env python3
+"""
+Valhalla Bot - Discord kvízy a XP systém
+"""
+
+import discord
+from discord.ext import commands
+from discord import app_commands
+import asyncio
+import re
+import os
+import subprocess
+import shutil
+from datetime import datetime, timezone, timedelta
+from dotenv import load_dotenv
+import uuid
+import math
+
+# Auto-install FFmpeg if not present
+def ensure_ffmpeg():
+    """Ensure FFmpeg is installed"""
+    if not shutil.which('ffmpeg'):
+        print("⚠️ FFmpeg not found, installing...", flush=True)
+        try:
+            subprocess.run(['apt-get', 'update'], check=True, capture_output=True)
+            subprocess.run(['apt-get', 'install', '-y', 'ffmpeg'], check=True, capture_output=True)
+            print("✅ FFmpeg installed successfully!", flush=True)
+        except Exception as e:
+            print(f"❌ Failed to install FFmpeg: {e}", flush=True)
+    else:
+        print("✅ FFmpeg is available", flush=True)
+
+ensure_ffmpeg()
+
+load_dotenv()
+
+# MongoDB setup for XP system
+from pymongo import MongoClient
+
+mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+db_name = os.environ.get("DB_NAME", "quiz_bot")
+mongo_client = MongoClient(mongo_url)
+db = mongo_client[db_name]
+users_collection = db["game_users"]
+server_stats_collection = db["server_stats"]  # Pro statistiky serveru
+
+# Bot setup
+intents = discord.Intents.default()
+intents.message_content = True
+intents.presences = True  # Pro sledování her
+intents.members = True    # Pro sledování členů
+intents.voice_states = True  # Pro sledování voice aktivity
+
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+# ============== GAME TRACKING SYSTEM ==============
+
+# Bonusové hry - při prvním hraní dostane hráč +25 XP bonus
+BONUS_GAMES = {
+    # Populární hry
+    "Counter-Strike 2": {"emoji": "🎯", "category": "FPS"},
+    "Minecraft": {"emoji": "⛏️", "category": "Sandbox"},
+    "Fortnite": {"emoji": "🏝️", "category": "Battle Royale"},
+    "League of Legends": {"emoji": "⚔️", "category": "MOBA"},
+    "VALORANT": {"emoji": "🔫", "category": "FPS"},
+    "Apex Legends": {"emoji": "🦊", "category": "Battle Royale"},
+    "Rocket League": {"emoji": "🚗", "category": "Sport"},
+    "GTA V": {"emoji": "🚔", "category": "Akce"},
+    "Grand Theft Auto V": {"emoji": "🚔", "category": "Akce"},
+    "Roblox": {"emoji": "🧱", "category": "Sandbox"},
+    "Overwatch 2": {"emoji": "🦸", "category": "FPS"},
+    "Dota 2": {"emoji": "🗡️", "category": "MOBA"},
+    "Call of Duty": {"emoji": "💣", "category": "FPS"},
+    "Warzone": {"emoji": "💣", "category": "Battle Royale"},
+    "FIFA 24": {"emoji": "⚽", "category": "Sport"},
+    "EA SPORTS FC 24": {"emoji": "⚽", "category": "Sport"},
+    "Destiny 2": {"emoji": "🌌", "category": "MMO"},
+    "World of Warcraft": {"emoji": "🐉", "category": "MMO"},
+    "Diablo IV": {"emoji": "😈", "category": "RPG"},
+    "Path of Exile": {"emoji": "⚡", "category": "RPG"},
+    "Elden Ring": {"emoji": "🗡️", "category": "RPG"},
+    "Hogwarts Legacy": {"emoji": "🧙", "category": "RPG"},
+    "Cyberpunk 2077": {"emoji": "🤖", "category": "RPG"},
+    "The Witcher 3": {"emoji": "🐺", "category": "RPG"},
+    "Baldur's Gate 3": {"emoji": "🎲", "category": "RPG"},
+    "Terraria": {"emoji": "🌳", "category": "Sandbox"},
+    "Stardew Valley": {"emoji": "🌾", "category": "Simulace"},
+    "Among Us": {"emoji": "🚀", "category": "Party"},
+    "Phasmophobia": {"emoji": "👻", "category": "Horor"},
+    "Dead by Daylight": {"emoji": "🔪", "category": "Horor"},
+    "Rust": {"emoji": "🏚️", "category": "Survival"},
+    "ARK: Survival Evolved": {"emoji": "🦖", "category": "Survival"},
+    "Sea of Thieves": {"emoji": "🏴‍☠️", "category": "Dobrodružství"},
+    "Euro Truck Simulator 2": {"emoji": "🚛", "category": "Simulace"},
+    "Cities: Skylines": {"emoji": "🏙️", "category": "Simulace"},
+    "The Sims 4": {"emoji": "🏠", "category": "Simulace"},
+    "Spotify": {"emoji": "🎵", "category": "Hudba"},
+    "YouTube": {"emoji": "📺", "category": "Video"},
+    "Visual Studio Code": {"emoji": "💻", "category": "Kódování"},
+    "Escape from Tarkov": {"emoji": "🎒", "category": "FPS"},
+    "Rainbow Six Siege": {"emoji": "🛡️", "category": "FPS"},
+    "Lethal Company": {"emoji": "💀", "category": "Horor"},
+    "Palworld": {"emoji": "🐾", "category": "Survival"},
+    "Helldivers 2": {"emoji": "🪖", "category": "Akce"},
+    "FiveM": {"emoji": "🚔", "category": "RP"},
+}
+
+# Úkoly pro každou hru - {minuty: {"name": název, "xp": odměna}}
+GAME_QUESTS = {
+    # Každá hra má stejné základní úkoly podle času hraní
+    "default": [
+        {"minutes": 60, "name": "Nováček", "xp": 50, "emoji": "🌟"},
+        {"minutes": 180, "name": "Hráč", "xp": 100, "emoji": "⭐"},
+        {"minutes": 300, "name": "Veterán", "xp": 150, "emoji": "🏅"},
+        {"minutes": 600, "name": "Expert", "xp": 250, "emoji": "🎖️"},
+        {"minutes": 1200, "name": "Mistr", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Legenda", "xp": 750, "emoji": "🏆"},
+        {"minutes": 6000, "name": "Bůh", "xp": 1500, "emoji": "⚡"},
+    ],
+    # Speciální úkoly pro konkrétní hry
+    "Counter-Strike 2": [
+        {"minutes": 60, "name": "První mise", "xp": 50, "emoji": "🎯"},
+        {"minutes": 180, "name": "Střelec", "xp": 100, "emoji": "🔫"},
+        {"minutes": 300, "name": "Taktik", "xp": 150, "emoji": "🗺️"},
+        {"minutes": 600, "name": "Elite", "xp": 250, "emoji": "💎"},
+        {"minutes": 1200, "name": "Global Elite", "xp": 400, "emoji": "🌍"},
+        {"minutes": 3000, "name": "CS Veterán", "xp": 750, "emoji": "🎖️"},
+        {"minutes": 6000, "name": "CS Legenda", "xp": 1500, "emoji": "👑"},
+    ],
+    "Minecraft": [
+        {"minutes": 60, "name": "Kopáč", "xp": 50, "emoji": "⛏️"},
+        {"minutes": 180, "name": "Stavitel", "xp": 100, "emoji": "🏠"},
+        {"minutes": 300, "name": "Průzkumník", "xp": 150, "emoji": "🗺️"},
+        {"minutes": 600, "name": "Dračí lovec", "xp": 250, "emoji": "🐉"},
+        {"minutes": 1200, "name": "Mistr stavitel", "xp": 400, "emoji": "🏰"},
+        {"minutes": 3000, "name": "Minecraft Veterán", "xp": 750, "emoji": "💎"},
+        {"minutes": 6000, "name": "Minecraft Bůh", "xp": 1500, "emoji": "⚡"},
+    ],
+    "League of Legends": [
+        {"minutes": 60, "name": "Summoner", "xp": 50, "emoji": "⚔️"},
+        {"minutes": 180, "name": "Ranked Warrior", "xp": 100, "emoji": "🛡️"},
+        {"minutes": 300, "name": "Diamant", "xp": 150, "emoji": "💎"},
+        {"minutes": 600, "name": "Master", "xp": 250, "emoji": "🏅"},
+        {"minutes": 1200, "name": "Grandmaster", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Challenger", "xp": 750, "emoji": "🏆"},
+        {"minutes": 6000, "name": "LoL Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "Fortnite": [
+        {"minutes": 60, "name": "Přistání", "xp": 50, "emoji": "🪂"},
+        {"minutes": 180, "name": "Přeživší", "xp": 100, "emoji": "🏝️"},
+        {"minutes": 300, "name": "Stavitel", "xp": 150, "emoji": "🏗️"},
+        {"minutes": 600, "name": "Victory Royale", "xp": 250, "emoji": "🏆"},
+        {"minutes": 1200, "name": "Fortnite Pro", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Fortnite Veterán", "xp": 750, "emoji": "🎖️"},
+        {"minutes": 6000, "name": "Fortnite Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "VALORANT": [
+        {"minutes": 60, "name": "Agent", "xp": 50, "emoji": "🔫"},
+        {"minutes": 180, "name": "Taktik", "xp": 100, "emoji": "🎯"},
+        {"minutes": 300, "name": "Radiant hráč", "xp": 150, "emoji": "💎"},
+        {"minutes": 600, "name": "Immortal", "xp": 250, "emoji": "🏅"},
+        {"minutes": 1200, "name": "Radiant", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Valorant Pro", "xp": 750, "emoji": "🏆"},
+        {"minutes": 6000, "name": "Valorant Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "GTA V": [
+        {"minutes": 60, "name": "Gangster", "xp": 50, "emoji": "🚗"},
+        {"minutes": 180, "name": "Zločinec", "xp": 100, "emoji": "💰"},
+        {"minutes": 300, "name": "Šéf gangu", "xp": 150, "emoji": "🔫"},
+        {"minutes": 600, "name": "Kingpin", "xp": 250, "emoji": "👑"},
+        {"minutes": 1200, "name": "Los Santos Boss", "xp": 400, "emoji": "🏆"},
+        {"minutes": 3000, "name": "GTA Veterán", "xp": 750, "emoji": "🎖️"},
+        {"minutes": 6000, "name": "GTA Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+    "Rocket League": [
+        {"minutes": 60, "name": "Rookie", "xp": 50, "emoji": "🚗"},
+        {"minutes": 180, "name": "Pro", "xp": 100, "emoji": "⚽"},
+        {"minutes": 300, "name": "Veteran", "xp": 150, "emoji": "🏅"},
+        {"minutes": 600, "name": "Champion", "xp": 250, "emoji": "🏆"},
+        {"minutes": 1200, "name": "Grand Champion", "xp": 400, "emoji": "👑"},
+        {"minutes": 3000, "name": "Supersonic", "xp": 750, "emoji": "🚀"},
+        {"minutes": 6000, "name": "RL Legenda", "xp": 1500, "emoji": "⚡"},
+    ],
+}
+
+# Game XP settings
+GAME_XP_PER_10_MIN = 5
+GAME_XP_DAILY_LIMIT = 200
+GAME_UNLOCK_BONUS = 25
+GAME_NOTIFICATION_CHANNEL = 1468355022159872073  # Kanál pro herní notifikace
+GAME_PING_ROLE = 485172457544744972  # Role pro ping při splnění
+
+# Track active gaming sessions {user_id: {"game": name, "start": datetime, "guild_id": id}}
+active_gaming_sessions = {}
+
+# Collection pro persistentní herní sessions
+game_sessions_collection = db["game_sessions"]
+
+def save_game_session(user_id: int, guild_id: int, game: str, user_name: str):
+    """Ulož herní session do databáze"""
+    game_sessions_collection.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "user_id": user_id,
+            "guild_id": guild_id,
+            "game": game,
+            "user_name": user_name,
+            "start": datetime.now(timezone.utc)
+        }},
+        upsert=True
+    )
+
+def get_game_session(user_id: int) -> dict:
+    """Načti herní session z databáze"""
+    return game_sessions_collection.find_one({"user_id": user_id})
+
+def delete_game_session(user_id: int):
+    """Smaž herní session z databáze"""
+    game_sessions_collection.delete_one({"user_id": user_id})
+
+# Collection pro nastavení serveru
+guild_settings_collection = db["guild_bot_settings"]
+
+def get_guild_settings(guild_id: int) -> dict:
+    """Získej nastavení pro server z databáze"""
+    settings = guild_settings_collection.find_one({"guild_id": str(guild_id)})
+    if not settings:
+        # Výchozí nastavení
+        return {
+            "cmdHudba": True,
+            "cmdFilm": True,
+            "cmdPravda": True,
+            "cmdGamelevel": False,
+            "cmdTop": False,
+            "cmdDaily": False,
+            "cmdHry": False,
+            "cmdUkoly": False,
+            "cmdHerniinfo": True
+        }
+    return settings
+
+def is_command_admin_only(guild_id: int, command_name: str) -> bool:
+    """Zkontroluj zda příkaz vyžaduje admin oprávnění"""
+    settings = get_guild_settings(guild_id)
+    key = f"cmd{command_name.capitalize()}"
+    return settings.get(key, False)
+
+async def check_command_permission(interaction: discord.Interaction, command_name: str) -> bool:
+    """Zkontroluj oprávnění pro příkaz. Vrátí True pokud může pokračovat."""
+    if is_command_admin_only(interaction.guild_id, command_name):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(
+                "❌ Tento příkaz může použít pouze administrátor!",
+                ephemeral=True
+            )
+            return False
+    return True
+
+# ============== XP/LEVEL SYSTEM ==============
+
+def calculate_level(xp: int) -> int:
+    """Calculate level from XP (level = sqrt(xp/100))"""
+    if xp <= 0:
+        return 1
+    return max(1, int(math.sqrt(xp / 100)) + 1)
+
+def xp_for_level(level: int) -> int:
+    """Calculate XP needed for a specific level"""
+    if level <= 1:
+        return 0
+    return ((level - 1) ** 2) * 100
+
+def get_user_data(guild_id: int, user_id: int) -> dict:
+    """Get or create user data"""
+    user = users_collection.find_one({"guild_id": guild_id, "user_id": user_id})
+    if not user:
+        user = {
+            "guild_id": guild_id,
+            "user_id": user_id,
+            "xp": 0,
+            "total_correct": 0,
+            "total_games": 0,
+            "streak": 0,
+            "last_daily": None,
+            "daily_game_xp": 0,
+            "last_game_xp_reset": None,
+            "unlocked_games": [],
+            "completed_quests": {},  # {game_name: [completed_quest_indices]}
+            "game_times": {},  # {game_name: minutes}
+            "total_game_time": 0,  # v minutách
+            "created_at": datetime.now(timezone.utc)
+        }
+        users_collection.insert_one(user)
+    return user
+
+def get_game_quests(game_name: str) -> list:
+    """Get quests for a specific game"""
+    if game_name in GAME_QUESTS:
+        return GAME_QUESTS[game_name]
+    return GAME_QUESTS["default"]
+
+def get_game_time(guild_id: int, user_id: int, game_name: str) -> int:
+    """Get total time played for a specific game"""
+    user = get_user_data(guild_id, user_id)
+    return user.get("game_times", {}).get(game_name, 0)
+
+async def check_and_complete_quests(guild_id: int, user_id: int, user_name: str, game_name: str, total_minutes: int, channel=None):
+    """Check if any quests are completed and give rewards"""
+    user = get_user_data(guild_id, user_id)
+    completed = user.get("completed_quests", {}).get(game_name, [])
+    quests = get_game_quests(game_name)
+    
+    newly_completed = []
+    total_xp = 0
+    
+    for i, quest in enumerate(quests):
+        if i not in completed and total_minutes >= quest["minutes"]:
+            newly_completed.append(i)
+            total_xp += quest["xp"]
+    
+    if newly_completed:
+        # Update completed quests
+        users_collection.update_one(
+            {"guild_id": guild_id, "user_id": user_id},
+            {"$set": {f"completed_quests.{game_name}": completed + newly_completed}}
+        )
+        
+        # Add XP
+        await add_xp(guild_id, user_id, user_name, total_xp, None)
+        
+        # Send notification to game channel
+        notify_channel = channel
+        if not notify_channel:
+            notify_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+        
+        if notify_channel:
+            for i in newly_completed:
+                quest = quests[i]
+                game_emoji = BONUS_GAMES.get(game_name, {}).get("emoji", "🎮")
+                
+                embed = discord.Embed(
+                    title=f"🎯 ÚKOL SPLNĚN!",
+                    description=f"**{user_name}** splnil/a úkol v **{game_name}**!",
+                    color=discord.Color.gold()
+                )
+                embed.add_field(name=f"{quest['emoji']} Úkol", value=quest["name"], inline=True)
+                embed.add_field(name="✨ Odměna", value=f"+{quest['xp']} XP", inline=True)
+                embed.add_field(name="⏱️ Čas", value=f"{total_minutes // 60}h {total_minutes % 60}m", inline=True)
+                embed.set_footer(text="⚔️ Valhalla Bot • Plň další úkoly a získávej XP!")
+                await notify_channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
+    
+    return total_xp
+
+def get_daily_game_xp(guild_id: int, user_id: int) -> int:
+    """Get how much game XP user earned today"""
+    user = get_user_data(guild_id, user_id)
+    last_reset = user.get("last_game_xp_reset")
+    
+    if last_reset:
+        if isinstance(last_reset, str):
+            last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
+        
+        # Reset if new day
+        if (datetime.now(timezone.utc) - last_reset).days >= 1:
+            users_collection.update_one(
+                {"guild_id": guild_id, "user_id": user_id},
+                {"$set": {"daily_game_xp": 0, "last_game_xp_reset": datetime.now(timezone.utc)}}
+            )
+            return 0
+    
+    return user.get("daily_game_xp", 0)
+
+async def add_game_xp(guild_id: int, user_id: int, user_name: str, minutes: int, game_name: str = None, channel=None):
+    """Add XP for gaming time"""
+    # Calculate XP (5 XP per 10 minutes)
+    xp_earned = (minutes // 10) * GAME_XP_PER_10_MIN
+    
+    if xp_earned <= 0:
+        return 0
+    
+    # Check daily limit
+    daily_xp = get_daily_game_xp(guild_id, user_id)
+    remaining = GAME_XP_DAILY_LIMIT - daily_xp
+    
+    if remaining <= 0:
+        return 0
+    
+    # Cap XP at remaining limit
+    xp_earned = min(xp_earned, remaining)
+    
+    # Update daily game XP and game-specific time
+    update_query = {
+        "$inc": {"daily_game_xp": xp_earned, "total_game_time": minutes},
+        "$set": {"last_game_xp_reset": datetime.now(timezone.utc)}
+    }
+    
+    if game_name:
+        update_query["$inc"][f"game_times.{game_name}"] = minutes
+    
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        update_query
+    )
+    
+    # Add to total XP
+    await add_xp(guild_id, user_id, user_name, xp_earned, channel)
+    
+    # Check for quest completion
+    if game_name:
+        user = get_user_data(guild_id, user_id)
+        total_game_time = user.get("game_times", {}).get(game_name, 0) + minutes
+        await check_and_complete_quests(guild_id, user_id, user_name, game_name, total_game_time, channel)
+    
+    return xp_earned
+
+async def unlock_game(guild_id: int, user_id: int, user_name: str, game_name: str, channel=None) -> bool:
+    """Unlock a bonus game and give bonus XP. Returns True if newly unlocked."""
+    user = get_user_data(guild_id, user_id)
+    unlocked = user.get("unlocked_games", [])
+    
+    if game_name in unlocked:
+        return False
+    
+    # Unlock the game
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {"$push": {"unlocked_games": game_name}}
+    )
+    
+    # Give bonus XP
+    await add_xp(guild_id, user_id, user_name, GAME_UNLOCK_BONUS, None)
+    
+    # Send notification with role ping - VŽDY do správného kanálu
+    notify_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+    if notify_channel and game_name in BONUS_GAMES:
+        game_info = BONUS_GAMES[game_name]
+        embed = discord.Embed(
+            title="🎮 HRA ODEMČENA!",
+            description=f"**{user_name}** odemkl/a hru **{game_name}**!",
+            color=discord.Color.purple()
+        )
+        embed.add_field(name="🏷️ Kategorie", value=game_info["category"], inline=True)
+        embed.add_field(name="✨ Bonus", value=f"+{GAME_UNLOCK_BONUS} XP", inline=True)
+        embed.set_footer(text="Hraj více her a odemykej achievementy!")
+        await notify_channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
+    
+    return True
+
+async def add_xp(guild_id: int, user_id: int, user_name: str, xp_amount: int, channel=None) -> bool:
+    """Add XP to user and check for level up. Returns True if leveled up."""
+    user = get_user_data(guild_id, user_id)
+    old_level = calculate_level(user["xp"])
+    new_xp = user["xp"] + xp_amount
+    new_level = calculate_level(new_xp)
+    
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        {"$set": {"xp": new_xp, "name": user_name}}
+    )
+    
+    # Level up notification - vždy do správného kanálu
+    if new_level > old_level:
+        notify_channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
+        if notify_channel:
+            embed = discord.Embed(
+                title="🎉 LEVEL UP!",
+                description=f"**{user_name}** dosáhl/a **Level {new_level}**!",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="✨ XP", value=f"{new_xp} XP", inline=True)
+            embed.add_field(name="📈 Další level", value=f"{xp_for_level(new_level + 1)} XP", inline=True)
+            await notify_channel.send(embed=embed)
+        return True
+    return False
+
+def increment_stats(guild_id: int, user_id: int, correct: bool = False):
+    """Increment user game statistics"""
+    update = {"$inc": {"total_games": 1}}
+    if correct:
+        update["$inc"]["total_correct"] = 1
+    users_collection.update_one(
+        {"guild_id": guild_id, "user_id": user_id},
+        update
+    )
+
+# XP rewards
+XP_REWARDS = {
+    "quiz_correct": 25,      # Správná odpověď v kvízu
+    "quiz_win": 50,          # Výhra v kvízu (nejvíc bodů)
+    "truth_correct": 15,     # Správná odpověď pravda/lež
+    "daily": 100,            # Denní bonus
+    "streak_bonus": 10,      # Bonus za streak (per den)
+}
+
+# ============== COUNTDOWN FUNCTIONS ==============
+
+def parse_time(time_str: str) -> int:
+    """Parse time string like 2m, 5m, 1h into seconds"""
+    time_str = time_str.lower().strip()
+    
+    pattern = r'^(\d+)([smhd])$'
+    match = re.match(pattern, time_str)
+    
+    if not match:
+        return None
+    
+    value = int(match.group(1))
+    unit = match.group(2)
+    
+    multipliers = {
+        's': 1,
+        'm': 60,
+        'h': 3600,
+        'd': 86400
+    }
+    
+    return value * multipliers[unit]
+
+def format_time(seconds: int) -> str:
+    """Format seconds into readable string"""
+    if seconds <= 0:
+        return "0s"
+    
+    days = seconds // 86400
+    hours = (seconds % 86400) // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+    
+    parts = []
+    if days > 0:
+        parts.append(f"{days}d")
+    if hours > 0:
+        parts.append(f"{hours}h")
+    if minutes > 0:
+        parts.append(f"{minutes}m")
+    if secs > 0 or not parts:
+        parts.append(f"{secs}s")
+    
+    return " ".join(parts)
+
+# Auto-delete helper
+async def delete_after(message, seconds: int = 60):
+    """Delete message after specified seconds (default 1 min)"""
+    await asyncio.sleep(seconds)
+    try:
+        await message.delete()
+    except:
+        pass
+
+# Store active countdowns
+active_countdowns = {}
+
+class CountdownView(discord.ui.View):
+    def __init__(self, countdown_id: str, user_id: int):
+        super().__init__(timeout=None)
+        self.countdown_id = countdown_id
+        self.user_id = user_id
+    
+    @discord.ui.button(label="Zrušit", style=discord.ButtonStyle.danger, emoji="❌")
+    async def cancel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id and not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("❌ Pouze autor nebo admin může zrušit odpočet!", ephemeral=True)
+            return
+        
+        if self.countdown_id in active_countdowns:
+            active_countdowns[self.countdown_id]["cancelled"] = True
+            del active_countdowns[self.countdown_id]
+        
+        button.disabled = True
+        button.label = "Zrušeno"
+        
+        embed = discord.Embed(
+            title="❌ Odpočet zrušen!",
+            description=f"Odpočet byl zrušen uživatelem {interaction.user.mention}",
+            color=discord.Color.red()
+        )
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+        self.stop()
+
+async def run_countdown(channel, message, end_time: int, countdown_id: str, author: discord.Member, reason: str):
+    """Run the countdown and update message"""
+    
+    while True:
+        if countdown_id not in active_countdowns:
+            return
+        
+        if active_countdowns[countdown_id].get("cancelled"):
+            return
+        
+        remaining = end_time - int(datetime.now(timezone.utc).timestamp())
+        
+        if remaining <= 0:
+            break
+        
+        embed = discord.Embed(
+            title="⏰ ODPOČET",
+            description=f"**{reason}**" if reason else "Odpočet běží...",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="⏳ Zbývá", value=f"**{format_time(remaining)}**", inline=True)
+        embed.add_field(name="👤 Spustil", value=author.mention, inline=True)
+        embed.set_footer(text=f"Končí: {datetime.fromtimestamp(end_time).strftime('%H:%M:%S')}")
+        
+        try:
+            await message.edit(embed=embed)
+        except:
+            pass
+        
+        if remaining > 3600:
+            await asyncio.sleep(60)
+        elif remaining > 60:
+            await asyncio.sleep(10)
+        else:
+            await asyncio.sleep(1)
+    
+    # Countdown finished!
+    if countdown_id in active_countdowns:
+        del active_countdowns[countdown_id]
+    
+    embed = discord.Embed(
+        title="🎉 ODPOČET SKONČIL!",
+        description=f"**{reason}**" if reason else "Čas vypršel!",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="👤 Spustil", value=author.mention, inline=True)
+    
+    view = discord.ui.View()
+    disabled_btn = discord.ui.Button(label="Dokončeno", style=discord.ButtonStyle.success, disabled=True, emoji="✅")
+    view.add_item(disabled_btn)
+    
+    try:
+        await message.edit(embed=embed, view=view)
+    except:
+        pass
+    
+    # Ping notification
+    await channel.send(f"🔔 **ODPOČET SKONČIL!** {author.mention}\n{'📢 ' + reason if reason else ''}")
+
+# ============== EVENTS ==============
+
+@bot.event
+async def on_ready():
+    print(f'🤖 Bot {bot.user} je online!', flush=True)
+    print(f'📊 Připojen k {len(bot.guilds)} serverům', flush=True)
+    
+    # Načti aktivní herní sessions z databáze
+    stored_sessions = list(game_sessions_collection.find({}))
+    for session in stored_sessions:
+        user_id = session.get("user_id")
+        if user_id:
+            active_gaming_sessions[user_id] = {
+                "game": session.get("game"),
+                "start": session.get("start"),
+                "guild_id": session.get("guild_id"),
+                "user_name": session.get("user_name")
+            }
+    print(f'🎮 Načteno {len(stored_sessions)} aktivních herních sessions', flush=True)
+    
+    # Uložit statistiky bota do databáze
+    users_collection.database.bot_stats.update_one(
+        {"type": "global"},
+        {"$set": {
+            "guild_count": len(bot.guilds),
+            "bot_name": str(bot.user),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    # Uložit seznam serverů
+    for guild in bot.guilds:
+        users_collection.database.bot_guilds.update_one(
+            {"id": str(guild.id)},
+            {"$set": {
+                "id": str(guild.id),
+                "name": guild.name,
+                "icon": str(guild.icon.url) if guild.icon else None,
+                "memberCount": guild.member_count,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+    
+    try:
+        synced = await bot.tree.sync()
+        print(f'✅ Synchronizováno {len(synced)} slash příkazů', flush=True)
+    except Exception as e:
+        print(f'❌ Chyba při synchronizaci: {e}', flush=True)
+
+# ============== SERVER STATS SYSTEM ==============
+
+# Voice tracking - kdo kdy vstoupil do voice
+voice_sessions = {}  # {user_id: {"join_time": datetime, "channel_id": int, "guild_id": int}}
+
+def get_server_stats(guild_id: int) -> dict:
+    """Získej nebo vytvoř statistiky serveru"""
+    stats = server_stats_collection.find_one({"guild_id": guild_id})
+    if not stats:
+        stats = {
+            "guild_id": guild_id,
+            "total_messages": 0,
+            "total_voice_minutes": 0,
+            "user_messages": {},  # {user_id: count}
+            "user_voice": {},     # {user_id: minutes}
+            "daily_messages": 0,
+            "daily_voice": 0,
+            "last_reset": datetime.now(timezone.utc).isoformat()
+        }
+        server_stats_collection.insert_one(stats)
+    return stats
+
+def increment_message_count(guild_id: int, user_id: int, user_name: str):
+    """Přidej zprávu do statistik"""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    server_stats_collection.update_one(
+        {"guild_id": guild_id},
+        {
+            "$inc": {
+                "total_messages": 1,
+                "daily_messages": 1,
+                f"user_messages.{user_id}": 1,
+                f"daily_user_messages.{today}.{user_id}": 1
+            },
+            "$set": {
+                f"user_names.{user_id}": user_name
+            }
+        },
+        upsert=True
+    )
+
+def add_voice_time(guild_id: int, user_id: int, user_name: str, minutes: int):
+    """Přidej voice čas do statistik"""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    server_stats_collection.update_one(
+        {"guild_id": guild_id},
+        {
+            "$inc": {
+                "total_voice_minutes": minutes,
+                "daily_voice": minutes,
+                f"user_voice.{user_id}": minutes,
+                f"daily_user_voice.{today}.{user_id}": minutes
+            },
+            "$set": {
+                f"user_names.{user_id}": user_name
+            }
+        },
+        upsert=True
+    )
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    """Sledování voice aktivity"""
+    if member.bot:
+        return
+    
+    user_id = member.id
+    guild_id = member.guild.id
+    
+    # Uživatel vstoupil do voice kanálu
+    if before.channel is None and after.channel is not None:
+        voice_sessions[user_id] = {
+            "join_time": datetime.now(timezone.utc),
+            "channel_id": after.channel.id,
+            "guild_id": guild_id
+        }
+        print(f"[VOICE] {member.display_name} vstoupil do {after.channel.name}", flush=True)
+    
+    # Uživatel opustil voice kanál
+    elif before.channel is not None and after.channel is None:
+        if user_id in voice_sessions:
+            session = voice_sessions[user_id]
+            duration = datetime.now(timezone.utc) - session["join_time"]
+            minutes = int(duration.total_seconds() / 60)
+            
+            if minutes > 0:
+                add_voice_time(guild_id, user_id, member.display_name, minutes)
+                print(f"[VOICE] {member.display_name} byl ve voice {minutes} minut", flush=True)
+            
+            del voice_sessions[user_id]
+    
+    # Uživatel přešel do jiného kanálu
+    elif before.channel != after.channel:
+        if user_id in voice_sessions:
+            session = voice_sessions[user_id]
+            duration = datetime.now(timezone.utc) - session["join_time"]
+            minutes = int(duration.total_seconds() / 60)
+            
+            if minutes > 0:
+                add_voice_time(guild_id, user_id, member.display_name, minutes)
+            
+            voice_sessions[user_id] = {
+                "join_time": datetime.now(timezone.utc),
+                "channel_id": after.channel.id,
+                "guild_id": guild_id
+            }
+
+class ServerStatsView(discord.ui.View):
+    def __init__(self, guild_id: int, period: int = 1):
+        super().__init__(timeout=300)
+        self.guild_id = guild_id
+        self.period = period  # 1, 7, 30 dnů
+    
+    @discord.ui.button(label="1 den", style=discord.ButtonStyle.secondary, custom_id="stats_1d", emoji="📊")
+    async def stats_1d(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.period = 1
+        await self.update_stats(interaction)
+    
+    @discord.ui.button(label="7 dní", style=discord.ButtonStyle.secondary, custom_id="stats_7d", emoji="📈")
+    async def stats_7d(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.period = 7
+        await self.update_stats(interaction)
+    
+    @discord.ui.button(label="30 dní", style=discord.ButtonStyle.secondary, custom_id="stats_30d", emoji="📉")
+    async def stats_30d(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.period = 30
+        await self.update_stats(interaction)
+    
+    @discord.ui.button(label="Obnovit", style=discord.ButtonStyle.primary, custom_id="stats_refresh", emoji="🔄")
+    async def stats_refresh(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.update_stats(interaction)
+    
+    async def update_stats(self, interaction: discord.Interaction):
+        embed = await create_stats_embed(interaction.guild, self.period)
+        
+        # Update button styles
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                if child.custom_id == f"stats_{self.period}d":
+                    child.style = discord.ButtonStyle.success
+                elif child.custom_id != "stats_refresh":
+                    child.style = discord.ButtonStyle.secondary
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+
+async def create_stats_embed(guild, period: int = 1) -> discord.Embed:
+    """Vytvoří embed se statistikami"""
+    stats = get_server_stats(guild.id)
+    
+    # Základní statistiky
+    total_members = guild.member_count
+    online_members = sum(1 for m in guild.members if m.status != discord.Status.offline)
+    total_messages = stats.get("total_messages", 0)
+    total_voice = stats.get("total_voice_minutes", 0)
+    daily_messages = stats.get("daily_messages", 0)
+    daily_voice = stats.get("daily_voice", 0)
+    
+    # Období text
+    period_text = f"Posledních {period} {'den' if period == 1 else 'dní'}"
+    
+    # Formátování voice času
+    voice_hours = total_voice // 60
+    voice_mins = total_voice % 60
+    daily_voice_hours = daily_voice // 60
+    daily_voice_mins = daily_voice % 60
+    
+    # Top 5 pisatelů
+    user_messages = stats.get("user_messages", {})
+    user_names = stats.get("user_names", {})
+    sorted_messages = sorted(user_messages.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    # Top 5 voice aktivita
+    user_voice = stats.get("user_voice", {})
+    sorted_voice = sorted(user_voice.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    # Vytvoř embed
+    embed = discord.Embed(
+        title=f"📊 Server Lookback: {period_text}",
+        description=f"**{guild.name}**",
+        color=discord.Color.blue()
+    )
+    
+    if guild.icon:
+        embed.set_thumbnail(url=guild.icon.url)
+    
+    # Základní stats
+    embed.add_field(
+        name="👥 Členové",
+        value=f"```\n{total_members} celkem\n{online_members} online\n```",
+        inline=True
+    )
+    embed.add_field(
+        name="💬 Zprávy",
+        value=f"```\n{total_messages:,} celkem\n{daily_messages:,} dnes\n```",
+        inline=True
+    )
+    embed.add_field(
+        name="🎤 Voice",
+        value=f"```\n{voice_hours}h {voice_mins}m celkem\n{daily_voice_hours}h {daily_voice_mins}m dnes\n```",
+        inline=True
+    )
+    
+    # Top pisatelé
+    if sorted_messages:
+        top_writers = []
+        medals = ["🥇", "🥈", "🥉", "4.", "5."]
+        for i, (uid, count) in enumerate(sorted_messages):
+            name = user_names.get(uid, f"User {uid}")[:15]
+            top_writers.append(f"{medals[i]} **{name}**: {count:,}")
+        embed.add_field(
+            name="✍️ TOP Pisatelé",
+            value="\n".join(top_writers),
+            inline=True
+        )
+    
+    # Top voice
+    if sorted_voice:
+        top_voice = []
+        medals = ["🥇", "🥈", "🥉", "4.", "5."]
+        for i, (uid, mins) in enumerate(sorted_voice):
+            name = user_names.get(uid, f"User {uid}")[:15]
+            h = mins // 60
+            m = mins % 60
+            time_str = f"{h}h {m}m" if h > 0 else f"{m}m"
+            top_voice.append(f"{medals[i]} **{name}**: {time_str}")
+        embed.add_field(
+            name="🎤 TOP Voice",
+            value="\n".join(top_voice),
+            inline=True
+        )
+    
+    # Aktivní ve voice právě teď
+    voice_now = sum(1 for vc in guild.voice_channels for m in vc.members if not m.bot)
+    embed.add_field(
+        name="🔊 Právě ve voice",
+        value=f"**{voice_now}** členů",
+        inline=True
+    )
+    
+    embed.set_footer(text=f"⚔️ Valhalla Bot • Aktualizováno: {datetime.now().strftime('%H:%M:%S')}")
+    
+    return embed
+
+@bot.tree.command(name="serverstats", description="Zobraz statistiky serveru (jen admin)")
+@app_commands.checks.has_permissions(administrator=True)
+async def server_stats_command(interaction: discord.Interaction):
+    """Zobrazí statistiky serveru s interaktivními tlačítky"""
+    embed = await create_stats_embed(interaction.guild, 1)
+    view = ServerStatsView(interaction.guild.id, 1)
+    
+    # Nastav první tlačítko jako aktivní
+    view.children[0].style = discord.ButtonStyle.success
+    
+    await interaction.response.send_message(embed=embed, view=view)
+
+@server_stats_command.error
+async def server_stats_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("❌ Tento příkaz může použít pouze administrátor!", ephemeral=True)
+
+# ============== MUSIC SYSTEM ==============
+
+import yt_dlp
+import subprocess
+import os
+import aiohttp
+
+# Poznámka: YouTube je blokovaný na cloudových serverech
+# Tento systém podporuje přímé audio URL a některé další zdroje
+
+YTDL_OPTIONS = {
+    'format': 'bestaudio/best',
+    'outtmpl': '/tmp/music_%(id)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': True,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'ytsearch',
+    'extract_flat': False,
+}
+
+FFMPEG_OPTIONS = {
+    'options': '-vn',
+}
+
+FFMPEG_EXECUTABLE = '/usr/bin/ffmpeg'
+
+# Předdefinované radio streamy
+RADIO_STREAMS = {
+    # České stanice
+    "evropa2": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2.mp3", "name": "🇨🇿 Evropa 2", "category": "cz"},
+    "frekvence1": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1.mp3", "name": "🇨🇿 Frekvence 1", "category": "cz"},
+    "impuls": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/IMPULS.mp3", "name": "🇨🇿 Rádio Impuls", "category": "cz"},
+    "kiss": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/KISS_CZAAC.aac", "name": "🇨🇿 Kiss Rádio", "category": "cz"},
+    "blanik": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BLANIK.mp3", "name": "🇨🇿 Rádio Blaník", "category": "cz"},
+    "beat": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/BEAT.mp3", "name": "🇨🇿 Radio Beat", "category": "cz"},
+    "country": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/COUNTRY_RADIO.mp3", "name": "🇨🇿 Country Radio", "category": "cz"},
+    "rockzone": {"url": "https://playerservices.streamtheworld.com/api/livestream-redirect/ROCKZONE_128.mp3", "name": "🇨🇿 Rock Zone", "category": "cz"},
+    
+    # Lo-Fi & Chill
+    "lofi": {"url": "https://streams.ilovemusic.de/iloveradio17.mp3", "name": "😴 Lo-Fi Hip Hop", "category": "chill"},
+    "chillout": {"url": "https://streams.ilovemusic.de/iloveradio7.mp3", "name": "🌴 Chill Out", "category": "chill"},
+    "sleep": {"url": "https://streams.ilovemusic.de/iloveradio18.mp3", "name": "😴 Sleep", "category": "chill"},
+    "spa": {"url": "http://149.56.155.73:80/RELAXATION", "name": "🧘 Spa & Relax", "category": "chill"},
+    
+    # Electronic & Dance
+    "dance": {"url": "https://streams.ilovemusic.de/iloveradio2.mp3", "name": "💃 Dance", "category": "electronic"},
+    "techno": {"url": "https://streams.ilovemusic.de/iloveradio6.mp3", "name": "🎛️ Techno", "category": "electronic"},
+    "trance": {"url": "http://trance.stream.laut.fm/trance", "name": "🌀 Trance", "category": "electronic"},
+    "house": {"url": "https://streams.ilovemusic.de/iloveradio23.mp3", "name": "🏠 House", "category": "electronic"},
+    "edm": {"url": "https://streams.ilovemusic.de/iloveradio109.mp3", "name": "⚡ EDM Hits", "category": "electronic"},
+    "hardstyle": {"url": "https://streams.ilovemusic.de/iloveradio21.mp3", "name": "💥 Hardstyle", "category": "electronic"},
+    
+    # Rock & Metal
+    "rock": {"url": "https://streams.ilovemusic.de/iloveradio16.mp3", "name": "🎸 Rock", "category": "rock"},
+    "metal": {"url": "http://stream.laut.fm/metal", "name": "🤘 Metal", "category": "rock"},
+    "classicrock": {"url": "https://streams.ilovemusic.de/iloveradio108.mp3", "name": "🎸 Classic Rock", "category": "rock"},
+    
+    # Hip Hop & Rap
+    "hiphop": {"url": "https://streams.ilovemusic.de/iloveradio3.mp3", "name": "🎤 Hip Hop", "category": "hiphop"},
+    "rap": {"url": "https://streams.ilovemusic.de/iloveradio13.mp3", "name": "🔥 Rap", "category": "hiphop"},
+    "oldschool": {"url": "https://streams.ilovemusic.de/iloveradio12.mp3", "name": "📼 Old School Rap", "category": "hiphop"},
+    
+    # Pop & Charts
+    "top100": {"url": "https://streams.ilovemusic.de/iloveradio1.mp3", "name": "📊 Top 100", "category": "pop"},
+    "pop": {"url": "https://streams.ilovemusic.de/iloveradio14.mp3", "name": "🎵 Pop", "category": "pop"},
+    "charts": {"url": "https://streams.ilovemusic.de/iloveradio109.mp3", "name": "📈 Charts", "category": "pop"},
+    "2000s": {"url": "https://streams.ilovemusic.de/iloveradio4.mp3", "name": "💿 2000s Hits", "category": "pop"},
+    "90s": {"url": "https://streams.ilovemusic.de/iloveradio5.mp3", "name": "💽 90s Hits", "category": "pop"},
+    "80s": {"url": "https://streams.ilovemusic.de/iloveradio8.mp3", "name": "📻 80s Hits", "category": "pop"},
+    
+    # Other
+    "jazz": {"url": "http://streaming.radio.co/s3c5f5e27a/listen", "name": "🎷 Jazz", "category": "other"},
+    "classical": {"url": "http://149.56.155.73:80/CLASSIC", "name": "🎻 Classical", "category": "other"},
+    "reggae": {"url": "http://stream.laut.fm/reggae", "name": "🇯🇲 Reggae", "category": "other"},
+    "latina": {"url": "https://streams.ilovemusic.de/iloveradio24.mp3", "name": "💃 Latino", "category": "other"},
+}
+
+ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
+
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+        self.data = data
+        self.title = data.get('title')
+        self.url = data.get('url')
+        self.duration = data.get('duration', 0)
+        self.thumbnail = data.get('thumbnail')
+        self.webpage_url = data.get('webpage_url')
+        self.filename = data.get('filename')
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        
+        # Stáhnout soubor místo streamování (kvůli 403)
+        try:
+            data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=True))
+        except Exception as e:
+            print(f"[MUSIC] Download error: {e}", flush=True)
+            raise e
+
+        if 'entries' in data:
+            data = data['entries'][0]
+
+        filename = ytdl.prepare_filename(data)
+        data['filename'] = filename
+        
+        return cls(discord.FFmpegPCMAudio(filename, executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS), data=data)
+
+# Music queues per guild
+music_queues = {}  # {guild_id: {"queue": [], "current": None, "loop": False}}
+
+def get_music_queue(guild_id: int) -> dict:
+    if guild_id not in music_queues:
+        music_queues[guild_id] = {"queue": [], "current": None, "loop": False, "volume": 0.5}
+    return music_queues[guild_id]
+
+def format_duration(seconds: int) -> str:
+    if not seconds:
+        return "Neznámá délka"
+    mins, secs = divmod(seconds, 60)
+    hours, mins = divmod(mins, 60)
+    if hours:
+        return f"{hours}:{mins:02d}:{secs:02d}"
+    return f"{mins}:{secs:02d}"
+
+async def play_next(guild_id: int, voice_client):
+    """Přehraje další písničku z fronty"""
+    queue_data = get_music_queue(guild_id)
+    
+    if queue_data["loop"] and queue_data["current"]:
+        # Opakovat aktuální
+        try:
+            source = await YTDLSource.from_url(queue_data["current"]["url"], stream=False)
+            source.volume = queue_data["volume"]
+            voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
+                play_next(guild_id, voice_client), bot.loop))
+        except Exception as e:
+            print(f"[MUSIC] Error playing: {e}", flush=True)
+        return
+    
+    if not queue_data["queue"]:
+        queue_data["current"] = None
+        return
+    
+    next_song = queue_data["queue"].pop(0)
+    queue_data["current"] = next_song
+    
+    try:
+        source = await YTDLSource.from_url(next_song["url"], stream=False)
+        source.volume = queue_data["volume"]
+        voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
+            play_next(guild_id, voice_client), bot.loop))
+        print(f"[MUSIC] Now playing: {next_song['title']}", flush=True)
+    except Exception as e:
+        print(f"[MUSIC] Error playing: {e}", flush=True)
+        await play_next(guild_id, voice_client)
+
+@bot.tree.command(name="radio", description="Přehraj rádio stanici")
+@app_commands.describe(stanice="Vyber rádio stanici")
+@app_commands.choices(stanice=[
+    app_commands.Choice(name="🇨🇿 Evropa 2", value="evropa2"),
+    app_commands.Choice(name="🇨🇿 Frekvence 1", value="frekvence1"),
+    app_commands.Choice(name="🇨🇿 Rádio Impuls", value="impuls"),
+    app_commands.Choice(name="🇨🇿 Kiss Rádio", value="kiss"),
+    app_commands.Choice(name="🇨🇿 Rock Zone", value="rockzone"),
+    app_commands.Choice(name="😴 Lo-Fi Hip Hop", value="lofi"),
+    app_commands.Choice(name="🌴 Chill Out", value="chillout"),
+    app_commands.Choice(name="💃 Dance", value="dance"),
+    app_commands.Choice(name="🎛️ Techno", value="techno"),
+    app_commands.Choice(name="🎸 Rock", value="rock"),
+    app_commands.Choice(name="🎤 Hip Hop", value="hiphop"),
+    app_commands.Choice(name="📊 Top 100", value="top100"),
+])
+async def radio_command(interaction: discord.Interaction, stanice: str):
+    """Přehraje české rádio"""
+    if not interaction.user.voice:
+        await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+        return
+    
+    if stanice not in RADIO_STREAMS:
+        await interaction.response.send_message("❌ Neznámá stanice!", ephemeral=True)
+        return
+    
+    radio = RADIO_STREAMS[stanice]
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+    
+    # Připojit se k voice
+    if not voice_client:
+        voice_client = await voice_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+    
+    # Zastavit aktuální přehrávání
+    if voice_client.is_playing():
+        voice_client.stop()
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["current"] = {"title": radio["name"], "url": radio["url"], "duration": 0, "requester": interaction.user.display_name}
+    
+    try:
+        source = discord.FFmpegPCMAudio(radio["url"], executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS)
+        source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+        voice_client.play(source)
+        
+        embed = discord.Embed(
+            title="📻 Rádio hraje",
+            description=f"**{radio['name']}**",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
+        embed.add_field(name="📡 Typ", value="Živé vysílání", inline=True)
+        embed.set_footer(text="⚔️ Valhalla Bot • /musicstop pro zastavení")
+        
+        await interaction.response.send_message(embed=embed)
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Chyba: {e}", ephemeral=True)
+
+@bot.tree.command(name="radiolist", description="Zobraz všechny dostupné rádio stanice")
+async def radiolist_command(interaction: discord.Interaction):
+    """Zobrazí seznam všech rádií podle kategorie"""
+    embed = discord.Embed(
+        title="📻 Dostupné rádio stanice",
+        description="Použij `/radio [stanice]` pro přehrání",
+        color=discord.Color.blue()
+    )
+    
+    categories = {
+        "cz": "🇨🇿 České stanice",
+        "chill": "😴 Chill & Lo-Fi",
+        "electronic": "⚡ Electronic & Dance",
+        "rock": "🎸 Rock & Metal",
+        "hiphop": "🎤 Hip Hop & Rap",
+        "pop": "🎵 Pop & Charts",
+        "other": "🎷 Ostatní"
+    }
+    
+    for cat_key, cat_name in categories.items():
+        stations = [f"`{k}` - {v['name']}" for k, v in RADIO_STREAMS.items() if v.get('category') == cat_key]
+        if stations:
+            embed.add_field(name=cat_name, value="\n".join(stations[:6]), inline=True)
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • Celkem 35+ stanic")
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="play", description="Přehraj hudbu (URL streamu nebo rádio)")
+@app_commands.describe(url="Přímý URL na audio stream")
+async def play_command(interaction: discord.Interaction, url: str):
+    """Přehraje audio z přímého URL"""
+    if not interaction.user.voice:
+        await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+        return
+    
+    await interaction.response.defer()
+    
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+    
+    # Připojit se k voice
+    if not voice_client:
+        voice_client = await voi

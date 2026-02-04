@@ -1,0 +1,681 @@
+"hint": "K____"},
+        {"lyrics": "Máma mi vždycky říkala, ať si dávám pozor", "artist": "Kabát", "song": "Máma", "hint": "K____"},
+        {"lyrics": "Malá bílá vrána letí k obloze", "artist": "Kabát", "song": "Bílá vrána", "hint": "K____"},
+        {"lyrics": "Kdo nekrade, ten má", "artist": "Kabát", "song": "Kdo nekrade", "hint": "K____"},
+        {"lyrics": "Pohoda, všechno je v pohodě", "artist": "Kabát", "song": "Pohoda", "hint": "K____"},
+        {"lyrics": "Corrida, corrida, život je corrida", "artist": "Kabát", "song": "Corrida", "hint": "K____"},
+        {"lyrics": "Dole v dole v údolí", "artist": "Kabát", "song": "Dole v dole", "hint": "K____"},
+        {"lyrics": "Colorado, tam bych chtěl být", "artist": "Kabát", "song": "Colorado", "hint": "K____"},
+        # Chinaski
+        {"lyrics": "Dívám se na hvězdy a přemýšlím", "artist": "Chinaski", "song": "Hvězdy", "hint": "C______"},
+        {"lyrics": "Chci žít svůj život naplno", "artist": "Chinaski", "song": "Naplno", "hint": "C______"},
+        {"lyrics": "Cestou na jih, kde slunce zapadá", "artist": "Chinaski", "song": "Na jih", "hint": "C______"},
+        {"lyrics": "Rock and roll je mrtvej, ale my hrajem dál", "artist": "Chinaski", "song": "Rock and roll", "hint": "C______"},
+        {"lyrics": "Jsi můj nejlepší přítel", "artist": "Chinaski", "song": "Přítel", "hint": "C______"},
+        {"lyrics": "Všechno co mám, všechno co chci", "artist": "Chinaski", "song": "Všechno", "hint": "C______"},
+        # Lucie
+        {"lyrics": "Pojď blíž, pojď blíž ke mně", "artist": "Lucie", "song": "Pojď blíž", "hint": "L____"},
+        {"lyrics": "Amerika je daleko, ale sny jsou blízko", "artist": "Lucie", "song": "Amerika", "hint": "L____"},
+        {"lyrics": "Černý andělé hlídaj můj sen", "artist": "Lucie", "song": "Černý andělé", "hint": "L____"},
+        {"lyrics": "Šum silnice, to je má melodie", "artist": "Lucie", "song": "Šum", "hint": "L____"},
+        {"lyrics": "Chci zas v tobě spát", "artist": "Lucie", "song": "Chci zas", "hint": "L____"},
+        {"lyrics": "Medvídek, já jsem tvůj medvídek", "artist": "Lucie", "song": "Medvídek", "hint": "L____"},
+        # Horkýže Slíže
+        {"lyrics": "Vlak, co nikde nestaví", "artist": "Horkýže Slíže", "song": "Vlak", "hint": "Horkýže S____"},
+        {"lyrics": "Silné reči, tie nezastavíš", "artist": "Horkýže Slíže", "song": "Silné reči", "hint": "Horkýže S____"},
+        # Škwor
+        {"lyrics": "Sám proti všem, tak to má být", "artist": "Škwor", "song": "Sám", "hint": "Š____"},
+        {"lyrics": "Síla starejch vín", "artist": "Škwor", "song": "Síla", "hint": "Š____"},
+        # Divokej Bill
+        {"lyrics": "Čmelák, čmelák lítá nad loukou", "artist": "Divokej Bill", "song": "Čmelák", "hint": "Divokej B___"},
+        {"lyrics": "Malování, to je moje hra", "artist": "Divokej Bill", "song": "Malování", "hint": "Divokej B___"},
+        {"lyrics": "Ring ding dong, to je naše song", "artist": "Divokej Bill", "song": "Ring ding dong", "hint": "Divokej B___"},
+        # Wohnout
+        {"lyrics": "Svaz českých bohémů, to jsme my", "artist": "Wohnout", "song": "Svaz", "hint": "W______"},
+        {"lyrics": "Piju jen když svítí slunce", "artist": "Wohnout", "song": "Piju", "hint": "W______"},
+        # Tři sestry
+        {"lyrics": "Punk rock rádio hraje celou noc", "artist": "Tři sestry", "song": "Punk rock rádio", "hint": "Tři s_____"},
+        {"lyrics": "Alkohol, my ho máme rádi", "artist": "Tři sestry", "song": "Alkohol", "hint": "Tři s_____"},
+    ],
+    "classic": [
+        # Karel Gott
+        {"lyrics": "Lady Carneval, tančí dál a dál", "artist": "Karel Gott", "song": "Lady Carneval", "hint": "Karel G___"},
+        {"lyrics": "Včelka Mája, ta si létá", "artist": "Karel Gott", "song": "Včelka Mája", "hint": "Karel G___"},
+        {"lyrics": "Lásko voníš deštěm", "artist": "Karel Gott", "song": "Lásko", "hint": "Karel G___"},
+        {"lyrics": "Když milenky pláčou, pláče celý svět", "artist": "Karel Gott", "song": "Když milenky pláčou", "hint": "Karel G___"},
+        {"lyrics": "Okno mé lásky, zavři za sebou", "artist": "Karel Gott", "song": "Okno mé lásky", "hint": "Karel G___"},
+        {"lyrics": "Bum bum bum, já mám tě rád", "artist": "Karel Gott", "song": "Bum bum bum", "hint": "Karel G___"},
+        {"lyrics": "Být stále mlád, to je můj sen", "artist": "Karel Gott", "song": "Být stále mlád", "hint": "Karel G___"},
+        {"lyrics": "Trezor, v něm jsou mé vzpomínky", "artist": "Karel Gott", "song": "Trezor", "hint": "Karel G___"},
+        {"lyrics": "Pábitelé, to jsou naši lidi", "artist": "Karel Gott", "song": "Pábitelé", "hint": "Karel G___"},
+        {"lyrics": "Čau lásko, už musím jít", "artist": "Karel Gott", "song": "Čau lásko", "hint": "Karel G___"},
+        # Waldemar Matuška
+        {"lyrics": "Holubí dům, tam kde jsem doma", "artist": "Waldemar Matuška", "song": "Holubí dům", "hint": "Waldemar M______"},
+        {"lyrics": "Rosa na kolejích, vlak co nejede", "artist": "Waldemar Matuška", "song": "Rosa na kolejích", "hint": "Waldemar M______"},
+        {"lyrics": "Pod tou naší starou lípou", "artist": "Waldemar Matuška", "song": "Pod lípou", "hint": "Waldemar M______"},
+        {"lyrics": "Tisíc mil, to je cesta domů", "artist": "Waldemar Matuška", "song": "Tisíc mil", "hint": "Waldemar M______"},
+        # Ivan Mládek
+        {"lyrics": "Jožin z bažin měří přes dva metry", "artist": "Ivan Mládek", "song": "Jožin z bažin", "hint": "Ivan M_____"},
+        {"lyrics": "Koukej, támhle finišuje báječnej chlap", "artist": "Ivan Mládek", "song": "Báječnej chlap", "hint": "Ivan M_____"},
+        {"lyrics": "Mě to tady nebaví, já chci domů", "artist": "Ivan Mládek", "song": "Mě to nebaví", "hint": "Ivan M_____"},
+        {"lyrics": "Nashledanou v lepších časech", "artist": "Ivan Mládek", "song": "Nashledanou", "hint": "Ivan M_____"},
+        # Marta Kubišová
+        {"lyrics": "Být stále mlád, to není žádnej věk", "artist": "Marta Kubišová", "song": "Být stále mlád", "hint": "Marta K______"},
+        {"lyrics": "Modlitba pro Martu, ať žije dál", "artist": "Marta Kubišová", "song": "Modlitba pro Martu", "hint": "Marta K______"},
+        {"lyrics": "Nechte zvony znít, nechte je znít", "artist": "Marta Kubišová", "song": "Zvony", "hint": "Marta K______"},
+        # Olympic
+        {"lyrics": "Těžkej den, všechno je špatně", "artist": "Olympic", "song": "Těžkej den", "hint": "O______"},
+        {"lyrics": "Dej mi víc své lásky", "artist": "Olympic", "song": "Dej mi víc", "hint": "O______"},
+        {"lyrics": "Jasná zpráva, to je ta co čekám", "artist": "Olympic", "song": "Jasná zpráva", "hint": "O______"},
+        {"lyrics": "Želva, ta se nikam nespěchá", "artist": "Olympic", "song": "Želva", "hint": "O______"},
+        # Karel Kryl
+        {"lyrics": "Pane prezidente, kam to jdete", "artist": "Karel Kryl", "song": "Pane prezidente", "hint": "Karel K___"},
+        {"lyrics": "Bratříčku zavírej vrátka", "artist": "Karel Kryl", "song": "Bratříčku", "hint": "Karel K___"},
+        {"lyrics": "Anděl, co spadl z nebe", "artist": "Karel Kryl", "song": "Anděl", "hint": "Karel K___"},
+        {"lyrics": "Slib, co jsem ti dal, platí pořád", "artist": "Karel Kryl", "song": "Slib", "hint": "Karel K___"},
+        # Hana Zagorová
+        {"lyrics": "Já nemám strach, já jdu dál", "artist": "Hana Zagorová", "song": "Nemám strach", "hint": "Hana Z_______"},
+        {"lyrics": "Mimořádná linka lásky", "artist": "Hana Zagorová", "song": "Linka lásky", "hint": "Hana Z_______"},
+        {"lyrics": "Maluj zase obrázky", "artist": "Hana Zagorová", "song": "Obrázky", "hint": "Hana Z_______"},
+        # Helena Vondráčková
+        {"lyrics": "Dlouhá noc, tak dlouhá noc", "artist": "Helena Vondráčková", "song": "Dlouhá noc", "hint": "Helena V________"},
+        {"lyrics": "Přejdi Jordán a vrať se domů", "artist": "Helena Vondráčková", "song": "Jordán", "hint": "Helena V________"},
+        {"lyrics": "Lásko má, já stůňu", "artist": "Helena Vondráčková", "song": "Lásko má", "hint": "Helena V________"},
+        # Michal David
+        {"lyrics": "Nonstop, tancujem nonstop", "artist": "Michal David", "song": "Nonstop", "hint": "Michal D____"},
+        {"lyrics": "Discopříběh, to je naše doba", "artist": "Michal David", "song": "Discopříběh", "hint": "Michal D____"},
+        {"lyrics": "Céčka, béčka, áčka, jedéééééém", "artist": "Michal David", "song": "Céčka", "hint": "Michal D____"},
+        # Jaromír Nohavica
+        {"lyrics": "Těšínská, tam kde je můj domov", "artist": "Jaromír Nohavica", "song": "Těšínská", "hint": "Jaromír N_______"},
+        {"lyrics": "Mikymauz, to je starej známej", "artist": "Jaromír Nohavica", "song": "Mikymauz", "hint": "Jaromír N_______"},
+        {"lyrics": "Ladovská zima, bílá a čistá", "artist": "Jaromír Nohavica", "song": "Ladovská zima", "hint": "Jaromír N_______"},
+        {"lyrics": "Kometa, letí kometa oblohou", "artist": "Jaromír Nohavica", "song": "Kometa", "hint": "Jaromír N_______"},
+    ]
+}
+
+
+# Active music quizzes
+active_music_quiz = {}
+
+# Quiz settings per guild
+quiz_settings = {}  # {guild_id: {"time": 60}}
+DEFAULT_QUIZ_TIME = 60  # 1 minuta
+
+def normalize_answer(text: str) -> str:
+    """Normalize text for comparison - remove accents, lowercase"""
+    text = text.lower().strip()
+    replacements = {
+        'á': 'a', 'č': 'c', 'ď': 'd', 'é': 'e', 'ě': 'e', 'í': 'i',
+        'ň': 'n', 'ó': 'o', 'ř': 'r', 'š': 's', 'ť': 't', 'ú': 'u',
+        'ů': 'u', 'ý': 'y', 'ž': 'z'
+    }
+    for cz, en in replacements.items():
+        text = text.replace(cz, en)
+    return text
+
+def get_quiz_time(guild_id: int) -> int:
+    """Get quiz time for guild"""
+    return quiz_settings.get(guild_id, {}).get("time", DEFAULT_QUIZ_TIME)
+
+def get_quiz_rounds(guild_id: int) -> int:
+    """Get number of quiz rounds for guild"""
+    return quiz_settings.get(guild_id, {}).get("rounds", 5)
+
+@bot.tree.command(name="hudba-nastaveni", description="Nastav hudební kvíz (pouze admin)")
+@app_commands.describe(
+    sekundy="Čas na odpověď v sekundách (30-300)",
+    pocet="Počet otázek v kvízu (1-20)"
+)
+@app_commands.default_permissions(administrator=True)
+async def slash_hudba_settings(interaction: discord.Interaction, sekundy: int = None, pocet: int = None):
+    guild_id = interaction.guild_id
+    if guild_id not in quiz_settings:
+        quiz_settings[guild_id] = {}
+    
+    changes = []
+    
+    if sekundy is not None:
+        if sekundy < 30 or sekundy > 300:
+            await interaction.response.send_message("❌ Čas musí být mezi 30 a 300 sekundami!", ephemeral=True)
+            return
+        quiz_settings[guild_id]["time"] = sekundy
+        changes.append(f"⏰ Čas: **{sekundy}s**")
+    
+    if pocet is not None:
+        if pocet < 1 or pocet > 20:
+            await interaction.response.send_message("❌ Počet otázek musí být mezi 1 a 20!", ephemeral=True)
+            return
+        quiz_settings[guild_id]["rounds"] = pocet
+        changes.append(f"🔢 Počet otázek: **{pocet}**")
+    
+    if not changes:
+        current_time = get_quiz_time(guild_id)
+        current_rounds = get_quiz_rounds(guild_id)
+        await interaction.response.send_message(
+            f"📊 **Aktuální nastavení:**\n⏰ Čas: {current_time}s\n🔢 Počet otázek: {current_rounds}",
+            ephemeral=True
+        )
+        return
+    
+    await interaction.response.send_message(f"✅ Nastavení uloženo!\n" + "\n".join(changes))
+
+@bot.tree.command(name="hudba", description="Spusť hudební kvíz - hádej písničku!")
+@app_commands.describe(zanr="Vyber žánr hudby")
+@app_commands.choices(zanr=[
+    app_commands.Choice(name="🎤 Rap", value="rap"),
+    app_commands.Choice(name="🎵 Pop", value="pop"),
+    app_commands.Choice(name="🎸 Rock", value="rock"),
+    app_commands.Choice(name="🎺 Klasika", value="classic"),
+    app_commands.Choice(name="🎲 Náhodný", value="random"),
+])
+async def slash_hudba(interaction: discord.Interaction, zanr: str = "random"):
+    # Check permission from database
+    if not await check_command_permission(interaction, "hudba"):
+        return
+    
+    channel_id = interaction.channel_id
+    guild_id = interaction.guild_id
+    
+    # Check if quiz already active
+    if channel_id in active_music_quiz and active_music_quiz[channel_id].get("active"):
+        await interaction.response.send_message("❌ V tomto kanálu už běží kvíz! Počkej až skončí.", ephemeral=True)
+        return
+    
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
+    
+    # Initialize quiz session
+    active_music_quiz[channel_id] = {
+        "active": True,
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},  # {user_id: {"name": name, "score": score}}
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
+    }
+    
+    # Send start message
+    embed = discord.Embed(
+        title="🎵 HUDEBNÍ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
+        color=discord.Color.purple()
+    )
+    embed.add_field(name="🎸 Žánr", value=zanr.upper() if zanr != "random" else "NÁHODNÝ", inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš jméno interpreta do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
+    
+    await interaction.response.send_message(embed=embed)
+    await asyncio.sleep(3)
+    
+    # Start quiz rounds
+    await run_music_quiz(interaction.channel, channel_id)
+
+async def run_music_quiz(channel, channel_id: int):
+    """Run multiple rounds of music quiz"""
+    import random
+    
+    quiz_data = active_music_quiz.get(channel_id)
+    if not quiz_data:
+        return
+    
+    genre = quiz_data["genre"]
+    total_rounds = quiz_data["total_rounds"]
+    quiz_time = quiz_data["quiz_time"]
+    genre_names = {"rap": "🎤 Rap", "pop": "🎵 Pop", "rock": "🎸 Rock", "classic": "🎺 Klasika"}
+    
+    for round_num in range(1, total_rounds + 1):
+        if channel_id not in active_music_quiz:
+            return  # Quiz was stopped
+        
+        quiz_data = active_music_quiz[channel_id]
+        quiz_data["current_round"] = round_num
+        quiz_data["answered"] = False
+        
+        # Select genre for this round
+        current_genre = genre if genre != "random" else random.choice(list(CZECH_MUSIC.keys()))
+        
+        # Select random song
+        song_data = random.choice(CZECH_MUSIC[current_genre])
+        
+        quiz_data["current_question"] = {
+            "artist": song_data["artist"],
+            "song": song_data["song"],
+            "hint": song_data["hint"]
+        }
+        
+        # Send question
+        embed = discord.Embed(
+            title=f"🎵 OTÁZKA {round_num}/{total_rounds}",
+            description=f"**Hádej interpreta!**",
+            color=discord.Color.purple()
+        )
+        embed.add_field(name="🎼 Text písně", value=f"*\"{song_data['lyrics']}\"*", inline=False)
+        embed.add_field(name="💡 Nápověda", value=f"`{song_data['hint']}`", inline=True)
+        embed.add_field(name="🎸 Žánr", value=genre_names.get(current_genre, current_genre), inline=True)
+        embed.add_field(name="⏰ Čas", value=f"{quiz_time}s", inline=True)
+        
+        await channel.send(embed=embed)
+        
+        # Wait for answer or timeout - check every 0.5 seconds
+        elapsed = 0
+        while elapsed < quiz_time:
+            await asyncio.sleep(0.5)
+            elapsed += 0.5
+            
+            # Check if quiz still exists and if answered
+            quiz_data = active_music_quiz.get(channel_id)
+            if not quiz_data:
+                return
+            if quiz_data.get("answered"):
+                break  # Someone answered, move to next question
+        
+        # Check if answered
+        quiz_data = active_music_quiz.get(channel_id)
+        if not quiz_data:
+            return
+        
+        if not quiz_data["answered"]:
+            embed = discord.Embed(
+                title="⏰ ČAS VYPRŠEL!",
+                description=f"Správná odpověď: **{song_data['artist']}** - {song_data['song']}",
+                color=discord.Color.red()
+            )
+            await channel.send(embed=embed)
+        
+        # Pause between rounds
+        if round_num < total_rounds:
+            await channel.send(f"⏳ **Další otázka za 3 sekundy...**")
+            await asyncio.sleep(3)
+    
+    # Quiz finished - show final scores
+    quiz_data = active_music_quiz.get(channel_id)
+    if quiz_data:
+        scores = quiz_data.get("scores", {})
+        
+        if scores:
+            # Sort by score
+            sorted_scores = sorted(scores.items(), key=lambda x: x[1]["score"], reverse=True)
+            
+            medals = ["🥇", "🥈", "🥉"]
+            leaderboard = ""
+            for i, (user_id, data) in enumerate(sorted_scores[:10]):
+                medal = medals[i] if i < 3 else f"**{i+1}.**"
+                leaderboard += f"{medal} {data['name']} - **{data['score']} bodů**\n"
+            
+            embed = discord.Embed(
+                title="🏆 KVÍZ DOKONČEN!",
+                description=f"**Výsledky z {total_rounds} otázek:**",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="📊 Žebříček", value=leaderboard or "Nikdo neskóroval", inline=False)
+            
+            if sorted_scores:
+                winner_id, winner_data = sorted_scores[0]
+                embed.add_field(name="👑 Vítěz", value=f"**{winner_data['name']}** s {winner_data['score']} body!", inline=False)
+        else:
+            embed = discord.Embed(
+                title="🏆 KVÍZ DOKONČEN!",
+                description="Nikdo neuhodl žádnou otázku!",
+                color=discord.Color.orange()
+            )
+        
+        await channel.send(embed=embed)
+        
+        # Cleanup
+        if channel_id in active_music_quiz:
+            del active_music_quiz[channel_id]
+
+@bot.command(name="hudba", aliases=["music", "hz"])
+@commands.has_permissions(administrator=True)
+async def prefix_hudba(ctx, zanr: str = "random"):
+    """!hudba [rap/pop/rock/classic/random] - Hudební kvíz (Admin)"""
+    channel_id = ctx.channel.id
+    guild_id = ctx.guild.id
+    
+    if channel_id in active_music_quiz and active_music_quiz[channel_id].get("active"):
+        await ctx.send("❌ V tomto kanálu už běží kvíz!")
+        return
+    
+    # Validate genre
+    if zanr not in ["rap", "pop", "rock", "classic", "random"]:
+        zanr = "random"
+    
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
+    
+    active_music_quiz[channel_id] = {
+        "active": True,
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
+    }
+    
+    embed = discord.Embed(
+        title="🎵 HUDEBNÍ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
+        color=discord.Color.purple()
+    )
+    embed.add_field(name="🎸 Žánr", value=zanr.upper() if zanr != "random" else "NÁHODNÝ", inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš jméno interpreta do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
+    
+    await ctx.send(embed=embed)
+    await asyncio.sleep(3)
+    
+    await run_music_quiz(ctx.channel, channel_id)
+
+# ============== FILM QUIZ ==============
+
+FILM_DATABASE = {
+    "ceske": [
+        # Pelíšky
+        {"quote": "Nechte zvířátka žít!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Koho chleba jíš, toho píseň zpívej", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "A hele, támhle leze hroch!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Já mám rád demokracii!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        {"quote": "Takhle vypadá česká klasika!", "film": "Pelíšky", "year": "1999", "hint": "P______"},
+        # Samotáři
+        {"quote": "Ty vole, to je bomba!", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Láska je jako voda, musí téct", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Prostě blbá nálada, to je celý", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        {"quote": "Život je pes a pak umřeš", "film": "Samotáři", "year": "2000", "hint": "S_______"},
+        # Vratné lahve
+        {"quote": "Víš co, tak já půjdu...", "film": "Vratné lahve", "year": "2007", "hint": "Vratné l____"},
+        {"quote": "Člověk musí mít v životě štěstí", "film": "Vratné lahve", "year": "2007", "hint": "Vratné l____"},
+        # Kolja
+        {"quote": "To je ale kravina!", "film": "Kolja", "year": "1996", "hint": "K____"},
+        {"quote": "Malej, pojď sem!", "film": "Kolja", "year": "1996", "hint": "K____"},
+        {"quote": "Rusáci, to jsou svině", "film": "Kolja", "year": "1996", "hint": "K____"},
+        # Obecná škola
+        {"quote": "Děti, co byste chtěli k večeři?", "film": "Obecná škola", "year": "1991", "hint": "Obecná š____"},
+        {"quote": "Dneska máme volno!", "film": "Obecná škola", "year": "1991", "hint": "Obecná š____"},
+        # Vesničko má středisková
+        {"quote": "Kubo, co to děláš?", "film": "Vesničko má středisková", "year": "1985", "hint": "Vesničko má s__________"},
+        {"quote": "Pane předsedo, to nejde!", "film": "Vesničko má středisková", "year": "1985", "hint": "Vesničko má s__________"},
+        {"quote": "Soudruhu, to je omyl!", "film": "Vesničko má středisková", "year": "1985", "hint": "Vesničko má s__________"},
+        # Marečku, podejte mi pero
+        {"quote": "Marečku, podejte mi pero!", "film": "Marečku, podejte mi pero", "year": "1976", "hint": "Marečku, p_____"},
+        {"quote": "Kdo se směje naposled, ten se směje nejlíp", "film": "Marečku, podejte mi pero", "year": "1976", "hint": "Marečku, p_____"},
+        {"quote": "To je síla, pane kolego!", "film": "Marečku, podejte mi pero", "year": "1976", "hint": "Marečku, p_____"},
+        # Na samotě u lesa
+        {"quote": "Láďo, co to děláš?", "film": "Na samotě u lesa", "year": "1976", "hint": "Na samotě u l___"},
+        {"quote": "Takhle se chová slušnej člověk!", "film": "Na samotě u lesa", "year": "1976", "hint": "Na samotě u l___"},
+        # S tebou mě baví svět
+        {"quote": "Hele, támhle je pramen!", "film": "S tebou mě baví svět", "year": "1982", "hint": "S tebou mě b___ s___"},
+        {"quote": "To je ale výlet!", "film": "S tebou mě baví svět", "year": "1982", "hint": "S tebou mě b___ s___"},
+        # Slunce, seno
+        {"quote": "Ty jsi ale kráva!", "film": "Slunce, seno, jahody", "year": "1983", "hint": "Slunce, seno, j_____"},
+        {"quote": "Konečně prázdniny!", "film": "Slunce, seno, jahody", "year": "1983", "hint": "Slunce, seno, j_____"},
+        {"quote": "To je ale vedro!", "film": "Slunce, seno, jahody", "year": "1983", "hint": "Slunce, seno, j_____"},
+        # Bílá paní
+        {"quote": "Pane purkmistr, ona mluví!", "film": "Bílá paní", "year": "1965", "hint": "Bílá p___"},
+        # Limonádový Joe
+        {"quote": "Piju jen limonádu!", "film": "Limonádový Joe", "year": "1964", "hint": "Limonádový J__"},
+        {"quote": "Kolaloka zabíjí!", "film": "Limonádový Joe", "year": "1964", "hint": "Limonádový J__"},
+        # Jáchyme, hoď ho do stroje
+        {"quote": "Jáchyme, hoď ho do stroje!", "film": "Jáchyme, hoď ho do stroje", "year": "1974", "hint": "Jáchyme, h__ h_ d_ s_____"},
+        {"quote": "Soudruhu řediteli!", "film": "Jáchyme, hoď ho do stroje", "year": "1974", "hint": "Jáchyme, h__ h_ d_ s_____"},
+        # Kameňák
+        {"quote": "Hele, támhle letí ptáček!", "film": "Kameňák", "year": "2003", "hint": "K______"},
+        {"quote": "To je ale trapas!", "film": "Kameňák", "year": "2003", "hint": "K______"},
+        # Další české filmy
+        {"quote": "Život je boj a já jsem bojovník", "film": "Román pro ženy", "year": "2005", "hint": "Román pro ž___"},
+        {"quote": "Tak co, holky, jdeme na to?", "film": "Účastníci zájezdu", "year": "2006", "hint": "Účastníci z______"},
+        {"quote": "Musíš se na to dívat z nadhledu", "film": "Pupendo", "year": "2003", "hint": "P______"},
+        {"quote": "Já jsem ten, kdo klepe!", "film": "Tmavomodrý svět", "year": "2001", "hint": "Tmavomodrý s___"},
+        {"quote": "Země je kulatá a já jsem její střed", "film": "Želary", "year": "2003", "hint": "Ž_____"},
+        {"quote": "Nemám čas na kecy, musím pracovat", "film": "Babovřesky", "year": "2013", "hint": "B________"},
+        {"quote": "To je ale blbost, že jo?", "film": "Snowboarďáci", "year": "2004", "hint": "S__________"},
+        {"quote": "Všechno bude dobrý, uvidíš", "film": "Horem pádem", "year": "2004", "hint": "Horem p____"},
+        {"quote": "To je moje holka!", "film": "Musíme si pomáhat", "year": "2000", "hint": "Musíme si p______"},
+        {"quote": "Nikdy neříkej nikdy", "film": "Grandhotel", "year": "2006", "hint": "G________"},
+        {"quote": "Hele, támhle je Ježíšek!", "film": "Anděl Páně", "year": "2005", "hint": "Anděl P___"},
+        {"quote": "Petroníle, co to děláš?", "film": "Anděl Páně", "year": "2005", "hint": "Anděl P___"},
+        {"quote": "Uriáši, pozor!", "film": "Anděl Páně", "year": "2005", "hint": "Anděl P___"},
+        {"quote": "Peklo je prázdné!", "film": "Anděl Páně 2", "year": "2016", "hint": "Anděl P___ _"},
+        {"quote": "Já jsem princ!", "film": "Tři oříšky pro Popelku", "year": "1973", "hint": "Tři oříšky pro P______"},
+        {"quote": "Popelko, kde jsi?", "film": "Tři oříšky pro Popelku", "year": "1973", "hint": "Tři oříšky pro P______"},
+        {"quote": "Král je nahý!", "film": "Císařův pekař", "year": "1951", "hint": "Císařův p____"},
+        {"quote": "To je ale voňavka!", "film": "Dívka na koštěti", "year": "1972", "hint": "Dívka na k______"},
+    ],
+    "hollywood": [
+        {"quote": "Já se vrátím", "film": "Terminátor", "year": "1984", "hint": "T________"},
+        {"quote": "Ať tě provází Síla", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Na tebe se dívám, zlatíčko", "film": "Casablanca", "year": "1942", "hint": "C_________"},
+        {"quote": "Na mě mluvíš?", "film": "Taxikář", "year": "1976", "hint": "T______"},
+        {"quote": "Udělám mu nabídku, kterou nemůže odmítnout", "film": "Kmotr", "year": "1972", "hint": "K____"},
+        {"quote": "Život je jako bonboniéra, nikdy nevíš co ochutnáš", "film": "Forrest Gump", "year": "1994", "hint": "Forrest G___"},
+        {"quote": "Vidím mrtvé lidi", "film": "Šestý smysl", "year": "1999", "hint": "Šestý s____"},
+        {"quote": "Pravdu neuneseš!", "film": "Pár správných chlapů", "year": "1992", "hint": "Pár správných c_____"},
+        {"quote": "Není nad domov", "film": "Čaroděj ze země Oz", "year": "1939", "hint": "Čaroděj ze z___ O_"},
+        {"quote": "Proč tak vážně?", "film": "Temný rytíř", "year": "2008", "hint": "Temný r_____"},
+        {"quote": "Já jsem tvůj otec", "film": "Star Wars", "year": "1980", "hint": "Star W___"},
+        {"quote": "Prostě plav dál", "film": "Hledá se Nemo", "year": "2003", "hint": "Hledá se N___"},
+        {"quote": "Do nekonečna a ještě dál!", "film": "Toy Story", "year": "1995", "hint": "Toy S____"},
+        {"quote": "Jsem král světa!", "film": "Titanic", "year": "1997", "hint": "T______"},
+        {"quote": "Neprojdeš!", "film": "Pán prstenů", "year": "2001", "hint": "Pán p_______"},
+        {"quote": "Můj miláček", "film": "Pán prstenů", "year": "2001", "hint": "Pán p_______"},
+        {"quote": "Tady je Johnny!", "film": "Osvícení", "year": "1980", "hint": "O_______"},
+        {"quote": "Nikdy tě nepustím, Jacku", "film": "Titanic", "year": "1997", "hint": "T______"},
+        {"quote": "S velkou mocí přichází velká zodpovědnost", "film": "Spider-Man", "year": "2002", "hint": "Spider-M__"},
+        {"quote": "Já jsem Iron Man", "film": "Iron Man", "year": "2008", "hint": "Iron M__"},
+        {"quote": "Avengers, spojte se!", "film": "Avengers: Endgame", "year": "2019", "hint": "Avengers: E______"},
+        {"quote": "Já jsem Groot", "film": "Strážci galaxie", "year": "2014", "hint": "Strážci g______"},
+        {"quote": "Hakuna Matata - žádné starosti", "film": "Lví král", "year": "1994", "hint": "Lví k___"},
+        {"quote": "Pusť to, nech to být!", "film": "Ledové království", "year": "2013", "hint": "Ledové k________"},
+        {"quote": "Houstone, máme problém", "film": "Apollo 13", "year": "1995", "hint": "Apollo __"},
+        {"quote": "Pozdrav mého malého kámoše!", "film": "Zjizvená tvář", "year": "1983", "hint": "Zjizvená t___"},
+        {"quote": "Měl jsi mě už při ahoj", "film": "Jerry Maguire", "year": "1996", "hint": "Jerry M______"},
+        {"quote": "Baby nikdo nestrčí do kouta", "film": "Hříšný tanec", "year": "1987", "hint": "Hříšný t____"},
+        {"quote": "Cítím potřebu... potřebu rychlosti", "film": "Top Gun", "year": "1986", "hint": "Top G__"},
+        # Nové Hollywood filmy
+        {"quote": "Běž za svým snem", "film": "La La Land", "year": "2016", "hint": "La La L___"},
+        {"quote": "Jmenuji se Bond. James Bond.", "film": "James Bond", "year": "1962", "hint": "James B___"},
+        {"quote": "Protřepat, nemíchat", "film": "James Bond", "year": "1962", "hint": "James B___"},
+        {"quote": "Franku, já ti to vrátím!", "film": "Rocky", "year": "1976", "hint": "R____"},
+        {"quote": "Adriano!", "film": "Rocky", "year": "1976", "hint": "R____"},
+        {"quote": "Jsi mi kamarád, příteli", "film": "Gladiátor", "year": "2000", "hint": "G_______"},
+        {"quote": "Na moje znamení, rozpoutej peklo", "film": "Gladiátor", "year": "2000", "hint": "G_______"},
+        {"quote": "Jsem Maximus Decimus Meridius", "film": "Gladiátor", "year": "2000", "hint": "G_______"},
+        {"quote": "Jmenuji se Inigo Montoya", "film": "Princezna nevěsta", "year": "1987", "hint": "Princezna n______"},
+        {"quote": "Jak si přeješ", "film": "Princezna nevěsta", "year": "1987", "hint": "Princezna n______"},
+        {"quote": "Dneska je dobrý den umřít", "film": "Independence Day", "year": "1996", "hint": "Independence D__"},
+        {"quote": "Vítejte na Zemi!", "film": "Independence Day", "year": "1996", "hint": "Independence D__"},
+        {"quote": "Co je v krabici?!", "film": "Sedm", "year": "1995", "hint": "S____"},
+        {"quote": "Pamatuješ si první pravidlo?", "film": "Klub rváčů", "year": "1999", "hint": "Klub r_____"},
+        {"quote": "O Klubu rváčů se nemluví", "film": "Klub rváčů", "year": "1999", "hint": "Klub r_____"},
+        {"quote": "Za svůj život jsem udělal tisíc chyb", "film": "Vykoupení z věznice Shawshank", "year": "1994", "hint": "Vykoupení z v______"},
+        {"quote": "Buď zaneprázdněný životem, nebo umíráním", "film": "Vykoupení z věznice Shawshank", "year": "1994", "hint": "Vykoupení z v______"},
+        {"quote": "Země se otočila", "film": "Počátek", "year": "2010", "hint": "P______"},
+        {"quote": "Musíme jít hlouběji", "film": "Počátek", "year": "2010", "hint": "P______"},
+        {"quote": "Nebudu ti lhát, jsou to vetřelci", "film": "Vetřelec", "year": "1979", "hint": "V______"},
+        {"quote": "Ve vesmíru tě nikdo neslyší křičet", "film": "Vetřelec", "year": "1979", "hint": "V______"},
+        {"quote": "Vzhůru do neznáma!", "film": "Vzhůru do oblak", "year": "2009", "hint": "Vzhůru do o_____"},
+        {"quote": "Jsem legenda", "film": "Jsem legenda", "year": "2007", "hint": "Jsem l_____"},
+        {"quote": "Zachraň vojína Ryana!", "film": "Zachraňte vojína Ryana", "year": "1998", "hint": "Zachraňte v_____ R____"},
+        {"quote": "Zasloužíš si to", "film": "Zachraňte vojína Ryana", "year": "1998", "hint": "Zachraňte v_____ R____"},
+    ],
+    "komedie": [
+        {"quote": "To ona řekla", "film": "The Office", "year": "2005", "hint": "The O_____"},
+        {"quote": "Jsem docela velké zvíře", "film": "Zprávař", "year": "2004", "hint": "Z______"},
+        {"quote": "Ty mě zabíjíš, člověče!", "film": "Sandlot", "year": "1993", "hint": "S______"},
+        {"quote": "Dneska tu vůbec nemám být", "film": "Baráčníci", "year": "1994", "hint": "B________"},
+        {"quote": "Ale jo, zlato, ale jo!", "film": "Austin Powers", "year": "1997", "hint": "Austin P_____"},
+        {"quote": "Tak jo, fajn!", "film": "Ace Ventura", "year": "1994", "hint": "Ace V______"},
+        {"quote": "Takže říkáš, že mám šanci?", "film": "Blbý a blbější", "year": "1994", "hint": "Blbý a b______"},
+        {"quote": "Dám si to co ona", "film": "Když Harry potkal Sally", "year": "1989", "hint": "Když Harry p_____ S____"},
+        {"quote": "To není nádor!", "film": "Policajt ve školce", "year": "1990", "hint": "Policajt ve š_____"},
+        {"quote": "Jsem ve skleněné kleci emocí!", "film": "Zprávař", "year": "2004", "hint": "Z______"},
+        {"quote": "Sedíš na trůnu lží", "film": "Vánoce po americku", "year": "2003", "hint": "Vánoce po a_______"},
+        {"quote": "Já jsem Batman", "film": "Lego Batman", "year": "2017", "hint": "Lego B_____"},
+        {"quote": "Osel!", "film": "Shrek", "year": "2001", "hint": "S____"},
+        {"quote": "Vrstvy! Zlobři mají vrstvy!", "film": "Shrek", "year": "2001", "hint": "S____"},
+        {"quote": "Jsme tam už?", "film": "Shrek", "year": "2001", "hint": "S____"},
+        # Nové komedie
+        {"quote": "Já ti věřím, člověče", "film": "Big Lebowski", "year": "1998", "hint": "Big L_______"},
+        {"quote": "To je tvůj názor, člověče", "film": "Big Lebowski", "year": "1998", "hint": "Big L_______"},
+        {"quote": "Koberec opravdu spojil místnost", "film": "Big Lebowski", "year": "1998", "hint": "Big L_______"},
+        {"quote": "Bude to legendární!", "film": "Jak jsem poznal vaši matku", "year": "2005", "hint": "Jak jsem p_____ v___ m____"},
+        {"quote": "Co se stane ve Vegas, zůstane ve Vegas", "film": "Pařba ve Vegas", "year": "2009", "hint": "Pařba ve V____"},
+        {"quote": "Kde je tygr?", "film": "Pařba ve Vegas", "year": "2009", "hint": "Pařba ve V____"},
+        {"quote": "Jeden z nás se oženil?!", "film": "Pařba ve Vegas", "year": "2009", "hint": "Pařba ve V____"},
+        {"quote": "Čau, já jsem Andy", "film": "40 let panic", "year": "2005", "hint": "40 let p____"},
+        {"quote": "Nechci být sám celý život", "film": "40 let panic", "year": "2005", "hint": "40 let p____"},
+        {"quote": "Mluvíš se mnou?", "film": "Méďa", "year": "2012", "hint": "M___"},
+        {"quote": "Hrom do police!", "film": "Méďa", "year": "2012", "hint": "M___"},
+        {"quote": "Jsem příliš sexy pro tohle auto", "film": "Zoolander", "year": "2001", "hint": "Z________"},
+        {"quote": "Tenhle pohled se jmenuje Modrá ocel", "film": "Zoolander", "year": "2001", "hint": "Z________"},
+        {"quote": "Je to past!", "film": "Borat", "year": "2006", "hint": "B____"},
+        {"quote": "Moc hezky!", "film": "Borat", "year": "2006", "hint": "B____"},
+        {"quote": "Jsem Ron Burgundy?", "film": "Zprávař", "year": "2004", "hint": "Z______"},
+        {"quote": "60% času to funguje pokaždé", "film": "Zprávař", "year": "2004", "hint": "Z______"},
+        {"quote": "Dej mi mého syna!", "film": "Pěsti z oken", "year": "2000", "hint": "Pěsti z o___"},
+        {"quote": "Jsem v tom až po uši", "film": "Notting Hill", "year": "1999", "hint": "Notting H___"},
+        {"quote": "Jsem jen holka, co stojí před klukem", "film": "Notting Hill", "year": "1999", "hint": "Notting H___"},
+        {"quote": "Nemám rád pondělky", "film": "Garfield", "year": "2004", "hint": "G______"},
+        {"quote": "Kde je lasagne?", "film": "Garfield", "year": "2004", "hint": "G______"},
+    ],
+    "akcni": [
+        {"quote": "Šťastné a veselé, kamaráde", "film": "Smrtonosná past", "year": "1988", "hint": "Smrtonosná p___"},
+        {"quote": "K vrtulníku!", "film": "Predátor", "year": "1987", "hint": "P_______"},
+        {"quote": "Já se vrátím", "film": "Terminátor 2", "year": "1991", "hint": "Terminátor _"},
+        {"quote": "Hasta la vista, kámo", "film": "Terminátor 2", "year": "1991", "hint": "Terminátor _"},
+        {"quote": "Vítej na večírku, kámo!", "film": "Smrtonosná past", "year": "1988", "hint": "Smrtonosná p___"},
+        {"quote": "Já jsem zákon!", "film": "Soudce Dredd", "year": "1995", "hint": "Soudce D____"},
+        {"quote": "Je čas na show!", "film": "Beetlejuice", "year": "1988", "hint": "B__________"},
+        {"quote": "Žiju svůj život čtvrt míle za čtvrt míle", "film": "Rychle a zběsile", "year": "2001", "hint": "Rychle a z______"},
+        {"quote": "Do Mordoru se jen tak nevejde", "film": "Pán prstenů", "year": "2001", "hint": "Pán p_______"},
+        {"quote": "Tohle můžu dělat celý den", "film": "Captain America", "year": "2011", "hint": "Captain A______"},
+        {"quote": "Wakanda navždy!", "film": "Black Panther", "year": "2018", "hint": "Black P______"},
+        {"quote": "Jsem pořád naštvaný", "film": "Avengers", "year": "2012", "hint": "A_______"},
+        {"quote": "My jsme Groot", "film": "Strážci galaxie", "year": "2014", "hint": "Strážci g______"},
+        {"quote": "Nezáleží na tom kdo jsem, ale co dělám", "film": "Batman začíná", "year": "2005", "hint": "Batman z_____"},
+        {"quote": "Nejsem tady zavřený s vámi, vy jste zavření se mnou", "film": "Watchmen", "year": "2009", "hint": "W_______"},
+        # Nové akční filmy
+        {"quote": "Rodina je všechno", "film": "Rychle a zběsile", "year": "2001", "hint": "Rychle a z______"},
+        {"quote": "Jedna poslední jízda", "film": "Rychle a zběsile 7", "year": "2015", "hint": "Rychle a z______ _"},
+        {"quote": "Nevyjednávám s teroristy", "film": "Smrtonosná past 2", "year": "1990", "hint": "Smrtonosná p___ _"},
+        {"quote": "Jmenuju se John Wick", "film": "John Wick", "year": "2014", "hint": "John W___"},
+        {"quote": "Zabili mého psa", "film": "John Wick", "year": "2014", "hint": "John W___"},
+        {"quote": "Já jsem Matrix", "film": "Matrix Resurrections", "year": "2021", "hint": "Matrix R___________"},
+        {"quote": "Buď připraven!", "film": "Lví král", "year": "1994", "hint": "Lví k___"},
+        {"quote": "Tohle je Sparta!", "film": "300", "year": "2006", "hint": "3__"},
+        {"quote": "Dnes večer večeříme v pekle!", "film": "300", "year": "2006", "hint": "3__"},
+        {"quote": "Nenávidím hady", "film": "Indiana Jones", "year": "1981", "hint": "Indiana J____"},
+        {"quote": "To patří do muzea!", "film": "Indiana Jones", "year": "1981", "hint": "Indiana J____"},
+        {"quote": "Tvůj čas vypršel", "film": "Piráti z Karibiku", "year": "2003", "hint": "Piráti z K______"},
+        {"quote": "Ale rum jste vzali, ne?", "film": "Piráti z Karibiku", "year": "2003", "hint": "Piráti z K______"},
+        {"quote": "Jsem kapitán Jack Sparrow!", "film": "Piráti z Karibiku", "year": "2003", "hint": "Piráti z K______"},
+        {"quote": "Já jsem Batman", "film": "Batman", "year": "1989", "hint": "B_____"},
+        {"quote": "Volám se Neo", "film": "Matrix", "year": "1999", "hint": "M_____"},
+    ],
+    "horor": [
+        {"quote": "Jsou tady!", "film": "Poltergeist", "year": "1982", "hint": "P__________"},
+        {"quote": "Jaký je tvůj oblíbený strašidelný film?", "film": "Vřískot", "year": "1996", "hint": "V______"},
+        {"quote": "Všichni tu dole plujeme", "film": "To", "year": "2017", "hint": "T_"},
+        {"quote": "Tady je Johnny!", "film": "Osvícení", "year": "1980", "hint": "O_______"},
+        {"quote": "Chci si zahrát hru", "film": "Saw", "year": "2004", "hint": "S__"},
+        {"quote": "Dá si krém do košíku", "film": "Mlčení jehňátek", "year": "1991", "hint": "Mlčení j_______"},
+        {"quote": "Jeden sčítač lidu mě chtěl testovat", "film": "Mlčení jehňátek", "year": "1991", "hint": "Mlčení j_______"},
+        {"quote": "Jdou si pro tebe, Barbaro!", "film": "Noc oživlých mrtvol", "year": "1968", "hint": "Noc oživlých m_____"},
+        {"quote": "Měj strach. Měj velký strach.", "film": "Moucha", "year": "1986", "hint": "M_____"},
+        {"quote": "Ať děláš co děláš, neusni", "film": "Noční můra v Elm Street", "year": "1984", "hint": "Noční m___ v E__ S_____"},
+        {"quote": "Je to živé! Je to živé!", "film": "Frankenstein", "year": "1931", "hint": "F___________"},
+        {"quote": "Sedm dní", "film": "Kruh", "year": "2002", "hint": "K___"},
+        {"quote": "Jsem tvůj největší fanoušek", "film": "Misery", "year": "1990", "hint": "M_____"},
+        # Nové horory
+        {"quote": "Nepodívej se, zůstaň zticha", "film": "Tiché místo", "year": "2018", "hint": "Tiché m____"},
+        {"quote": "Jeden, dva, Freddy jde", "film": "Noční můra v Elm Street", "year": "1984", "hint": "Noční m___ v E__ S_____"},
+        {"quote": "Chtěli jsme jen pomoct", "film": "Čelisti", "year": "1975", "hint": "Č______"},
+        {"quote": "Budeme potřebovat větší loď", "film": "Čelisti", "year": "1975", "hint": "Č______"},
+        {"quote": "Hej, pojď si hrát s námi", "film": "Osvícení", "year": "1980", "hint": "O_______"},
+        {"quote": "Rudrum", "film": "Osvícení", "year": "1980", "hint": "O_______"},
+        {"quote": "Zabiju tě, ty malá potvoro!", "film": "Dítě Rosemary", "year": "1968", "hint": "Dítě R_______"},
+        {"quote": "On je tady", "film": "Paranormal Activity", "year": "2007", "hint": "Paranormal A_______"},
+        {"quote": "Pomoz mi!", "film": "Vymítač ďábla", "year": "1973", "hint": "Vymítač ď_____"},
+        {"quote": "Tvá matka vaří peklo v pekle!", "film": "Vymítač ďábla", "year": "1973", "hint": "Vymítač ď_____"},
+        {"quote": "Něco tu není v pořádku", "film": "Sinister", "year": "2012", "hint": "S_______"},
+        {"quote": "Já tě vidím", "film": "V zajetí démonů", "year": "2013", "hint": "V zajetí d_____"},
+        {"quote": "Annabelle se vrací", "film": "Annabelle", "year": "2014", "hint": "A________"},
+    ],
+    "scifi": [
+        {"quote": "Promiň Dave, to nemůžu udělat", "film": "2001: Vesmírná odysea", "year": "1968", "hint": "2001: Vesmírná o_____"},
+        {"quote": "E.T. domů volat", "film": "E.T. Mimozemšťan", "year": "1982", "hint": "E.T. M__________"},
+        {"quote": "Já se vrátím", "film": "Terminátor", "year": "1984", "hint": "T________"},
+        {"quote": "Matrix tě má", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Žádná lžíce není", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Probuď se, Neo", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Odpor je marný", "film": "Star Trek", "year": "1996", "hint": "Star T___"},
+        {"quote": "Žij dlouho a blaze", "film": "Star Trek", "year": "1966", "hint": "Star T___"},
+        {"quote": "Ve vesmíru tě nikdo neslyší křičet", "film": "Vetřelec", "year": "1979", "hint": "V______"},
+        {"quote": "Konec hry, chlape! Konec hry!", "film": "Vetřelci", "year": "1986", "hint": "V______"},
+        {"quote": "Zůstaň na cíli!", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Udělej nebo neudělej. Žádné zkusit není.", "film": "Star Wars", "year": "1980", "hint": "Star W___"},
+        {"quote": "Tvůj nedostatek víry mě znepokojuje", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Tohle nejsou ti droidi, které hledáte", "film": "Star Wars", "year": "1977", "hint": "Star W___"},
+        {"quote": "Chytrá holka", "film": "Jurský park", "year": "1993", "hint": "Jurský p___"},
+        {"quote": "Život si najde cestu", "film": "Jurský park", "year": "1993", "hint": "Jurský p___"},
+        {"quote": "Držte se svých zadků", "film": "Jurský park", "year": "1993", "hint": "Jurský p___"},
+        {"quote": "Já jsem nevyhnutelný", "film": "Avengers: Endgame", "year": "2019", "hint": "Avengers: E______"},
+        {"quote": "Jsme v závěrečné hře", "film": "Avengers: Infinity War", "year": "2018", "hint": "Avengers: I_______ W__"},
+        # Nové sci-fi
+        {"quote": "Láska je jediná věc, co překoná čas", "film": "Interstellar", "year": "2014", "hint": "I___________"},
+        {"quote": "Nežijeme ve tmě, jsme tma", "film": "Interstellar", "year": "2014", "hint": "I___________"},
+        {"quote": "Murph!", "film": "Interstellar", "year": "2014", "hint": "I___________"},
+        {"quote": "Zrodil jsem se připraven", "film": "Blade Runner", "year": "1982", "hint": "Blade R_____"},
+        {"quote": "Viděl jsem věci, kterým byste nevěřili", "film": "Blade Runner", "year": "1982", "hint": "Blade R_____"},
+        {"quote": "Čas zemřít", "film": "Blade Runner", "year": "1982", "hint": "Blade R_____"},
+        {"quote": "Probuď se, samuráji", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Já vím kung-fu", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Sleduj bílého králíka", "film": "Matrix", "year": "1999", "hint": "M_____"},
+        {"quote": "Toto je konec, příteli", "film": "Avatar", "year": "2009", "hint": "A_____"},
+        {"quote": "Vidím tě", "film": "Avatar", "year": "2009", "hint": "A_____"},
+        {"quote": "Propojíme se", "film": "Avatar", "year": "2009", "hint": "A_____"},
+        {"quote": "Pošlu tě do minulosti", "film": "X-Men: Budoucí minulost", "year": "2014", "hint": "X-Men: B______ m_______"},
+        {"quote": "Mutanti jsou budoucnost", "film": "X-Men", "year": "2000", "hint": "X-M__"},
+        {"quote": "Tenhle kopec byl můj domov", "film": "WALL-E", "year": "2008", "hint": "WALL-_"},
+        {"quote": "Eva!", "film": "WALL-E", "year": "2008", "hint": "WALL-_"},
+    ]
+}
+
+# ============== PRAVDA/LEŽ KVÍZ ==============
+
+FACTS_DATABASE = [
+    # Zvířata - PRAVDA
+    {"fact": "Srdce garnáta je v jeho hlavě", "answer": True, "category": "zvířata"},
+    {"fact": "Krávy mají nejlepší kamarády a stresují se, když jsou od sebe odděleny", "answer": True, "category": "zvířata"},
+    {"fact": "Chobotnice mají tři srdce", "answer": True, "category": "zvířata"},
+    {"fact": "Hlemýždi mohou spát až 3 roky", "answer": True, "category": "zvířata"},
+    {"fact": "Slon je jediné zvíře, které neumí skákat", "answer": True, "category": "zvířata"},
+    {"fact": "Krokodýl nedokáže vypláznou jazyk", "answer": True, "category": "zvířata"},
+    {"fact": "Motýli ochutnávají nohama", "answer": True, "category": "zvířata"},
+    {"fact": "Plameňáci se rodí růžoví", "answer": False, "category": "zvířata"},
+    {"fact": "Pštrosi strkají hlavu do písku, když mají strach", "answer": False, "category": "zvířata"},
+    {"fact": "Netopýři jsou slepí", "answer": False, "category": "zvířata"},
+    {"fact": "Zlaté rybky mají paměť jen 3 sekundy", "answer": False, "category": "zvířata"},
+    {"fact": "Kočky mají 9 životů", "answer": False, "category": "zvířata"},
+    {"fact": "Delfíni spí s jedním okem otevřeným", "answer": True, "category": "zvířata"},
+    {"fact": "Koaly mají otisky prstů podobné lidským", "answer": True, "category": "zvířata"},
+    {"fact": "Žirafy nemají hlasivky a jsou úplně němé", "answer": False, "category": "zvířata"},
+    {"fact": "Včely umí rozpoznat lidské tváře", "answer": True, "category": "zvířata"},
+    {"fact": "Tučňáci mají kolena", "answer": True, "category": "zvířata"},
+    {"fact": "Pavouci mají 6 nohou", "answer": False, "category": "zvířata"},
+    
+    # Věda - PRAVDA
+    {"fact": "Blesk může udeřit dvakrát na stejné místo", "answer": True, "category": "věda"},
+    {"fact": "Lidské tělo obsahuje dost uhlíku na výrobu 9000 tužek", "answer": True, "category": "věda"},
+    {"fact": "Voda může být současně v kapalném i plynném stavu", "answer": True, "category": "věda"},
+    {"fact": "Banány jsou radioaktivní", "answer": True, "category": "věda"},
+    {"fact": "Sklo je ve skutečnosti tekutina", "answer": False, "category": "věda"},
+    {"fact": "Měsíc má vlastní světlo", "answer": False, "category": "věda"},
+    {"fact": "Hvězda, kterou vidíme, už možná neexistuje", "answer": True, "category": "věda"},
+    {"fact": "Na Venuši trvá den déle než rok", "answer": True, "category": "věda"},
+    {"fact": "Lidé používají jen 10% svého mozku", "answer": False, "category

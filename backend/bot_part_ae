@@ -1,0 +1,651 @@
+": "věda"},
+    {"fact": "Velká čínská zeď je vidět z vesmíru pouhým okem", "answer": False, "category": "věda"},
+    {"fact": "Diamant lze zničit ohněm", "answer": True, "category": "věda"},
+    {"fact": "Horká voda zamrzá rychleji než studená", "answer": True, "category": "věda"},
+    {"fact": "Severní pól má pevninu pod ledem", "answer": False, "category": "věda"},
+    {"fact": "Saturn by plaval ve vodě, kdyby byla dostatečně velká nádoba", "answer": True, "category": "věda"},
+    {"fact": "Na Marsu jsou sopky větší než Mount Everest", "answer": True, "category": "věda"},
+    {"fact": "Člověk může přežít ve vesmíru 2 minuty bez skafandru", "answer": False, "category": "věda"},
+    
+    # Historie
+    {"fact": "Kleopatra žila blíže k přistání na Měsíci než ke stavbě pyramid", "answer": True, "category": "historie"},
+    {"fact": "Vikingové nosili rohaté helmy", "answer": False, "category": "historie"},
+    {"fact": "Napoleon byl velmi malý", "answer": False, "category": "historie"},
+    {"fact": "Oxford univerzita je starší než Aztécká říše", "answer": True, "category": "historie"},
+    {"fact": "Albert Einstein propadl z matematiky", "answer": False, "category": "historie"},
+    {"fact": "Ve starověkém Římě existovala bohyně kanalizace", "answer": True, "category": "historie"},
+    {"fact": "Pyramidy byly původně bílé a lesklé", "answer": True, "category": "historie"},
+    {"fact": "Poslední poprava gilotinou ve Francii byla v roce 1977", "answer": True, "category": "historie"},
+    {"fact": "Coca-Cola byla původně zelená", "answer": False, "category": "historie"},
+    {"fact": "Titanic byl první loď, která použila SOS signál", "answer": False, "category": "historie"},
+    {"fact": "Česká republika má více hradů na km² než jakákoli jiná země", "answer": True, "category": "historie"},
+    {"fact": "První programátor na světě byla žena", "answer": True, "category": "historie"},
+    {"fact": "Edison vynalezl žárovku", "answer": False, "category": "historie"},
+    {"fact": "Čínská zeď je vidět z Měsíce", "answer": False, "category": "historie"},
+    
+    # Lidské tělo
+    {"fact": "Lidský nos dokáže rozpoznat bilion různých vůní", "answer": True, "category": "tělo"},
+    {"fact": "Nehty na rukou rostou rychleji než na nohou", "answer": True, "category": "tělo"},
+    {"fact": "Žaludek vytváří novou výstelku každé 3-4 dny", "answer": True, "category": "tělo"},
+    {"fact": "Člověk má víc než 5 smyslů", "answer": True, "category": "tělo"},
+    {"fact": "Krev je modrá, dokud se nedostane do kontaktu s kyslíkem", "answer": False, "category": "tělo"},
+    {"fact": "Vlasy rostou po smrti", "answer": False, "category": "tělo"},
+    {"fact": "Jazyk je nejsilnější sval v těle", "answer": False, "category": "tělo"},
+    {"fact": "Lidé mají unikátní otisk jazyka, jako otisky prstů", "answer": True, "category": "tělo"},
+    {"fact": "Dospělý člověk má 206 kostí", "answer": True, "category": "tělo"},
+    {"fact": "Novorozenec má více kostí než dospělý", "answer": True, "category": "tělo"},
+    {"fact": "Mozek necítí bolest", "answer": True, "category": "tělo"},
+    {"fact": "Člověk denně vytvoří 1-2 litry slin", "answer": True, "category": "tělo"},
+    {"fact": "Srdce bije i mimo tělo", "answer": True, "category": "tělo"},
+    {"fact": "Člověk se rodí bez koleních čéšek", "answer": True, "category": "tělo"},
+    
+    # Jídlo
+    {"fact": "Med nikdy nezkazí", "answer": True, "category": "jídlo"},
+    {"fact": "Rajčata jsou ovoce", "answer": True, "category": "jídlo"},
+    {"fact": "Jahody nejsou bobule, ale banány ano", "answer": True, "category": "jídlo"},
+    {"fact": "Arašídy jsou ořechy", "answer": False, "category": "jídlo"},
+    {"fact": "Wasabi, které dostanete v restauraci, je obvykle křen s barvivem", "answer": True, "category": "jídlo"},
+    {"fact": "Bílá čokoláda obsahuje čokoládu", "answer": False, "category": "jídlo"},
+    {"fact": "Kečup byl kdysi prodáván jako lék", "answer": True, "category": "jídlo"},
+    {"fact": "Muškátový oříšek ve velkém množství způsobuje halucinace", "answer": True, "category": "jídlo"},
+    {"fact": "Avokádo je ovoce", "answer": True, "category": "jídlo"},
+    {"fact": "Pomeranče se jmenují podle barvy", "answer": False, "category": "jídlo"},
+    {"fact": "Pálivost chilli papriček se měří ve Scoville jednotkách", "answer": True, "category": "jídlo"},
+    {"fact": "Brambory mají více chromozomů než člověk", "answer": True, "category": "jídlo"},
+    
+    # Česko
+    {"fact": "Praha je starší než Vídeň", "answer": True, "category": "česko"},
+    {"fact": "Češi pijí nejvíce piva na světě na osobu", "answer": True, "category": "česko"},
+    {"fact": "Slovo robot vymyslel Karel Čapek", "answer": False, "category": "česko"},
+    {"fact": "Kontaktní čočky vynalezl Čech", "answer": True, "category": "česko"},
+    {"fact": "Česká republika nemá moře", "answer": True, "category": "česko"},
+    {"fact": "Karlův most byl postaven za vlády Karla IV.", "answer": True, "category": "česko"},
+    {"fact": "Semtex byl vynalezen v Česku", "answer": True, "category": "česko"},
+    {"fact": "Kostka cukru byla vynalezena v Česku", "answer": True, "category": "česko"},
+    {"fact": "Václavské náměstí je ve skutečnosti bulvár, ne náměstí", "answer": True, "category": "česko"},
+    {"fact": "Česká hymna má jen jednu sloku", "answer": True, "category": "česko"},
+    {"fact": "Pražský orloj je nejstarší fungující astronomické hodiny na světě", "answer": True, "category": "česko"},
+    {"fact": "Slovo dolar pochází z českého tolaru", "answer": True, "category": "česko"},
+    
+    # Zábavné/Bizarní
+    {"fact": "V Japonsku existuje ostrov plný králíků", "answer": True, "category": "bizarní"},
+    {"fact": "Ve Švýcarsku je nelegální mít jen jednoho morčete", "answer": True, "category": "bizarní"},
+    {"fact": "Kachny kvákání nevytváří ozvěnu", "answer": False, "category": "bizarní"},
+    {"fact": "McDonald's prodává v Indii hovězí burgery", "answer": False, "category": "bizarní"},
+    {"fact": "LEGO vyrábí více pneumatik ročně než jakákoli jiná firma", "answer": True, "category": "bizarní"},
+    {"fact": "Twitter logo ptáček se jmenuje Larry", "answer": True, "category": "bizarní"},
+    {"fact": "Barbie má příjmení Roberts", "answer": True, "category": "bizarní"},
+    {"fact": "V angličtině existuje slovo pro strach z dlouhých slov", "answer": True, "category": "bizarní"},
+    {"fact": "Jazykolam je hippopotomonstrosesquipedaliofóbie", "answer": True, "category": "bizarní"},
+    {"fact": "Nintendo bylo založeno v roce 1889", "answer": True, "category": "bizarní"},
+    {"fact": "Průměrný člověk sní za život 8 pavouků ve spánku", "answer": False, "category": "bizarní"},
+    {"fact": "V Norsku existuje město s názvem Hell", "answer": True, "category": "bizarní"},
+    {"fact": "Kečup teče rychlostí 40 km za hodinu", "answer": False, "category": "bizarní"},
+    {"fact": "Emoji pro tvář s potem 😅 původně znamenalo úlevu, ne nervozitu", "answer": True, "category": "bizarní"},
+]
+
+# Active pravda/lež games
+active_truth_games = {}
+
+class TruthView(discord.ui.View):
+    def __init__(self, channel_id: int, correct_answer: bool, fact_text: str):
+        super().__init__(timeout=30)
+        self.channel_id = channel_id
+        self.correct_answer = correct_answer
+        self.fact_text = fact_text
+        self.answered_users = {}  # {user_id: {"name": name, "answer": bool}}
+    
+    @discord.ui.button(label="✅ PRAVDA", style=discord.ButtonStyle.success, custom_id="truth_true")
+    async def truth_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_answer(interaction, True)
+    
+    @discord.ui.button(label="❌ LEŽ", style=discord.ButtonStyle.danger, custom_id="truth_false")
+    async def lie_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.handle_answer(interaction, False)
+    
+    async def handle_answer(self, interaction: discord.Interaction, user_answer: bool):
+        user_id = interaction.user.id
+        
+        if user_id in self.answered_users:
+            await interaction.response.send_message("❌ Už jsi odpověděl/a!", ephemeral=True)
+            return
+        
+        self.answered_users[user_id] = {
+            "name": interaction.user.display_name,
+            "answer": user_answer
+        }
+        
+        is_correct = user_answer == self.correct_answer
+        
+        if is_correct:
+            await interaction.response.send_message("✅ Správně! Počkej na výsledky...", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Špatně! Počkej na výsledky...", ephemeral=True)
+    
+    async def on_timeout(self):
+        # This is handled by the game loop
+        pass
+
+async def run_truth_game(channel, message, view: TruthView, fact_data: dict, guild_id: int):
+    """Wait for answers and show results"""
+    await asyncio.sleep(15)  # Wait 15 seconds for answers
+    
+    # Disable buttons
+    for item in view.children:
+        item.disabled = True
+    
+    # Count results and give XP
+    correct_users = []
+    wrong_users = []
+    
+    for user_id, data in view.answered_users.items():
+        if data["answer"] == view.correct_answer:
+            correct_users.append(data["name"])
+            # Add XP for correct answer
+            await add_xp(guild_id, user_id, data["name"], XP_REWARDS["truth_correct"], channel)
+            increment_stats(guild_id, user_id, correct=True)
+        else:
+            wrong_users.append(data["name"])
+            increment_stats(guild_id, user_id, correct=False)
+    
+    answer_text = "✅ PRAVDA" if view.correct_answer else "❌ LEŽ"
+    
+    embed = discord.Embed(
+        title="🎯 VÝSLEDKY",
+        description=f"**{view.fact_text}**",
+        color=discord.Color.green() if view.correct_answer else discord.Color.red()
+    )
+    embed.add_field(name="Správná odpověď", value=answer_text, inline=False)
+    
+    if correct_users:
+        embed.add_field(name=f"✅ Správně ({len(correct_users)}) +{XP_REWARDS['truth_correct']} XP", value=", ".join(correct_users[:15]) or "Nikdo", inline=True)
+    if wrong_users:
+        embed.add_field(name=f"❌ Špatně ({len(wrong_users)})", value=", ".join(wrong_users[:15]) or "Nikdo", inline=True)
+    
+    if not view.answered_users:
+        embed.add_field(name="😢", value="Nikdo neodpověděl!", inline=False)
+    
+    embed.set_footer(text=f"Kategorie: {fact_data.get('category', 'obecné')}")
+    
+    try:
+        await message.edit(embed=embed, view=view)
+    except:
+        pass
+    
+    # Cleanup
+    if channel.id in active_truth_games:
+        del active_truth_games[channel.id]
+
+@bot.tree.command(name="pravda", description="Pravda nebo lež? Hádej jestli je fakt pravdivý!")
+@app_commands.describe(kategorie="Vyber kategorii faktů")
+@app_commands.choices(kategorie=[
+    app_commands.Choice(name="🐾 Zvířata", value="zvířata"),
+    app_commands.Choice(name="🔬 Věda", value="věda"),
+    app_commands.Choice(name="📜 Historie", value="historie"),
+    app_commands.Choice(name="🫀 Lidské tělo", value="tělo"),
+    app_commands.Choice(name="🍕 Jídlo", value="jídlo"),
+    app_commands.Choice(name="🇨🇿 Česko", value="česko"),
+    app_commands.Choice(name="🤪 Bizarní", value="bizarní"),
+    app_commands.Choice(name="🎲 Náhodné", value="random"),
+])
+async def slash_pravda(interaction: discord.Interaction, kategorie: str = "random"):
+    # Check permission from database
+    if not await check_command_permission(interaction, "pravda"):
+        return
+    
+    import random
+    
+    channel_id = interaction.channel_id
+    
+    if channel_id in active_truth_games:
+        await interaction.response.send_message("❌ V tomto kanálu už běží hra! Počkej na výsledky.", ephemeral=True)
+        return
+    
+    # Filter facts by category
+    if kategorie == "random":
+        available_facts = FACTS_DATABASE
+    else:
+        available_facts = [f for f in FACTS_DATABASE if f.get("category") == kategorie]
+    
+    if not available_facts:
+        available_facts = FACTS_DATABASE
+    
+    fact_data = random.choice(available_facts)
+    
+    active_truth_games[channel_id] = True
+    
+    view = TruthView(channel_id, fact_data["answer"], fact_data["fact"])
+    
+    category_names = {
+        "zvířata": "🐾 Zvířata", "věda": "🔬 Věda", "historie": "📜 Historie",
+        "tělo": "🫀 Lidské tělo", "jídlo": "🍕 Jídlo", "česko": "🇨🇿 Česko",
+        "bizarní": "🤪 Bizarní"
+    }
+    
+    embed = discord.Embed(
+        title="🤔 PRAVDA NEBO LEŽ?",
+        description=f"**{fact_data['fact']}**",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="📁 Kategorie", value=category_names.get(fact_data.get("category"), "Obecné"), inline=True)
+    embed.add_field(name="⏰ Čas", value="15 sekund", inline=True)
+    embed.set_footer(text="Klikni na tlačítko pro odpověď!")
+    
+    await interaction.response.send_message(embed=embed, view=view)
+    message = await interaction.original_response()
+    
+    # Start game loop
+    asyncio.create_task(run_truth_game(interaction.channel, message, view, fact_data, interaction.guild_id))
+
+@bot.command(name="pravda", aliases=["pn", "fact", "fakt"])
+async def prefix_pravda(ctx, kategorie: str = "random"):
+    """!pravda [kategorie] - Pravda nebo lež hra"""
+    import random
+    
+    channel_id = ctx.channel.id
+    
+    if channel_id in active_truth_games:
+        await ctx.send("❌ V tomto kanálu už běží hra! Počkej na výsledky.")
+        return
+    
+    # Map category aliases
+    category_map = {
+        "zvirata": "zvířata", "zvířata": "zvířata", "animals": "zvířata",
+        "veda": "věda", "věda": "věda", "science": "věda",
+        "historie": "historie", "history": "historie",
+        "telo": "tělo", "tělo": "tělo", "body": "tělo",
+        "jidlo": "jídlo", "jídlo": "jídlo", "food": "jídlo",
+        "cesko": "česko", "česko": "česko", "cz": "česko",
+        "bizarni": "bizarní", "bizarní": "bizarní", "weird": "bizarní",
+        "random": "random", "nahodne": "random"
+    }
+    
+    kategorie = category_map.get(kategorie.lower(), "random")
+    
+    if kategorie == "random":
+        available_facts = FACTS_DATABASE
+    else:
+        available_facts = [f for f in FACTS_DATABASE if f.get("category") == kategorie]
+    
+    if not available_facts:
+        available_facts = FACTS_DATABASE
+    
+    fact_data = random.choice(available_facts)
+    
+    active_truth_games[channel_id] = True
+    
+    view = TruthView(channel_id, fact_data["answer"], fact_data["fact"])
+    
+    category_names = {
+        "zvířata": "🐾 Zvířata", "věda": "🔬 Věda", "historie": "📜 Historie",
+        "tělo": "🫀 Lidské tělo", "jídlo": "🍕 Jídlo", "česko": "🇨🇿 Česko",
+        "bizarní": "🤪 Bizarní"
+    }
+    
+    embed = discord.Embed(
+        title="🤔 PRAVDA NEBO LEŽ?",
+        description=f"**{fact_data['fact']}**",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="📁 Kategorie", value=category_names.get(fact_data.get("category"), "Obecné"), inline=True)
+    embed.add_field(name="⏰ Čas", value="15 sekund", inline=True)
+    embed.set_footer(text="Klikni na tlačítko pro odpověď!")
+    
+    message = await ctx.send(embed=embed, view=view)
+    
+    asyncio.create_task(run_truth_game(ctx.channel, message, view, fact_data, ctx.guild.id))
+
+# Active film quizzes
+active_film_quiz = {}
+
+@bot.tree.command(name="film", description="Spusť filmový kvíz - hádej film!")
+@app_commands.describe(zanr="Vyber žánr filmů")
+@app_commands.choices(zanr=[
+    app_commands.Choice(name="🇨🇿 České filmy", value="ceske"),
+    app_commands.Choice(name="🎬 Hollywood", value="hollywood"),
+    app_commands.Choice(name="😂 Komedie", value="komedie"),
+    app_commands.Choice(name="💥 Akční", value="akcni"),
+    app_commands.Choice(name="👻 Horor", value="horor"),
+    app_commands.Choice(name="🚀 Sci-Fi", value="scifi"),
+    app_commands.Choice(name="🎲 Náhodný", value="random"),
+])
+async def slash_film(interaction: discord.Interaction, zanr: str = "random"):
+    # Check permission from database
+    if not await check_command_permission(interaction, "film"):
+        return
+    
+    channel_id = interaction.channel_id
+    guild_id = interaction.guild_id
+    
+    if channel_id in active_film_quiz and active_film_quiz[channel_id].get("active"):
+        await interaction.response.send_message("❌ V tomto kanálu už běží filmový kvíz!", ephemeral=True)
+        return
+    
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
+    
+    active_film_quiz[channel_id] = {
+        "active": True,
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
+    }
+    
+    genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
+    
+    embed = discord.Embed(
+        title="🎬 FILMOVÝ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
+        color=discord.Color.red()
+    )
+    embed.add_field(name="🎞️ Žánr", value=genre_names.get(zanr, "NÁHODNÝ"), inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš název filmu do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
+    
+    await interaction.response.send_message(embed=embed)
+    await asyncio.sleep(3)
+    
+    await run_film_quiz(interaction.channel, channel_id)
+
+async def run_film_quiz(channel, channel_id: int):
+    """Run multiple rounds of film quiz"""
+    import random
+    
+    quiz_data = active_film_quiz.get(channel_id)
+    if not quiz_data:
+        return
+    
+    genre = quiz_data["genre"]
+    total_rounds = quiz_data["total_rounds"]
+    quiz_time = quiz_data["quiz_time"]
+    genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
+    
+    for round_num in range(1, total_rounds + 1):
+        if channel_id not in active_film_quiz:
+            return
+        
+        quiz_data = active_film_quiz[channel_id]
+        quiz_data["current_round"] = round_num
+        quiz_data["answered"] = False
+        
+        current_genre = genre if genre != "random" else random.choice(list(FILM_DATABASE.keys()))
+        film_data = random.choice(FILM_DATABASE[current_genre])
+        
+        quiz_data["current_question"] = {
+            "film": film_data["film"],
+            "year": film_data["year"],
+            "hint": film_data["hint"]
+        }
+        
+        embed = discord.Embed(
+            title=f"🎬 OTÁZKA {round_num}/{total_rounds}",
+            description="**Hádej film!**",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="🎤 Slavná hláška", value=f"*\"{film_data['quote']}\"*", inline=False)
+        embed.add_field(name="💡 Nápověda", value=f"`{film_data['hint']}`", inline=True)
+        embed.add_field(name="📅 Rok", value=film_data['year'], inline=True)
+        embed.add_field(name="🎞️ Žánr", value=genre_names.get(current_genre, current_genre), inline=True)
+        embed.add_field(name="⏰ Čas", value=f"{quiz_time}s", inline=True)
+        
+        await channel.send(embed=embed)
+        
+        elapsed = 0
+        while elapsed < quiz_time:
+            await asyncio.sleep(0.5)
+            elapsed += 0.5
+            
+            quiz_data = active_film_quiz.get(channel_id)
+            if not quiz_data:
+                return
+            if quiz_data.get("answered"):
+                break
+        
+        quiz_data = active_film_quiz.get(channel_id)
+        if not quiz_data:
+            return
+        
+        if not quiz_data["answered"]:
+            embed = discord.Embed(
+                title="⏰ ČAS VYPRŠEL!",
+                description=f"Správná odpověď: **{film_data['film']}** ({film_data['year']})",
+                color=discord.Color.orange()
+            )
+            await channel.send(embed=embed)
+        
+        if round_num < total_rounds:
+            await channel.send(f"⏳ **Další otázka za 3 sekundy...**")
+            await asyncio.sleep(3)
+    
+    # Quiz finished
+    quiz_data = active_film_quiz.get(channel_id)
+    if quiz_data:
+        scores = quiz_data.get("scores", {})
+        
+        if scores:
+            sorted_scores = sorted(scores.items(), key=lambda x: x[1]["score"], reverse=True)
+            
+            medals = ["🥇", "🥈", "🥉"]
+            leaderboard = ""
+            for i, (user_id, data) in enumerate(sorted_scores[:10]):
+                medal = medals[i] if i < 3 else f"**{i+1}.**"
+                leaderboard += f"{medal} {data['name']} - **{data['score']} bodů**\n"
+            
+            embed = discord.Embed(
+                title="🏆 FILMOVÝ KVÍZ DOKONČEN!",
+                description=f"**Výsledky z {total_rounds} otázek:**",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="📊 Žebříček", value=leaderboard or "Nikdo neskóroval", inline=False)
+            
+            if sorted_scores:
+                winner_id, winner_data = sorted_scores[0]
+                embed.add_field(name="👑 Vítěz", value=f"**{winner_data['name']}** s {winner_data['score']} body!", inline=False)
+        else:
+            embed = discord.Embed(
+                title="🏆 FILMOVÝ KVÍZ DOKONČEN!",
+                description="Nikdo neuhodl žádnou otázku!",
+                color=discord.Color.orange()
+            )
+        
+        await channel.send(embed=embed)
+        
+        if channel_id in active_film_quiz:
+            del active_film_quiz[channel_id]
+
+@bot.command(name="film", aliases=["movie", "kino"])
+@commands.has_permissions(administrator=True)
+async def prefix_film(ctx, zanr: str = "random"):
+    """!film [ceske/hollywood/komedie/akcni/horor/scifi/random] - Filmový kvíz (Admin)"""
+    channel_id = ctx.channel.id
+    guild_id = ctx.guild.id
+    
+    if channel_id in active_film_quiz and active_film_quiz[channel_id].get("active"):
+        await ctx.send("❌ V tomto kanálu už běží filmový kvíz!")
+        return
+    
+    if zanr not in ["ceske", "hollywood", "komedie", "akcni", "horor", "scifi", "random"]:
+        zanr = "random"
+    
+    quiz_time = get_quiz_time(guild_id)
+    total_rounds = get_quiz_rounds(guild_id)
+    
+    active_film_quiz[channel_id] = {
+        "active": True,
+        "genre": zanr,
+        "current_round": 0,
+        "total_rounds": total_rounds,
+        "scores": {},
+        "current_question": None,
+        "answered": False,
+        "quiz_time": quiz_time,
+        "guild_id": guild_id
+    }
+    
+    genre_names = {"ceske": "🇨🇿 České", "hollywood": "🎬 Hollywood", "komedie": "😂 Komedie", "akcni": "💥 Akční", "horor": "👻 Horor", "scifi": "🚀 Sci-Fi"}
+    
+    embed = discord.Embed(
+        title="🎬 FILMOVÝ KVÍZ ZAČÍNÁ!",
+        description=f"**{total_rounds} otázek** | **{quiz_time}s na odpověď**",
+        color=discord.Color.red()
+    )
+    embed.add_field(name="🎞️ Žánr", value=genre_names.get(zanr, "NÁHODNÝ"), inline=True)
+    embed.add_field(name="📝 Pravidla", value="Napiš název filmu do chatu!", inline=False)
+    embed.set_footer(text="První otázka za 3 sekundy...")
+    
+    await ctx.send(embed=embed)
+    await asyncio.sleep(3)
+    
+    await run_film_quiz(ctx.channel, channel_id)
+
+@bot.tree.command(name="stop", description="Zastav běžící kvíz")
+async def slash_stop(interaction: discord.Interaction):
+    channel_id = interaction.channel_id
+    stopped = []
+    
+    if channel_id in active_music_quiz:
+        del active_music_quiz[channel_id]
+        stopped.append("🎵 Hudební kvíz")
+    
+    if channel_id in active_film_quiz:
+        del active_film_quiz[channel_id]
+        stopped.append("🎬 Filmový kvíz")
+    
+    if stopped:
+        await interaction.response.send_message(f"🛑 Zastaveno: {', '.join(stopped)}")
+    else:
+        await interaction.response.send_message("❌ Žádný kvíz neběží v tomto kanálu.", ephemeral=True)
+
+@bot.command(name="stop", aliases=["stophudba", "stopfilm"])
+async def prefix_stop_quiz(ctx):
+    """!stop - Zastav běžící kvíz"""
+    channel_id = ctx.channel.id
+    stopped = []
+    
+    if channel_id in active_music_quiz:
+        del active_music_quiz[channel_id]
+        stopped.append("🎵 Hudební kvíz")
+    
+    if channel_id in active_film_quiz:
+        del active_film_quiz[channel_id]
+        stopped.append("🎬 Filmový kvíz")
+    
+    if stopped:
+        await ctx.send(f"🛑 Zastaveno: {', '.join(stopped)}")
+    else:
+        await ctx.send("❌ Žádný kvíz neběží v tomto kanálu.")
+
+# Listen for quiz answers
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    
+    # Sledování zpráv pro statistiky
+    if message.guild:
+        increment_message_count(message.guild.id, message.author.id, message.author.display_name)
+    
+    # Skip if message is a command
+    if message.content.startswith('!'):
+        await bot.process_commands(message)
+        return
+    
+    channel_id = message.channel.id
+    
+    # Check for active FILM quiz
+    if channel_id in active_film_quiz:
+        quiz_data = active_film_quiz[channel_id]
+        
+        if quiz_data.get("active") and quiz_data.get("current_question") and not quiz_data.get("answered"):
+            user_answer = normalize_answer(message.content)
+            correct_film = normalize_answer(quiz_data["current_question"]["film"])
+            
+            # Check if answer matches
+            if len(user_answer) >= 3 and (correct_film in user_answer or user_answer in correct_film):
+                quiz_data["answered"] = True
+                
+                # Add score
+                user_id = message.author.id
+                if user_id not in quiz_data["scores"]:
+                    quiz_data["scores"][user_id] = {"name": message.author.display_name, "score": 0}
+                quiz_data["scores"][user_id]["score"] += 1
+                
+                current_score = quiz_data["scores"][user_id]["score"]
+                
+                # Add XP
+                guild_id = quiz_data.get("guild_id", message.guild.id)
+                await add_xp(guild_id, user_id, message.author.display_name, XP_REWARDS["quiz_correct"], message.channel)
+                increment_stats(guild_id, user_id, correct=True)
+                
+                embed = discord.Embed(
+                    title="🎉 SPRÁVNĚ!",
+                    description=f"**{message.author.display_name}** uhodl/a!",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="🎬 Film", value=quiz_data["current_question"]["film"], inline=True)
+                embed.add_field(name="📅 Rok", value=quiz_data["current_question"]["year"], inline=True)
+                embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
+                embed.add_field(name="✨ XP", value=f"+{XP_REWARDS['quiz_correct']} XP", inline=True)
+                embed.set_thumbnail(url=message.author.display_avatar.url)
+                
+                await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
+    
+    # Check for active MUSIC quiz
+    if channel_id in active_music_quiz:
+        quiz_data = active_music_quiz[channel_id]
+        
+        if quiz_data.get("active") and quiz_data.get("current_question") and not quiz_data.get("answered"):
+            user_answer = normalize_answer(message.content)
+            correct_artist = normalize_answer(quiz_data["current_question"]["artist"])
+            
+            # Check if answer matches
+            if len(user_answer) >= 3 and (correct_artist in user_answer or user_answer in correct_artist):
+                quiz_data["answered"] = True
+                
+                # Add score
+                user_id = message.author.id
+                if user_id not in quiz_data["scores"]:
+                    quiz_data["scores"][user_id] = {"name": message.author.display_name, "score": 0}
+                quiz_data["scores"][user_id]["score"] += 1
+                
+                current_score = quiz_data["scores"][user_id]["score"]
+                
+                # Add XP
+                guild_id = quiz_data.get("guild_id", message.guild.id)
+                await add_xp(guild_id, user_id, message.author.display_name, XP_REWARDS["quiz_correct"], message.channel)
+                increment_stats(guild_id, user_id, correct=True)
+                
+                embed = discord.Embed(
+                    title="🎉 SPRÁVNĚ!",
+                    description=f"**{message.author.display_name}** uhodl/a!",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="🎤 Interpret", value=quiz_data["current_question"]["artist"], inline=True)
+                embed.add_field(name="🎵 Píseň", value=quiz_data["current_question"]["song"], inline=True)
+                embed.add_field(name="📊 Skóre", value=f"{current_score} bodů", inline=True)
+                embed.add_field(name="✨ XP", value=f"+{XP_REWARDS['quiz_correct']} XP", inline=True)
+                embed.set_thumbnail(url=message.author.display_avatar.url)
+                
+                await message.channel.send(f"🏆 {message.author.mention}", embed=embed)
+    
+    await bot.process_commands(message)
+
+# ============== RUN BOT ==============
+
+if __name__ == "__main__":
+    import sys
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+    
+    token = os.environ.get('DISCORD_BOT_TOKEN')
+    if not token:
+        print("❌ DISCORD_BOT_TOKEN není nastaven!", flush=True)
+        exit(1)
+    
+    print("⚔️ Spouštím Valhalla Bot...", flush=True)
+    bot.run(token)
