@@ -650,6 +650,41 @@ async def discord_oauth_callback(request: Request):
             logger.error(f"OAuth error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/bot/settings/{guild_id}")
+async def get_guild_bot_settings(guild_id: str):
+    """Get bot settings for specific guild"""
+    settings = await db.guild_bot_settings.find_one(
+        {"guild_id": guild_id},
+        {"_id": 0}
+    )
+    
+    # Return default settings if none exist
+    if not settings:
+        return {
+            "guild_id": guild_id,
+            "notificationChannelId": "",
+            "pingRoleId": "",
+            "xpPerQuiz": 25,
+            "xpPerTruth": 15,
+            "xpPer10Min": 5,
+            "xpDailyLimit": 200,
+            "xpUnlockBonus": 25,
+            "dailyBonus": 100,
+            "streakBonus": 10,
+            "autoDeleteSeconds": 60,
+            "cmdHudba": True,
+            "cmdFilm": True,
+            "cmdPravda": True,
+            "cmdGamelevel": False,
+            "cmdTop": False,
+            "cmdDaily": False,
+            "cmdHry": False,
+            "cmdUkoly": False,
+            "cmdHerniinfo": True
+        }
+    
+    return settings
+
 @api_router.post("/bot/settings/{guild_id}")
 async def update_guild_bot_settings(guild_id: str, request: Request):
     """Update bot settings for specific guild"""
