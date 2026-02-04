@@ -1138,7 +1138,7 @@ async def play_command(interaction: discord.Interaction, url: str):
         }
         queue_data["current"] = song
         
-        source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
+        source = discord.FFmpegPCMAudio(url, executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS)
         source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
         voice_client.play(source)
         
