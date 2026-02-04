@@ -593,6 +593,170 @@ async def on_ready():
     except Exception as e:
         print(f'❌ Chyba při synchronizaci: {e}', flush=True)
 
+# ============== GIVEAWAY SYSTEM ==============
+
+active_giveaways = {}
+
+class GiveawayView(discord.ui.View):
+    def __init__(self, giveaway_id: str, prize: str, end_time: datetime, host_id: int):
+        super().__init__(timeout=None)
+        self.giveaway_id = giveaway_id
+        self.prize = prize
+        self.end_time = end_time
+        self.host_id = host_id
+        self.participants = set()
+    
+    @discord.ui.button(label="🎉 Zúčastnit se", style=discord.ButtonStyle.green, custom_id="giveaway_join")
+    async def join_giveaway(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = interaction.user.id
+        
+        if user_id in self.participants:
+            self.participants.discard(user_id)
+            await interaction.response.send_message("❌ Odhlásil ses ze soutěže!", ephemeral=True)
+        else:
+            self.participants.add(user_id)
+            await interaction.response.send_message("✅ Jsi přihlášen do soutěže! Hodně štěstí! 🍀", ephemeral=True)
+        
+        # Update embed with participant count
+        await self.update_embed(interaction.message)
+    
+    async def update_embed(self, message):
+        embed = message.embeds[0]
+        embed.set_field_at(1, name="👥 Účastníků", value=str(len(self.participants)), inline=True)
+        await message.edit(embed=embed)
+
+@bot.tree.command(name="giveaway", description="Vytvoř novou soutěž (jen admin)")
+@app_commands.describe(
+    cas="Doba trvání soutěže (např. 1h, 1d, 7d)",
+    vyhry="Počet výherců",
+    cena="Co se vyhrává"
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def giveaway_command(interaction: discord.Interaction, cas: str, vyhry: int, cena: str):
+    """Vytvoří novou giveaway soutěž"""
+    seconds = parse_time(cas)
+    
+    if seconds is None:
+        await interaction.response.send_message("❌ Neplatný formát času! Použij např. 1h, 1d, 7d", ephemeral=True)
+        return
+    
+    if vyhry < 1:
+        await interaction.response.send_message("❌ Počet výherců musí být alespoň 1!", ephemeral=True)
+        return
+    
+    end_time = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+    giveaway_id = f"{interaction.guild_id}_{interaction.channel_id}_{int(datetime.now().timestamp())}"
+    
+    # Create embed
+    embed = discord.Embed(
+        title="🎁 GIVEAWAY!",
+        description=f"**{cena}**",
+        color=discord.Color.gold()
+    )
+    embed.add_field(name="🏆 Počet výherců", value=str(vyhry), inline=True)
+    embed.add_field(name="👥 Účastníků", value="0", inline=True)
+    embed.add_field(name="⏰ Končí", value=f"<t:{int(end_time.timestamp())}:R>", inline=True)
+    embed.add_field(name="🎮 Hostitel", value=interaction.user.mention, inline=False)
+    embed.set_footer(text="Klikni na tlačítko pro účast!")
+    
+    # Create view
+    view = GiveawayView(giveaway_id, cena, end_time, interaction.user.id)
+    view.winners_count = vyhry
+    
+    await interaction.response.send_message(embed=embed, view=view)
+    message = await interaction.original_response()
+    
+    # Store giveaway
+    active_giveaways[giveaway_id] = {
+        "message_id": message.id,
+        "channel_id": interaction.channel_id,
+        "guild_id": interaction.guild_id,
+        "prize": cena,
+        "winners_count": vyhry,
+        "end_time": end_time,
+        "host_id": interaction.user.id,
+        "view": view
+    }
+    
+    # Schedule end
+    bot.loop.create_task(end_giveaway_after(giveaway_id, seconds))
+
+async def end_giveaway_after(giveaway_id: str, seconds: int):
+    """End giveaway after specified time"""
+    await asyncio.sleep(seconds)
+    await end_giveaway(giveaway_id)
+
+async def end_giveaway(giveaway_id: str):
+    """End a giveaway and pick winners"""
+    if giveaway_id not in active_giveaways:
+        return
+    
+    giveaway = active_giveaways[giveaway_id]
+    view = giveaway["view"]
+    
+    channel = bot.get_channel(giveaway["channel_id"])
+    if not channel:
+        return
+    
+    try:
+        message = await channel.fetch_message(giveaway["message_id"])
+    except:
+        return
+    
+    participants = list(view.participants)
+    winners_count = min(giveaway["winners_count"], len(participants))
+    
+    if winners_count == 0:
+        # No participants
+        embed = discord.Embed(
+            title="🎁 GIVEAWAY UKONČEN",
+            description=f"**{giveaway['prize']}**\n\n😢 Nikdo se nezúčastnil!",
+            color=discord.Color.red()
+        )
+        await message.edit(embed=embed, view=None)
+    else:
+        # Pick winners
+        import random
+        winners = random.sample(participants, winners_count)
+        winners_mentions = ", ".join([f"<@{w}>" for w in winners])
+        
+        embed = discord.Embed(
+            title="🎉 GIVEAWAY UKONČEN!",
+            description=f"**{giveaway['prize']}**",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🏆 Výherci", value=winners_mentions, inline=False)
+        embed.add_field(name="👥 Celkem účastníků", value=str(len(participants)), inline=True)
+        
+        await message.edit(embed=embed, view=None)
+        
+        # Announce winners
+        await channel.send(f"🎉 Gratulujeme {winners_mentions}! Vyhráli jste **{giveaway['prize']}**!")
+    
+    # Remove from active
+    del active_giveaways[giveaway_id]
+
+@bot.tree.command(name="greroll", description="Znovu vylosuj výherce (jen admin)")
+@app_commands.describe(message_id="ID zprávy s giveaway")
+@app_commands.checks.has_permissions(administrator=True)
+async def giveaway_reroll(interaction: discord.Interaction, message_id: str):
+    """Reroll giveaway winners"""
+    try:
+        message = await interaction.channel.fetch_message(int(message_id))
+    except:
+        await interaction.response.send_message("❌ Zpráva nenalezena!", ephemeral=True)
+        return
+    
+    # Find giveaway in history or just pick random from reactions
+    await interaction.response.send_message("🎲 Funkce reroll bude brzy dostupná!", ephemeral=True)
+
+@giveaway_command.error
+async def giveaway_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("❌ Pouze administrátor může vytvářet soutěže!", ephemeral=True)
+    else:
+        await interaction.response.send_message(f"❌ Chyba: {error}", ephemeral=True)
+
 # ============== COUNTDOWN COMMANDS ==============
 
 @bot.tree.command(name="odpocet", description="Spusť odpočet (např. 2m, 5m, 1h)")
