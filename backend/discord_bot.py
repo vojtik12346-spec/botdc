@@ -619,13 +619,15 @@ def get_server_stats(guild_id: int) -> dict:
 
 def increment_message_count(guild_id: int, user_id: int, user_name: str):
     """Přidej zprávu do statistik"""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     server_stats_collection.update_one(
         {"guild_id": guild_id},
         {
             "$inc": {
                 "total_messages": 1,
                 "daily_messages": 1,
-                f"user_messages.{user_id}": 1
+                f"user_messages.{user_id}": 1,
+                f"daily_user_messages.{today}.{user_id}": 1
             },
             "$set": {
                 f"user_names.{user_id}": user_name
@@ -636,13 +638,15 @@ def increment_message_count(guild_id: int, user_id: int, user_name: str):
 
 def add_voice_time(guild_id: int, user_id: int, user_name: str, minutes: int):
     """Přidej voice čas do statistik"""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     server_stats_collection.update_one(
         {"guild_id": guild_id},
         {
             "$inc": {
                 "total_voice_minutes": minutes,
                 "daily_voice": minutes,
-                f"user_voice.{user_id}": minutes
+                f"user_voice.{user_id}": minutes,
+                f"daily_user_voice.{today}.{user_id}": minutes
             },
             "$set": {
                 f"user_names.{user_id}": user_name
@@ -698,11 +702,46 @@ async def on_voice_state_update(member, before, after):
                 "guild_id": guild_id
             }
 
-@bot.tree.command(name="serverstats", description="Zobraz statistiky serveru (jen admin)")
-@app_commands.checks.has_permissions(administrator=True)
-async def server_stats_command(interaction: discord.Interaction):
-    """Zobrazí statistiky serveru"""
-    guild = interaction.guild
+class ServerStatsView(discord.ui.View):
+    def __init__(self, guild_id: int, period: int = 1):
+        super().__init__(timeout=300)
+        self.guild_id = guild_id
+        self.period = period  # 1, 7, 30 dnů
+    
+    @discord.ui.button(label="1 den", style=discord.ButtonStyle.secondary, custom_id="stats_1d", emoji="📊")
+    async def stats_1d(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.period = 1
+        await self.update_stats(interaction)
+    
+    @discord.ui.button(label="7 dní", style=discord.ButtonStyle.secondary, custom_id="stats_7d", emoji="📈")
+    async def stats_7d(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.period = 7
+        await self.update_stats(interaction)
+    
+    @discord.ui.button(label="30 dní", style=discord.ButtonStyle.secondary, custom_id="stats_30d", emoji="📉")
+    async def stats_30d(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.period = 30
+        await self.update_stats(interaction)
+    
+    @discord.ui.button(label="Obnovit", style=discord.ButtonStyle.primary, custom_id="stats_refresh", emoji="🔄")
+    async def stats_refresh(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.update_stats(interaction)
+    
+    async def update_stats(self, interaction: discord.Interaction):
+        embed = await create_stats_embed(interaction.guild, self.period)
+        
+        # Update button styles
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                if child.custom_id == f"stats_{self.period}d":
+                    child.style = discord.ButtonStyle.success
+                elif child.custom_id != "stats_refresh":
+                    child.style = discord.ButtonStyle.secondary
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+
+async def create_stats_embed(guild, period: int = 1) -> discord.Embed:
+    """Vytvoří embed se statistikami"""
     stats = get_server_stats(guild.id)
     
     # Základní statistiky
@@ -712,6 +751,9 @@ async def server_stats_command(interaction: discord.Interaction):
     total_voice = stats.get("total_voice_minutes", 0)
     daily_messages = stats.get("daily_messages", 0)
     daily_voice = stats.get("daily_voice", 0)
+    
+    # Období text
+    period_text = f"Posledních {period} {'den' if period == 1 else 'dní'}"
     
     # Formátování voice času
     voice_hours = total_voice // 60
@@ -730,7 +772,7 @@ async def server_stats_command(interaction: discord.Interaction):
     
     # Vytvoř embed
     embed = discord.Embed(
-        title=f"📊 Statistiky serveru",
+        title=f"📊 Server Lookback: {period_text}",
         description=f"**{guild.name}**",
         color=discord.Color.blue()
     )
@@ -741,17 +783,17 @@ async def server_stats_command(interaction: discord.Interaction):
     # Základní stats
     embed.add_field(
         name="👥 Členové",
-        value=f"**{total_members}** celkem\n**{online_members}** online",
+        value=f"```\n{total_members} celkem\n{online_members} online\n```",
         inline=True
     )
     embed.add_field(
         name="💬 Zprávy",
-        value=f"**{total_messages:,}** celkem\n**{daily_messages:,}** dnes",
+        value=f"```\n{total_messages:,} celkem\n{daily_messages:,} dnes\n```",
         inline=True
     )
     embed.add_field(
         name="🎤 Voice",
-        value=f"**{voice_hours}h {voice_mins}m** celkem\n**{daily_voice_hours}h {daily_voice_mins}m** dnes",
+        value=f"```\n{voice_hours}h {voice_mins}m celkem\n{daily_voice_hours}h {daily_voice_mins}m dnes\n```",
         inline=True
     )
     
@@ -760,10 +802,10 @@ async def server_stats_command(interaction: discord.Interaction):
         top_writers = []
         medals = ["🥇", "🥈", "🥉", "4.", "5."]
         for i, (uid, count) in enumerate(sorted_messages):
-            name = user_names.get(uid, f"User {uid}")
-            top_writers.append(f"{medals[i]} **{name}**: {count:,} zpráv")
+            name = user_names.get(uid, f"User {uid}")[:15]
+            top_writers.append(f"{medals[i]} **{name}**: {count:,}")
         embed.add_field(
-            name="✍️ Nejaktivnější pisatelé",
+            name="✍️ TOP Pisatelé",
             value="\n".join(top_writers),
             inline=True
         )
@@ -773,13 +815,13 @@ async def server_stats_command(interaction: discord.Interaction):
         top_voice = []
         medals = ["🥇", "🥈", "🥉", "4.", "5."]
         for i, (uid, mins) in enumerate(sorted_voice):
-            name = user_names.get(uid, f"User {uid}")
+            name = user_names.get(uid, f"User {uid}")[:15]
             h = mins // 60
             m = mins % 60
             time_str = f"{h}h {m}m" if h > 0 else f"{m}m"
             top_voice.append(f"{medals[i]} **{name}**: {time_str}")
         embed.add_field(
-            name="🎤 Nejvíce ve voice",
+            name="🎤 TOP Voice",
             value="\n".join(top_voice),
             inline=True
         )
@@ -792,9 +834,21 @@ async def server_stats_command(interaction: discord.Interaction):
         inline=True
     )
     
-    embed.set_footer(text="⚔️ Valhalla Bot • Statistiky se aktualizují průběžně")
+    embed.set_footer(text=f"⚔️ Valhalla Bot • Aktualizováno: {datetime.now().strftime('%H:%M:%S')}")
     
-    await interaction.response.send_message(embed=embed)
+    return embed
+
+@bot.tree.command(name="serverstats", description="Zobraz statistiky serveru (jen admin)")
+@app_commands.checks.has_permissions(administrator=True)
+async def server_stats_command(interaction: discord.Interaction):
+    """Zobrazí statistiky serveru s interaktivními tlačítky"""
+    embed = await create_stats_embed(interaction.guild, 1)
+    view = ServerStatsView(interaction.guild.id, 1)
+    
+    # Nastav první tlačítko jako aktivní
+    view.children[0].style = discord.ButtonStyle.success
+    
+    await interaction.response.send_message(embed=embed, view=view)
 
 @server_stats_command.error
 async def server_stats_error(interaction: discord.Interaction, error):
