@@ -2583,6 +2583,10 @@ async def prefix_gamelevel(ctx, hrac: discord.Member = None):
 
 @bot.tree.command(name="top", description="Zobraz žebříček hráčů")
 async def slash_top(interaction: discord.Interaction):
+    # Check permission from database
+    if not await check_command_permission(interaction, "top"):
+        return
+    
     # Get top 10 users for this guild
     top_users = list(users_collection.find(
         {"guild_id": interaction.guild_id}
