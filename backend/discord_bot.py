@@ -2797,10 +2797,10 @@ def create_progress_bar(current: int, total: int, length: int = 10) -> str:
     empty = length - filled
     return "▓" * filled + "░" * empty
 
-@bot.tree.command(name="gamelevel", description="Zobraz svůj herní level a statistiky")
-async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member = None):
+@bot.tree.command(name="hry", description="Zobraz svůj herní level a statistiky")
+async def slash_hry(interaction: discord.Interaction, hrac: discord.Member = None):
     # Check permission from database
-    if not await check_command_permission(interaction, "gamelevel"):
+    if not await check_command_permission(interaction, "hry"):
         return
     
     target = hrac or interaction.user
@@ -2911,15 +2911,15 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
                 inline=False
             )
     
-    embed.set_footer(text="⚔️ Valhalla Bot • /hry pro všechny hry • /ukoly pro úkoly")
+    embed.set_footer(text="⚔️ Valhalla Bot • /ukoly pro herní úkoly")
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
-    asyncio.create_task(delete_after(msg, 60))
+    asyncio.create_task(delete_after(msg, 3600))
 
-@bot.command(name="level", aliases=["lvl", "gamelevel", "rank", "xp"])
-async def prefix_gamelevel(ctx, hrac: discord.Member = None):
-    """!level - Zobraz svůj level"""
+@bot.command(name="hry", aliases=["lvl", "level", "gamelevel", "rank", "xp"])
+async def prefix_hry(ctx, hrac: discord.Member = None):
+    """!hry - Zobraz svůj herní profil"""
     target = hrac or ctx.author
     user_data = get_user_data(ctx.guild.id, target.id)
     
