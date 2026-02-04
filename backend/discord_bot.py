@@ -2983,10 +2983,10 @@ async def prefix_hry(ctx, hrac: discord.Member = None):
         if top_games:
             embed.add_field(name="🎮 Nejhranější hry", value="\n".join(top_games), inline=False)
     
-    embed.set_footer(text="⚔️ Valhalla Bot • /hry pro všechny hry • /ukoly pro úkoly")
+    embed.set_footer(text="⚔️ Valhalla Bot • /ukoly pro herní úkoly")
     
     msg = await ctx.send(embed=embed)
-    asyncio.create_task(delete_after(msg, 60))
+    asyncio.create_task(delete_after(msg, 3600))
 
 @bot.tree.command(name="top", description="Zobraz žebříček hráčů")
 async def slash_top(interaction: discord.Interaction):
