@@ -1047,7 +1047,7 @@ async def skip_command(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
 
-@bot.tree.command(name="stop", description="Zastav hudbu a opusť voice kanál")
+@bot.tree.command(name="musicstop", description="Zastav hudbu a opusť voice kanál")
 async def stop_music_command(interaction: discord.Interaction):
     """Zastaví hudbu a odpojí bota"""
     voice_client = interaction.guild.voice_client
