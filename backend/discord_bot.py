@@ -1818,6 +1818,11 @@ async def slash_help(interaction: discord.Interaction):
         value="`/gamelevel` `/top` `/daily` `/hry` `/ukoly`",
         inline=False
     )
+    embed.add_field(
+        name="🎵 Hudba & Rádio",
+        value="`/search [název]` - vyhledej písničku\n`/playtrack [název]` - rychlé přehrání\n`/radio [stanice]` - přehraj rádio\n`/radiolist` - seznam stanic",
+        inline=False
+    )
     await interaction.response.send_message(embed=embed)
 
 @bot.command(name="pomoc")
