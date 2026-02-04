@@ -3004,6 +3004,10 @@ async def prefix_hry(ctx, hrac: discord.Member = None):
     app_commands.Choice(name="🚗 Rocket League", value="Rocket League"),
 ])
 async def slash_ukoly(interaction: discord.Interaction, hra: str):
+    # Check permission from database
+    if not await check_command_permission(interaction, "ukoly"):
+        return
+    
     user_data = get_user_data(interaction.guild_id, interaction.user.id)
     game_time = user_data.get("game_times", {}).get(hra, 0)
     completed = user_data.get("completed_quests", {}).get(hra, [])
