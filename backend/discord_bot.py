@@ -858,13 +858,14 @@ async def server_stats_error(interaction: discord.Interaction, error):
 # ============== MUSIC SYSTEM ==============
 
 import yt_dlp
+import subprocess
 
-# YouTube DL options - upraveno pro obejití 403
+# YouTube DL options - pro obejití 403
 YTDL_OPTIONS = {
-    'format': 'bestaudio/best',
+    'format': 'bestaudio[ext=webm]/bestaudio/best',
     'extractaudio': True,
-    'audioformat': 'mp3',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'audioformat': 'opus',
+    'outtmpl': '/tmp/%(extractor)s-%(id)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
@@ -875,16 +876,20 @@ YTDL_OPTIONS = {
     'default_search': 'ytsearch',
     'source_address': '0.0.0.0',
     'force_ipv4': True,
-    'cachedir': False,
-    'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
-    'http_headers': {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    }
+    'age_limit': 99,
+    'geo_bypass': True,
+    'geo_bypass_country': 'US',
+    'extractor_args': {
+        'youtube': {
+            'player_client': ['ios', 'android'],
+            'skip': ['dash', 'hls'],
+        }
+    },
 }
 
 FFMPEG_OPTIONS = {
-    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -nostdin',
-    'options': '-vn -loglevel warning',
+    'before_options': '-nostdin',
+    'options': '-vn -b:a 128k',
 }
 
 ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
