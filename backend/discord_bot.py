@@ -2425,7 +2425,7 @@ async def slash_help(interaction: discord.Interaction):
     )
     embed.add_field(
         name="🏆 Level systém",
-        value="`/gamelevel` `/top` `/daily` `/hry` `/ukoly`",
+        value="`/hry` `/top` `/daily` `/ukoly`",
         inline=False
     )
     embed.add_field(
@@ -2525,7 +2525,7 @@ async def send_commands_info(ctx):
     # Level systém
     embed.add_field(
         name="📊 LEVEL SYSTÉM",
-        value="```/gamelevel nebo !level``` Zobraz svůj level a statistiky\n```/top nebo !top``` Žebříček TOP 10 hráčů\n```/daily nebo !daily``` Denní bonus **+100 XP** + streak",
+        value="```/hry nebo !hry``` Zobraz svůj level a statistiky\n```/top nebo !top``` Žebříček TOP 10 hráčů\n```/daily nebo !daily``` Denní bonus **+100 XP** + streak",
         inline=False
     )
     
@@ -2610,7 +2610,7 @@ async def send_game_info(ctx):
     )
     
     main_embed.add_field(
-        name="📊 `/gamelevel` nebo `!level`",
+        name="📊 `/hry` nebo `!hry`",
         value="**Zobrazí tvůj herní profil:**\n"
               "• Aktuální level a XP\n"
               "• Počet odehraných kvízů\n"
