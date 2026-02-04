@@ -588,6 +588,19 @@ async def on_ready():
     print(f'🤖 Bot {bot.user} je online!', flush=True)
     print(f'📊 Připojen k {len(bot.guilds)} serverům', flush=True)
     
+    # Načti aktivní herní sessions z databáze
+    stored_sessions = list(game_sessions_collection.find({}))
+    for session in stored_sessions:
+        user_id = session.get("user_id")
+        if user_id:
+            active_gaming_sessions[user_id] = {
+                "game": session.get("game"),
+                "start": session.get("start"),
+                "guild_id": session.get("guild_id"),
+                "user_name": session.get("user_name")
+            }
+    print(f'🎮 Načteno {len(stored_sessions)} aktivních herních sessions', flush=True)
+    
     # Uložit statistiky bota do databáze
     users_collection.database.bot_stats.update_one(
         {"type": "global"},
