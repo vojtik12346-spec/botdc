@@ -948,7 +948,7 @@ async def play_next(guild_id: int, voice_client):
     if queue_data["loop"] and queue_data["current"]:
         # Opakovat aktuální
         try:
-            source = await YTDLSource.from_url(queue_data["current"]["url"], stream=True)
+            source = await YTDLSource.from_url(queue_data["current"]["url"], stream=False)
             source.volume = queue_data["volume"]
             voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
                 play_next(guild_id, voice_client), bot.loop))
@@ -964,7 +964,7 @@ async def play_next(guild_id: int, voice_client):
     queue_data["current"] = next_song
     
     try:
-        source = await YTDLSource.from_url(next_song["url"], stream=True)
+        source = await YTDLSource.from_url(next_song["url"], stream=False)
         source.volume = queue_data["volume"]
         voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
             play_next(guild_id, voice_client), bot.loop))
@@ -1017,7 +1017,7 @@ async def play_command(interaction: discord.Interaction, query: str):
     if not voice_client.is_playing() and not voice_client.is_paused():
         queue_data["current"] = song
         try:
-            source = await YTDLSource.from_url(song["url"], stream=True)
+            source = await YTDLSource.from_url(song["url"], stream=False)
             source.volume = queue_data["volume"]
             voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
                 play_next(interaction.guild_id, voice_client), bot.loop))
