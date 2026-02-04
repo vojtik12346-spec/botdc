@@ -903,16 +903,25 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.duration = data.get('duration', 0)
         self.thumbnail = data.get('thumbnail')
         self.webpage_url = data.get('webpage_url')
+        self.filename = data.get('filename')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=True):
+    async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        
+        # Stáhnout soubor místo streamování (kvůli 403)
+        try:
+            data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=True))
+        except Exception as e:
+            print(f"[MUSIC] Download error: {e}", flush=True)
+            raise e
 
         if 'entries' in data:
             data = data['entries'][0]
 
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        filename = ytdl.prepare_filename(data)
+        data['filename'] = filename
+        
         return cls(discord.FFmpegPCMAudio(filename, **FFMPEG_OPTIONS), data=data)
 
 # Music queues per guild
