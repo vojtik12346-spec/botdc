@@ -466,7 +466,7 @@ async def unlock_game(guild_id: int, user_id: int, user_name: str, game_name: st
         )
         embed.add_field(name="🏷️ Kategorie", value=game_info["category"], inline=True)
         embed.add_field(name="✨ Bonus", value=f"+{GAME_UNLOCK_BONUS} XP", inline=True)
-        embed.set_footer(text="Hraj více her a odemykej achievementy!")
+        embed.set_footer(text="⚔️ Valhalla Bot • Hraj a získávej XP!")
         await notify_channel.send(f"<@&{GAME_PING_ROLE}>", embed=embed)
     
     return True
