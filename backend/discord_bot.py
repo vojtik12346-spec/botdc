@@ -1701,15 +1701,26 @@ async def playtrack_command(interaction: discord.Interaction, query: str):
     voice_channel = interaction.user.voice.channel
     voice_client = interaction.guild.voice_client
     
-    # Připojit se k voice
-    if not voice_client:
-        voice_client = await voice_channel.connect()
-    elif voice_client.channel != voice_channel:
-        await voice_client.move_to(voice_channel)
-    
-    # Zastavit aktuální přehrávání
-    if voice_client.is_playing():
-        voice_client.stop()
+    # Připojit se k voice - vylepšená logika
+    try:
+        if voice_client:
+            if voice_client.is_playing():
+                voice_client.stop()
+            if voice_client.channel != voice_channel:
+                await voice_client.move_to(voice_channel)
+        else:
+            voice_client = await voice_channel.connect(timeout=10.0, reconnect=True)
+    except asyncio.TimeoutError:
+        await interaction.followup.send("❌ Nepodařilo se připojit k voice kanálu (timeout).", ephemeral=True)
+        return
+    except Exception as e:
+        try:
+            if voice_client:
+                await voice_client.disconnect(force=True)
+            voice_client = await voice_channel.connect(timeout=10.0, reconnect=True)
+        except:
+            await interaction.followup.send(f"❌ Chyba připojení: {e}", ephemeral=True)
+            return
     
     queue_data = get_music_queue(interaction.guild_id)
     
