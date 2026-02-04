@@ -675,6 +675,51 @@ async def root():
 async def health():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+# ============== Leaderboard & Profiles ==============
+
+@api_router.get("/leaderboard")
+async def get_leaderboard(limit: int = 50):
+    """Get top players across all servers"""
+    try:
+        players = await db.game_users.find(
+            {},
+            {"_id": 0, "user_id": 1, "name": 1, "xp": 1, "level": 1, "total_games": 1, "total_correct": 1, "streak": 1}
+        ).sort("xp", -1).limit(limit).to_list(limit)
+        
+        return players
+    except Exception as e:
+        logger.error(f"Leaderboard error: {e}")
+        return []
+
+@api_router.get("/player/{user_id}")
+async def get_player_profile(user_id: str):
+    """Get detailed player profile"""
+    try:
+        player = await db.game_users.find_one(
+            {"user_id": int(user_id)},
+            {"_id": 0}
+        )
+        if not player:
+            raise HTTPException(status_code=404, detail="Player not found")
+        return player
+    except Exception as e:
+        logger.error(f"Player profile error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/player/{user_id}/history")
+async def get_player_history(user_id: str, limit: int = 20):
+    """Get player quiz history"""
+    try:
+        history = await db.quiz_history.find(
+            {"user_id": int(user_id)},
+            {"_id": 0}
+        ).sort("date", -1).limit(limit).to_list(limit)
+        
+        return history
+    except Exception as e:
+        logger.error(f"Player history error: {e}")
+        return []
+
 # Include router
 app.include_router(api_router)
 
