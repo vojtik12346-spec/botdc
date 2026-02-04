@@ -53,6 +53,27 @@ intents.voice_states = True  # Pro sledování voice aktivity
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+# ============== COMMAND LOGGING ==============
+
+@bot.event
+async def on_app_command_completion(interaction: discord.Interaction, command: discord.app_commands.Command):
+    """Logování všech slash příkazů"""
+    channel_name = interaction.channel.name if interaction.channel else "DM"
+    user_name = interaction.user.display_name
+    guild_name = interaction.guild.name if interaction.guild else "DM"
+    
+    # Získej parametry příkazu
+    params = ""
+    if interaction.namespace:
+        param_list = []
+        for key, value in vars(interaction.namespace).items():
+            if value is not None:
+                param_list.append(f"{key}={value}")
+        if param_list:
+            params = f" ({', '.join(param_list)})"
+    
+    print(f"[CMD] /{command.name}{params} | {user_name} | #{channel_name} | {guild_name}", flush=True)
+
 # ============== GAME TRACKING SYSTEM ==============
 
 # Bonusové hry - při prvním hraní dostane hráč +25 XP bonus
