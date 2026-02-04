@@ -1719,6 +1719,341 @@ async def playtrack_command(interaction: discord.Interaction, query: str):
         print(f"[SOUNDCLOUD] Play error: {e}", flush=True)
         await interaction.followup.send(f"❌ Chyba přehrávání: {e}")
 
+# ============== REACTION ROLES SYSTEM ==============
+
+reaction_roles_collection = db["reaction_roles"]
+
+class ReactionRoleView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+@bot.tree.command(name="reactionrole", description="Vytvoř zprávu pro získání role kliknutím na reakci (Admin)")
+@app_commands.describe(
+    role="Role kterou uživatelé získají",
+    emoji="Emoji pro reakci (např. 🎮 nebo custom emoji)",
+    title="Nadpis zprávy",
+    description="Popis zprávy"
+)
+@app_commands.default_permissions(administrator=True)
+async def reactionrole_command(
+    interaction: discord.Interaction, 
+    role: discord.Role,
+    emoji: str,
+    title: str = "Získej roli!",
+    description: str = "Klikni na reakci níže pro získání role!"
+):
+    """Vytvoří zprávu s reakcí pro získání role"""
+    
+    # Zkontroluj že bot může přidělit tuto roli
+    if role >= interaction.guild.me.top_role:
+        await interaction.response.send_message(
+            "❌ Nemohu přidělovat tuto roli - je výše než moje role!",
+            ephemeral=True
+        )
+        return
+    
+    embed = discord.Embed(
+        title=f"🎭 {title}",
+        description=f"{description}\n\nReaguj s {emoji} pro získání role **{role.name}**",
+        color=role.color if role.color != discord.Color.default() else discord.Color.blue()
+    )
+    embed.set_footer(text="⚔️ Valhalla Bot • Reaction Roles")
+    
+    await interaction.response.send_message("✅ Vytvářím reaction role zprávu...", ephemeral=True)
+    
+    # Pošli zprávu do kanálu
+    message = await interaction.channel.send(embed=embed)
+    
+    # Přidej reakci
+    try:
+        await message.add_reaction(emoji)
+    except discord.HTTPException:
+        await interaction.followup.send(f"❌ Neplatné emoji: {emoji}", ephemeral=True)
+        await message.delete()
+        return
+    
+    # Ulož do databáze
+    reaction_roles_collection.update_one(
+        {"message_id": message.id},
+        {"$set": {
+            "message_id": message.id,
+            "channel_id": interaction.channel_id,
+            "guild_id": interaction.guild_id,
+            "role_id": role.id,
+            "emoji": emoji,
+            "created_by": interaction.user.id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    await interaction.followup.send(f"✅ Reaction role vytvořena! Uživatelé mohou kliknout na {emoji} pro získání role **{role.name}**", ephemeral=True)
+
+@bot.tree.command(name="multireactionrole", description="Vytvoř zprávu s více rolemi (Admin)")
+@app_commands.describe(
+    title="Nadpis zprávy",
+    description="Popis zprávy"
+)
+@app_commands.default_permissions(administrator=True)
+async def multireactionrole_command(
+    interaction: discord.Interaction,
+    title: str = "Vyber si role!",
+    description: str = "Klikni na reakce pro získání rolí"
+):
+    """Vytvoří zprávu pro více reaction roles - role přidáš pomocí /addrole"""
+    
+    embed = discord.Embed(
+        title=f"🎭 {title}",
+        description=f"{description}\n\n*Použij `/addrole` pro přidání rolí k této zprávě*",
+        color=discord.Color.purple()
+    )
+    embed.set_footer(text="⚔️ Valhalla Bot • Reaction Roles")
+    
+    await interaction.response.send_message("✅ Vytvářím multi-role zprávu...", ephemeral=True)
+    
+    message = await interaction.channel.send(embed=embed)
+    
+    # Ulož základní zprávu
+    reaction_roles_collection.insert_one({
+        "message_id": message.id,
+        "channel_id": interaction.channel_id,
+        "guild_id": interaction.guild_id,
+        "type": "multi",
+        "roles": [],  # Bude se přidávat pomocí /addrole
+        "created_by": interaction.user.id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    await interaction.followup.send(f"✅ Multi-role zpráva vytvořena! ID zprávy: `{message.id}`\nPoužij `/addrole {message.id} @role 🎮` pro přidání rolí.", ephemeral=True)
+
+@bot.tree.command(name="addrole", description="Přidej roli k existující reaction role zprávě (Admin)")
+@app_commands.describe(
+    message_id="ID zprávy (zkopíruj pravým kliknutím na zprávu)",
+    role="Role k přidání",
+    emoji="Emoji pro tuto roli"
+)
+@app_commands.default_permissions(administrator=True)
+async def addrole_command(
+    interaction: discord.Interaction,
+    message_id: str,
+    role: discord.Role,
+    emoji: str
+):
+    """Přidá roli k existující reaction role zprávě"""
+    
+    try:
+        msg_id = int(message_id)
+    except ValueError:
+        await interaction.response.send_message("❌ Neplatné ID zprávy!", ephemeral=True)
+        return
+    
+    # Najdi zprávu v databázi
+    rr_data = reaction_roles_collection.find_one({"message_id": msg_id, "guild_id": interaction.guild_id})
+    
+    if not rr_data:
+        await interaction.response.send_message("❌ Tato zpráva není reaction role zpráva!", ephemeral=True)
+        return
+    
+    # Najdi zprávu na Discordu
+    try:
+        channel = interaction.guild.get_channel(rr_data["channel_id"])
+        message = await channel.fetch_message(msg_id)
+    except:
+        await interaction.response.send_message("❌ Zprávu se nepodařilo najít!", ephemeral=True)
+        return
+    
+    # Přidej reakci
+    try:
+        await message.add_reaction(emoji)
+    except discord.HTTPException:
+        await interaction.response.send_message(f"❌ Neplatné emoji: {emoji}", ephemeral=True)
+        return
+    
+    # Aktualizuj databázi
+    if rr_data.get("type") == "multi":
+        # Multi-role zpráva
+        reaction_roles_collection.update_one(
+            {"message_id": msg_id},
+            {"$push": {"roles": {"role_id": role.id, "emoji": emoji}}}
+        )
+    else:
+        # Převeď na multi pokud přidáváme další roli
+        existing_role = {"role_id": rr_data.get("role_id"), "emoji": rr_data.get("emoji")}
+        reaction_roles_collection.update_one(
+            {"message_id": msg_id},
+            {"$set": {
+                "type": "multi",
+                "roles": [existing_role, {"role_id": role.id, "emoji": emoji}]
+            },
+            "$unset": {"role_id": "", "emoji": ""}}
+        )
+    
+    # Aktualizuj embed
+    embed = message.embeds[0] if message.embeds else discord.Embed(title="🎭 Role")
+    
+    # Přidej roli do popisu
+    roles_text = ""
+    updated_data = reaction_roles_collection.find_one({"message_id": msg_id})
+    if updated_data.get("type") == "multi":
+        for r in updated_data.get("roles", []):
+            role_obj = interaction.guild.get_role(r["role_id"])
+            if role_obj:
+                roles_text += f"{r['emoji']} → **{role_obj.name}**\n"
+    
+    if roles_text:
+        embed.description = f"Klikni na reakci pro získání role:\n\n{roles_text}"
+    
+    await message.edit(embed=embed)
+    
+    await interaction.response.send_message(f"✅ Role **{role.name}** přidána s emoji {emoji}!", ephemeral=True)
+
+@bot.tree.command(name="listreactionroles", description="Zobraz všechny reaction role zprávy (Admin)")
+@app_commands.default_permissions(administrator=True)
+async def listreactionroles_command(interaction: discord.Interaction):
+    """Zobrazí seznam všech reaction role zpráv na serveru"""
+    
+    rr_list = list(reaction_roles_collection.find({"guild_id": interaction.guild_id}))
+    
+    if not rr_list:
+        await interaction.response.send_message("📋 Na tomto serveru nejsou žádné reaction role zprávy.", ephemeral=True)
+        return
+    
+    embed = discord.Embed(
+        title="🎭 Reaction Roles",
+        description=f"Celkem {len(rr_list)} zpráv",
+        color=discord.Color.purple()
+    )
+    
+    for rr in rr_list[:10]:  # Max 10
+        channel = interaction.guild.get_channel(rr.get("channel_id"))
+        channel_name = channel.name if channel else "Neznámý"
+        
+        if rr.get("type") == "multi":
+            roles_count = len(rr.get("roles", []))
+            embed.add_field(
+                name=f"ID: {rr['message_id']}",
+                value=f"Kanál: #{channel_name}\nRolí: {roles_count}",
+                inline=True
+            )
+        else:
+            role = interaction.guild.get_role(rr.get("role_id"))
+            role_name = role.name if role else "Neznámá"
+            embed.add_field(
+                name=f"ID: {rr['message_id']}",
+                value=f"Kanál: #{channel_name}\nRole: {role_name}\nEmoji: {rr.get('emoji')}",
+                inline=True
+            )
+    
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+@bot.tree.command(name="deletereactionrole", description="Smaž reaction role zprávu (Admin)")
+@app_commands.describe(message_id="ID zprávy ke smazání")
+@app_commands.default_permissions(administrator=True)
+async def deletereactionrole_command(interaction: discord.Interaction, message_id: str):
+    """Smaže reaction role zprávu"""
+    
+    try:
+        msg_id = int(message_id)
+    except ValueError:
+        await interaction.response.send_message("❌ Neplatné ID zprávy!", ephemeral=True)
+        return
+    
+    # Najdi a smaž z databáze
+    result = reaction_roles_collection.delete_one({"message_id": msg_id, "guild_id": interaction.guild_id})
+    
+    if result.deleted_count == 0:
+        await interaction.response.send_message("❌ Reaction role zpráva nenalezena!", ephemeral=True)
+        return
+    
+    await interaction.response.send_message(f"✅ Reaction role smazána! (Zprávu na Discordu můžeš smazat ručně)", ephemeral=True)
+
+# Event handlers pro reaction roles
+@bot.event
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    """Když uživatel přidá reakci"""
+    if payload.user_id == bot.user.id:
+        return
+    
+    # Najdi reaction role
+    rr_data = reaction_roles_collection.find_one({"message_id": payload.message_id})
+    
+    if not rr_data:
+        return
+    
+    guild = bot.get_guild(payload.guild_id)
+    if not guild:
+        return
+    
+    member = guild.get_member(payload.user_id)
+    if not member:
+        return
+    
+    emoji_str = str(payload.emoji)
+    
+    # Najdi správnou roli
+    role_id = None
+    
+    if rr_data.get("type") == "multi":
+        for r in rr_data.get("roles", []):
+            if r["emoji"] == emoji_str:
+                role_id = r["role_id"]
+                break
+    else:
+        if rr_data.get("emoji") == emoji_str:
+            role_id = rr_data.get("role_id")
+    
+    if role_id:
+        role = guild.get_role(role_id)
+        if role and role not in member.roles:
+            try:
+                await member.add_roles(role, reason="Reaction Role")
+                print(f"[REACTION ROLE] {member.display_name} získal roli {role.name}", flush=True)
+            except discord.Forbidden:
+                print(f"[REACTION ROLE] Nelze přidat roli {role.name} - chybí oprávnění", flush=True)
+
+@bot.event
+async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
+    """Když uživatel odebere reakci"""
+    if payload.user_id == bot.user.id:
+        return
+    
+    # Najdi reaction role
+    rr_data = reaction_roles_collection.find_one({"message_id": payload.message_id})
+    
+    if not rr_data:
+        return
+    
+    guild = bot.get_guild(payload.guild_id)
+    if not guild:
+        return
+    
+    member = guild.get_member(payload.user_id)
+    if not member:
+        return
+    
+    emoji_str = str(payload.emoji)
+    
+    # Najdi správnou roli
+    role_id = None
+    
+    if rr_data.get("type") == "multi":
+        for r in rr_data.get("roles", []):
+            if r["emoji"] == emoji_str:
+                role_id = r["role_id"]
+                break
+    else:
+        if rr_data.get("emoji") == emoji_str:
+            role_id = rr_data.get("role_id")
+    
+    if role_id:
+        role = guild.get_role(role_id)
+        if role and role in member.roles:
+            try:
+                await member.remove_roles(role, reason="Reaction Role removed")
+                print(f"[REACTION ROLE] {member.display_name} ztratil roli {role.name}", flush=True)
+            except discord.Forbidden:
+                print(f"[REACTION ROLE] Nelze odebrat roli {role.name} - chybí oprávnění", flush=True)
+
 # ============== GIVEAWAY SYSTEM ==============
 
 active_giveaways = {}
