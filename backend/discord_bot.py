@@ -3891,6 +3891,10 @@ async def on_message(message):
     if message.author.bot:
         return
     
+    # Sledování zpráv pro statistiky
+    if message.guild:
+        increment_message_count(message.guild.id, message.author.id, message.author.display_name)
+    
     # Skip if message is a command
     if message.content.startswith('!'):
         await bot.process_commands(message)
