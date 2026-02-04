@@ -1273,9 +1273,20 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
     badge = get_badge(level)
     progress_bar = create_progress_bar(xp_progress, xp_needed, 12)
     
+    # Přesnost kvízů
     accuracy = 0
     if user_data.get("total_games", 0) > 0:
         accuracy = (user_data.get("total_correct", 0) / user_data["total_games"]) * 100
+    
+    # Herní statistiky
+    unlocked_games = user_data.get("unlocked_games", [])
+    total_game_time = user_data.get("total_game_time", 0)
+    game_times = user_data.get("game_times", {})
+    
+    # Formátování času
+    hours = total_game_time // 60
+    minutes = total_game_time % 60
+    time_str = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
     
     embed = discord.Embed(
         title=f"{badge} {target.display_name}",
@@ -1283,6 +1294,7 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
     )
     embed.set_thumbnail(url=target.display_avatar.url)
     
+    # Základní statistiky
     embed.add_field(
         name="📊 Level",
         value=f"**Level {level}**",
@@ -1290,7 +1302,7 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
     )
     embed.add_field(
         name="✨ XP",
-        value=f"**{user_data['xp']}** XP",
+        value=f"**{user_data['xp']:,}** XP",
         inline=True
     )
     embed.add_field(
@@ -1299,29 +1311,65 @@ async def slash_gamelevel(interaction: discord.Interaction, hrac: discord.Member
         inline=True
     )
     
+    # Progress bar
     embed.add_field(
-        name=f"📈 Progress ({xp_progress}/{xp_needed} XP)",
+        name=f"📈 Progress ({xp_progress:,}/{xp_needed:,} XP)",
         value=f"`{progress_bar}`",
         inline=False
     )
     
+    # Kvízové statistiky
     embed.add_field(
-        name="🎮 Hry",
-        value=f"{user_data.get('total_games', 0)}",
+        name="🎮 Kvízů",
+        value=f"**{user_data.get('total_games', 0)}**",
         inline=True
     )
     embed.add_field(
         name="✅ Správně",
-        value=f"{user_data.get('total_correct', 0)}",
+        value=f"**{user_data.get('total_correct', 0)}**",
         inline=True
     )
     embed.add_field(
         name="🎯 Přesnost",
-        value=f"{accuracy:.1f}%",
+        value=f"**{accuracy:.1f}%**",
         inline=True
     )
     
-    embed.set_footer(text="⚔️ Valhalla Bot • Získej XP hraním kvízů!")
+    # Herní statistiky (PC hry)
+    embed.add_field(
+        name="🕹️ Odemčené hry",
+        value=f"**{len(unlocked_games)}** her",
+        inline=True
+    )
+    embed.add_field(
+        name="⏱️ Čas hraní",
+        value=f"**{time_str}**",
+        inline=True
+    )
+    embed.add_field(
+        name="📅 Denní XP",
+        value=f"**{user_data.get('daily_game_xp', 0)}/{DAILY_XP_LIMIT}**",
+        inline=True
+    )
+    
+    # Top 3 nejhranější hry
+    if game_times:
+        sorted_games = sorted(game_times.items(), key=lambda x: x[1], reverse=True)[:3]
+        top_games = []
+        for game, mins in sorted_games:
+            g_hours = mins // 60
+            g_mins = mins % 60
+            g_time = f"{g_hours}h {g_mins}m" if g_hours > 0 else f"{g_mins}m"
+            top_games.append(f"• **{game}**: {g_time}")
+        
+        if top_games:
+            embed.add_field(
+                name="🎮 Nejhranější hry",
+                value="\n".join(top_games),
+                inline=False
+            )
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • /hry pro všechny hry • /ukoly pro úkoly")
     
     await interaction.response.send_message(embed=embed)
     msg = await interaction.original_response()
