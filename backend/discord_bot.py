@@ -855,6 +855,331 @@ async def server_stats_error(interaction: discord.Interaction, error):
     if isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message("❌ Tento příkaz může použít pouze administrátor!", ephemeral=True)
 
+# ============== MUSIC SYSTEM ==============
+
+import yt_dlp
+
+# YouTube DL options
+YTDL_OPTIONS = {
+    'format': 'bestaudio/best',
+    'extractaudio': True,
+    'audioformat': 'mp3',
+    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'ytsearch',
+    'source_address': '0.0.0.0',
+}
+
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn',
+}
+
+ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
+
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+        self.data = data
+        self.title = data.get('title')
+        self.url = data.get('url')
+        self.duration = data.get('duration', 0)
+        self.thumbnail = data.get('thumbnail')
+        self.webpage_url = data.get('webpage_url')
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=True):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+
+        if 'entries' in data:
+            data = data['entries'][0]
+
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        return cls(discord.FFmpegPCMAudio(filename, **FFMPEG_OPTIONS), data=data)
+
+# Music queues per guild
+music_queues = {}  # {guild_id: {"queue": [], "current": None, "loop": False}}
+
+def get_music_queue(guild_id: int) -> dict:
+    if guild_id not in music_queues:
+        music_queues[guild_id] = {"queue": [], "current": None, "loop": False, "volume": 0.5}
+    return music_queues[guild_id]
+
+def format_duration(seconds: int) -> str:
+    if not seconds:
+        return "Neznámá délka"
+    mins, secs = divmod(seconds, 60)
+    hours, mins = divmod(mins, 60)
+    if hours:
+        return f"{hours}:{mins:02d}:{secs:02d}"
+    return f"{mins}:{secs:02d}"
+
+async def play_next(guild_id: int, voice_client):
+    """Přehraje další písničku z fronty"""
+    queue_data = get_music_queue(guild_id)
+    
+    if queue_data["loop"] and queue_data["current"]:
+        # Opakovat aktuální
+        try:
+            source = await YTDLSource.from_url(queue_data["current"]["url"], stream=True)
+            source.volume = queue_data["volume"]
+            voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
+                play_next(guild_id, voice_client), bot.loop))
+        except Exception as e:
+            print(f"[MUSIC] Error playing: {e}", flush=True)
+        return
+    
+    if not queue_data["queue"]:
+        queue_data["current"] = None
+        return
+    
+    next_song = queue_data["queue"].pop(0)
+    queue_data["current"] = next_song
+    
+    try:
+        source = await YTDLSource.from_url(next_song["url"], stream=True)
+        source.volume = queue_data["volume"]
+        voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
+            play_next(guild_id, voice_client), bot.loop))
+        print(f"[MUSIC] Now playing: {next_song['title']}", flush=True)
+    except Exception as e:
+        print(f"[MUSIC] Error playing: {e}", flush=True)
+        await play_next(guild_id, voice_client)
+
+@bot.tree.command(name="play", description="Přehraj hudbu z YouTube")
+@app_commands.describe(query="URL nebo název písničky")
+async def play_command(interaction: discord.Interaction, query: str):
+    """Přehraje hudbu z YouTube"""
+    if not interaction.user.voice:
+        await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+        return
+    
+    await interaction.response.defer()
+    
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+    
+    # Připojit se k voice
+    if not voice_client:
+        voice_client = await voice_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+    
+    # Získat info o písničce
+    try:
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(query, download=False))
+        
+        if 'entries' in data:
+            data = data['entries'][0]
+        
+        song = {
+            "title": data.get('title', 'Neznámý'),
+            "url": data.get('webpage_url') or query,
+            "duration": data.get('duration', 0),
+            "thumbnail": data.get('thumbnail'),
+            "requester": interaction.user.display_name
+        }
+    except Exception as e:
+        await interaction.followup.send(f"❌ Nepodařilo se najít: {e}")
+        return
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    # Pokud nic nehraje, přehrát hned
+    if not voice_client.is_playing() and not voice_client.is_paused():
+        queue_data["current"] = song
+        try:
+            source = await YTDLSource.from_url(song["url"], stream=True)
+            source.volume = queue_data["volume"]
+            voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(
+                play_next(interaction.guild_id, voice_client), bot.loop))
+            
+            embed = discord.Embed(
+                title="🎵 Nyní hraje",
+                description=f"**{song['title']}**",
+                color=discord.Color.green()
+            )
+            embed.add_field(name="⏱️ Délka", value=format_duration(song['duration']), inline=True)
+            embed.add_field(name="🎧 Požádal", value=song['requester'], inline=True)
+            if song['thumbnail']:
+                embed.set_thumbnail(url=song['thumbnail'])
+            embed.set_footer(text="⚔️ Valhalla Bot • /skip pro přeskočení")
+            
+            await interaction.followup.send(embed=embed)
+        except Exception as e:
+            await interaction.followup.send(f"❌ Chyba přehrávání: {e}")
+    else:
+        # Přidat do fronty
+        queue_data["queue"].append(song)
+        
+        embed = discord.Embed(
+            title="📋 Přidáno do fronty",
+            description=f"**{song['title']}**",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="⏱️ Délka", value=format_duration(song['duration']), inline=True)
+        embed.add_field(name="📍 Pozice", value=f"#{len(queue_data['queue'])}", inline=True)
+        if song['thumbnail']:
+            embed.set_thumbnail(url=song['thumbnail'])
+        
+        await interaction.followup.send(embed=embed)
+
+@bot.tree.command(name="skip", description="Přeskoč aktuální písničku")
+async def skip_command(interaction: discord.Interaction):
+    """Přeskočí aktuální písničku"""
+    voice_client = interaction.guild.voice_client
+    
+    if not voice_client or not voice_client.is_connected():
+        await interaction.response.send_message("❌ Bot není ve voice kanálu!", ephemeral=True)
+        return
+    
+    if voice_client.is_playing():
+        voice_client.stop()
+        await interaction.response.send_message("⏭️ Přeskočeno!")
+    else:
+        await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
+
+@bot.tree.command(name="stop", description="Zastav hudbu a opusť voice kanál")
+async def stop_music_command(interaction: discord.Interaction):
+    """Zastaví hudbu a odpojí bota"""
+    voice_client = interaction.guild.voice_client
+    
+    if not voice_client:
+        await interaction.response.send_message("❌ Bot není ve voice kanálu!", ephemeral=True)
+        return
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["queue"] = []
+    queue_data["current"] = None
+    
+    await voice_client.disconnect()
+    await interaction.response.send_message("🛑 Hudba zastavena, bot odpojen!")
+
+@bot.tree.command(name="pause", description="Pozastav hudbu")
+async def pause_command(interaction: discord.Interaction):
+    """Pozastaví přehrávání"""
+    voice_client = interaction.guild.voice_client
+    
+    if voice_client and voice_client.is_playing():
+        voice_client.pause()
+        await interaction.response.send_message("⏸️ Hudba pozastavena!")
+    else:
+        await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
+
+@bot.tree.command(name="resume", description="Pokračuj v přehrávání")
+async def resume_command(interaction: discord.Interaction):
+    """Pokračuje v přehrávání"""
+    voice_client = interaction.guild.voice_client
+    
+    if voice_client and voice_client.is_paused():
+        voice_client.resume()
+        await interaction.response.send_message("▶️ Pokračuji v přehrávání!")
+    else:
+        await interaction.response.send_message("❌ Hudba není pozastavena!", ephemeral=True)
+
+@bot.tree.command(name="queue", description="Zobraz frontu písniček")
+async def queue_command(interaction: discord.Interaction):
+    """Zobrazí frontu písniček"""
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    embed = discord.Embed(
+        title="🎵 Fronta písniček",
+        color=discord.Color.purple()
+    )
+    
+    # Aktuální písnička
+    if queue_data["current"]:
+        current = queue_data["current"]
+        embed.add_field(
+            name="▶️ Nyní hraje",
+            value=f"**{current['title']}** ({format_duration(current['duration'])})",
+            inline=False
+        )
+    
+    # Fronta
+    if queue_data["queue"]:
+        queue_list = []
+        for i, song in enumerate(queue_data["queue"][:10], 1):
+            queue_list.append(f"`{i}.` **{song['title']}** ({format_duration(song['duration'])})")
+        
+        embed.add_field(
+            name=f"📋 Další v pořadí ({len(queue_data['queue'])})",
+            value="\n".join(queue_list),
+            inline=False
+        )
+        
+        if len(queue_data["queue"]) > 10:
+            embed.set_footer(text=f"...a dalších {len(queue_data['queue']) - 10} písniček")
+    else:
+        if not queue_data["current"]:
+            embed.description = "Fronta je prázdná! Použij `/play` pro přidání hudby."
+    
+    # Loop status
+    if queue_data["loop"]:
+        embed.add_field(name="🔁 Opakování", value="Zapnuto", inline=True)
+    
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="loop", description="Zapni/vypni opakování aktuální písničky")
+async def loop_command(interaction: discord.Interaction):
+    """Zapne/vypne opakování"""
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["loop"] = not queue_data["loop"]
+    
+    if queue_data["loop"]:
+        await interaction.response.send_message("🔁 Opakování zapnuto!")
+    else:
+        await interaction.response.send_message("➡️ Opakování vypnuto!")
+
+@bot.tree.command(name="volume", description="Nastav hlasitost (0-100)")
+@app_commands.describe(level="Hlasitost 0-100")
+async def volume_command(interaction: discord.Interaction, level: int):
+    """Nastaví hlasitost"""
+    if level < 0 or level > 100:
+        await interaction.response.send_message("❌ Hlasitost musí být 0-100!", ephemeral=True)
+        return
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    queue_data["volume"] = level / 100
+    
+    voice_client = interaction.guild.voice_client
+    if voice_client and voice_client.source:
+        voice_client.source.volume = level / 100
+    
+    await interaction.response.send_message(f"🔊 Hlasitost nastavena na **{level}%**")
+
+@bot.tree.command(name="nowplaying", description="Zobraz co právě hraje")
+async def nowplaying_command(interaction: discord.Interaction):
+    """Zobrazí aktuální písničku"""
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    if not queue_data["current"]:
+        await interaction.response.send_message("❌ Nic nehraje!", ephemeral=True)
+        return
+    
+    song = queue_data["current"]
+    embed = discord.Embed(
+        title="🎵 Nyní hraje",
+        description=f"**{song['title']}**",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="⏱️ Délka", value=format_duration(song['duration']), inline=True)
+    embed.add_field(name="🎧 Požádal", value=song['requester'], inline=True)
+    embed.add_field(name="🔁 Loop", value="Ano" if queue_data["loop"] else "Ne", inline=True)
+    if song.get('thumbnail'):
+        embed.set_thumbnail(url=song['thumbnail'])
+    embed.set_footer(text="⚔️ Valhalla Bot")
+    
+    await interaction.response.send_message(embed=embed)
+
 # ============== GIVEAWAY SYSTEM ==============
 
 active_giveaways = {}
