@@ -427,6 +427,25 @@ function ServerSettings({ server, onBack }) {
   });
 
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load settings from server on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/bot/settings/${server.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Merge loaded settings with defaults
+          setSettings(prev => ({ ...prev, ...data }));
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      }
+      setLoading(false);
+    };
+    loadSettings();
+  }, [server.id]);
 
   const handleSave = async () => {
     setSaving(true);
