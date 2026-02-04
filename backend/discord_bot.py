@@ -1374,23 +1374,32 @@ async def get_soundcloud_stream_url(track: dict) -> str:
     if not token:
         return None
     
-    # Zkus media transcoding URL (nové API)
-    media = track.get("media", {}).get("transcodings", [])
-    for transcoding in media:
-        if transcoding.get("format", {}).get("protocol") == "progressive":
-            url = transcoding.get("url")
-            if url:
-                async with aiohttp.ClientSession() as session:
-                    headers = {"Authorization": f"Bearer {token}"}
-                    async with session.get(url, headers=headers) as resp:
-                        if resp.status == 200:
-                            data = await resp.json()
-                            return data.get("url")
+    track_id = track.get("id")
+    if not track_id:
+        return None
     
-    # Fallback na starý stream_url
-    stream_url = track.get("stream_url")
-    if stream_url:
-        return f"{stream_url}?oauth_token={token}"
+    async with aiohttp.ClientSession() as session:
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        # Použij /streams endpoint pro získání MP3 URL
+        streams_url = f"{SOUNDCLOUD_API_URL}/tracks/{track_id}/streams"
+        try:
+            async with session.get(streams_url, headers=headers) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    # Preferuj http_mp3_128_url, pak hls varianty
+                    stream_url = (
+                        data.get("http_mp3_128_url") or 
+                        data.get("hls_mp3_128_url") or 
+                        data.get("hls_aac_160_url")
+                    )
+                    if stream_url:
+                        print(f"[SOUNDCLOUD] Got stream URL for track {track_id}", flush=True)
+                        return stream_url
+                else:
+                    print(f"[SOUNDCLOUD] Streams API error: {resp.status}", flush=True)
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Stream error: {e}", flush=True)
     
     return None
 
