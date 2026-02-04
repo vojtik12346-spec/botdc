@@ -1075,6 +1075,33 @@ async def radio_command(interaction: discord.Interaction, stanice: str):
     except Exception as e:
         await interaction.response.send_message(f"❌ Chyba: {e}", ephemeral=True)
 
+@bot.tree.command(name="radiolist", description="Zobraz všechny dostupné rádio stanice")
+async def radiolist_command(interaction: discord.Interaction):
+    """Zobrazí seznam všech rádií podle kategorie"""
+    embed = discord.Embed(
+        title="📻 Dostupné rádio stanice",
+        description="Použij `/radio [stanice]` pro přehrání",
+        color=discord.Color.blue()
+    )
+    
+    categories = {
+        "cz": "🇨🇿 České stanice",
+        "chill": "😴 Chill & Lo-Fi",
+        "electronic": "⚡ Electronic & Dance",
+        "rock": "🎸 Rock & Metal",
+        "hiphop": "🎤 Hip Hop & Rap",
+        "pop": "🎵 Pop & Charts",
+        "other": "🎷 Ostatní"
+    }
+    
+    for cat_key, cat_name in categories.items():
+        stations = [f"`{k}` - {v['name']}" for k, v in RADIO_STREAMS.items() if v.get('category') == cat_key]
+        if stations:
+            embed.add_field(name=cat_name, value="\n".join(stations[:6]), inline=True)
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • Celkem 35+ stanic")
+    await interaction.response.send_message(embed=embed)
+
 @bot.tree.command(name="play", description="Přehraj hudbu (URL streamu nebo rádio)")
 @app_commands.describe(url="Přímý URL na audio stream")
 async def play_command(interaction: discord.Interaction, url: str):
