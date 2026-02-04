@@ -2797,18 +2797,21 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
         
         if session:
             start_time = session["start"]
+            if isinstance(start_time, str):
+                start_time = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             minutes_played = int((datetime.now(timezone.utc) - start_time).total_seconds() / 60)
             
             if minutes_played >= 10:
                 await add_game_xp(guild_id, user_id, after.display_name, minutes_played, session["game"], None)
         
-        # Start new session
+        # Start new session - ulož do paměti i databáze
         active_gaming_sessions[user_id] = {
             "game": after_game,
             "start": datetime.now(timezone.utc),
             "guild_id": guild_id,
             "user_name": after.display_name
         }
+        save_game_session(user_id, guild_id, after_game, after.display_name)
         
         # Check if new game is bonus game
         if after_game in BONUS_GAMES:
