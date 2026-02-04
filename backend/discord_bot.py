@@ -2729,12 +2729,14 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
     if after_game and not before_game:
         print(f"[GAME] ▶️ {after.display_name} začal hrát: {after_game}", flush=True)
         
+        # Ulož do paměti i databáze
         active_gaming_sessions[user_id] = {
             "game": after_game,
             "start": datetime.now(timezone.utc),
             "guild_id": guild_id,
             "user_name": after.display_name
         }
+        save_game_session(user_id, guild_id, after_game, after.display_name)
         
         # Get notification channel - VŽDY do správného kanálu
         channel = bot.get_channel(GAME_NOTIFICATION_CHANNEL)
