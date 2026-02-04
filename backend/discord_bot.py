@@ -1059,7 +1059,7 @@ async def radio_command(interaction: discord.Interaction, stanice: str):
     queue_data["current"] = {"title": radio["name"], "url": radio["url"], "duration": 0, "requester": interaction.user.display_name}
     
     try:
-        source = discord.FFmpegPCMAudio(radio["url"], **FFMPEG_OPTIONS)
+        source = discord.FFmpegPCMAudio(radio["url"], executable=FFMPEG_EXECUTABLE, **FFMPEG_OPTIONS)
         source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
         voice_client.play(source)
         
