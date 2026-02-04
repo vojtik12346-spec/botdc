@@ -1014,17 +1014,21 @@ async def play_next(guild_id: int, voice_client):
         print(f"[MUSIC] Error playing: {e}", flush=True)
         await play_next(guild_id, voice_client)
 
-@bot.tree.command(name="radio", description="Přehraj české rádio")
+@bot.tree.command(name="radio", description="Přehraj rádio stanici")
 @app_commands.describe(stanice="Vyber rádio stanici")
 @app_commands.choices(stanice=[
-    app_commands.Choice(name="🎵 Evropa 2", value="evropa2"),
-    app_commands.Choice(name="🎸 Frekvence 1", value="frekvence1"),
-    app_commands.Choice(name="📻 Rádio Impuls", value="impuls"),
-    app_commands.Choice(name="💋 Kiss Rádio", value="kiss"),
-    app_commands.Choice(name="🎶 Rádio Blaník", value="blanik"),
-    app_commands.Choice(name="🥁 Radio Beat", value="beat"),
-    app_commands.Choice(name="🤠 Country Radio", value="country"),
+    app_commands.Choice(name="🇨🇿 Evropa 2", value="evropa2"),
+    app_commands.Choice(name="🇨🇿 Frekvence 1", value="frekvence1"),
+    app_commands.Choice(name="🇨🇿 Rádio Impuls", value="impuls"),
+    app_commands.Choice(name="🇨🇿 Kiss Rádio", value="kiss"),
+    app_commands.Choice(name="🇨🇿 Rock Zone", value="rockzone"),
     app_commands.Choice(name="😴 Lo-Fi Hip Hop", value="lofi"),
+    app_commands.Choice(name="🌴 Chill Out", value="chillout"),
+    app_commands.Choice(name="💃 Dance", value="dance"),
+    app_commands.Choice(name="🎛️ Techno", value="techno"),
+    app_commands.Choice(name="🎸 Rock", value="rock"),
+    app_commands.Choice(name="🎤 Hip Hop", value="hiphop"),
+    app_commands.Choice(name="📊 Top 100", value="top100"),
 ])
 async def radio_command(interaction: discord.Interaction, stanice: str):
     """Přehraje české rádio"""
