@@ -1300,6 +1300,217 @@ async def nowplaying_command(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed)
 
+# ============== DEEZER MUSIC SEARCH ==============
+
+DEEZER_API_URL = "https://api.deezer.com"
+
+async def search_deezer(query: str, limit: int = 5) -> list:
+    """Vyhledej písničky na Deezer API"""
+    async with aiohttp.ClientSession() as session:
+        url = f"{DEEZER_API_URL}/search"
+        params = {"q": query, "limit": limit}
+        try:
+            async with session.get(url, params=params) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return data.get("data", [])
+        except Exception as e:
+            print(f"[DEEZER] Search error: {e}", flush=True)
+    return []
+
+class DeezerSearchView(discord.ui.View):
+    def __init__(self, tracks: list, requester: discord.Member, guild_id: int):
+        super().__init__(timeout=120)
+        self.tracks = tracks
+        self.requester = requester
+        self.guild_id = guild_id
+        
+        # Přidej tlačítka pro každý track (max 5)
+        for i, track in enumerate(tracks[:5]):
+            button = discord.ui.Button(
+                label=f"{i+1}",
+                style=discord.ButtonStyle.primary,
+                custom_id=f"deezer_play_{i}"
+            )
+            button.callback = self.create_callback(i)
+            self.add_item(button)
+    
+    def create_callback(self, index: int):
+        async def callback(interaction: discord.Interaction):
+            await self.play_track(interaction, index)
+        return callback
+    
+    async def play_track(self, interaction: discord.Interaction, index: int):
+        track = self.tracks[index]
+        
+        # Zkontroluj voice
+        if not interaction.user.voice:
+            await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+            return
+        
+        voice_channel = interaction.user.voice.channel
+        voice_client = interaction.guild.voice_client
+        
+        # Připojit se k voice
+        if not voice_client:
+            voice_client = await voice_channel.connect()
+        elif voice_client.channel != voice_channel:
+            await voice_client.move_to(voice_channel)
+        
+        # Zastavit aktuální přehrávání
+        if voice_client.is_playing():
+            voice_client.stop()
+        
+        queue_data = get_music_queue(interaction.guild_id)
+        
+        preview_url = track.get("preview")
+        if not preview_url:
+            await interaction.response.send_message("❌ Tato písnička nemá dostupný preview!", ephemeral=True)
+            return
+        
+        song = {
+            "title": f"{track['artist']['name']} - {track['title']}",
+            "url": preview_url,
+            "duration": 30,
+            "requester": interaction.user.display_name,
+            "thumbnail": track.get("album", {}).get("cover_medium")
+        }
+        queue_data["current"] = song
+        
+        try:
+            source = discord.FFmpegPCMAudio(preview_url, **FFMPEG_OPTIONS)
+            source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+            voice_client.play(source)
+            
+            embed = discord.Embed(
+                title="🎵 Nyní hraje (30s preview)",
+                description=f"**{track['title']}**",
+                color=discord.Color.green()
+            )
+            embed.add_field(name="🎤 Interpret", value=track['artist']['name'], inline=True)
+            embed.add_field(name="💿 Album", value=track.get('album', {}).get('title', 'N/A'), inline=True)
+            embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
+            
+            if track.get("album", {}).get("cover_medium"):
+                embed.set_thumbnail(url=track["album"]["cover_medium"])
+            
+            embed.set_footer(text="⚔️ Valhalla Bot • 30s preview z Deezer")
+            
+            # Disable all buttons
+            for child in self.children:
+                child.disabled = True
+            
+            await interaction.response.edit_message(embed=interaction.message.embeds[0], view=self)
+            await interaction.followup.send(embed=embed)
+            
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Chyba přehrávání: {e}", ephemeral=True)
+
+@bot.tree.command(name="search", description="Vyhledej a přehraj písničku (30s preview)")
+@app_commands.describe(query="Název písničky nebo interpreta")
+async def search_command(interaction: discord.Interaction, query: str):
+    """Vyhledá písničky na Deezer a nabídne výběr"""
+    await interaction.response.defer()
+    
+    tracks = await search_deezer(query, limit=5)
+    
+    if not tracks:
+        await interaction.followup.send(f"❌ Nic nenalezeno pro: **{query}**", ephemeral=True)
+        return
+    
+    embed = discord.Embed(
+        title=f"🔍 Výsledky pro: {query}",
+        description="Klikni na číslo pro přehrání 30s preview:",
+        color=discord.Color.blue()
+    )
+    
+    for i, track in enumerate(tracks[:5]):
+        duration_str = f"{track['duration'] // 60}:{track['duration'] % 60:02d}"
+        embed.add_field(
+            name=f"{i+1}. {track['title']}",
+            value=f"🎤 {track['artist']['name']} • ⏱️ {duration_str}",
+            inline=False
+        )
+    
+    if tracks[0].get("album", {}).get("cover_medium"):
+        embed.set_thumbnail(url=tracks[0]["album"]["cover_medium"])
+    
+    embed.set_footer(text="⚔️ Valhalla Bot • Powered by Deezer")
+    
+    view = DeezerSearchView(tracks, interaction.user, interaction.guild_id)
+    await interaction.followup.send(embed=embed, view=view)
+
+@bot.tree.command(name="playtrack", description="Rychle přehraj první výsledek vyhledávání")
+@app_commands.describe(query="Název písničky nebo interpreta")
+async def playtrack_command(interaction: discord.Interaction, query: str):
+    """Přehraje první výsledek vyhledávání"""
+    if not interaction.user.voice:
+        await interaction.response.send_message("❌ Musíš být ve voice kanálu!", ephemeral=True)
+        return
+    
+    await interaction.response.defer()
+    
+    tracks = await search_deezer(query, limit=1)
+    
+    if not tracks:
+        await interaction.followup.send(f"❌ Nic nenalezeno pro: **{query}**", ephemeral=True)
+        return
+    
+    track = tracks[0]
+    preview_url = track.get("preview")
+    
+    if not preview_url:
+        await interaction.followup.send("❌ Tato písnička nemá dostupný preview!", ephemeral=True)
+        return
+    
+    voice_channel = interaction.user.voice.channel
+    voice_client = interaction.guild.voice_client
+    
+    # Připojit se k voice
+    if not voice_client:
+        voice_client = await voice_channel.connect()
+    elif voice_client.channel != voice_channel:
+        await voice_client.move_to(voice_channel)
+    
+    # Zastavit aktuální přehrávání
+    if voice_client.is_playing():
+        voice_client.stop()
+    
+    queue_data = get_music_queue(interaction.guild_id)
+    
+    song = {
+        "title": f"{track['artist']['name']} - {track['title']}",
+        "url": preview_url,
+        "duration": 30,
+        "requester": interaction.user.display_name,
+        "thumbnail": track.get("album", {}).get("cover_medium")
+    }
+    queue_data["current"] = song
+    
+    try:
+        source = discord.FFmpegPCMAudio(preview_url, **FFMPEG_OPTIONS)
+        source = discord.PCMVolumeTransformer(source, volume=queue_data["volume"])
+        voice_client.play(source)
+        
+        embed = discord.Embed(
+            title="🎵 Nyní hraje (30s preview)",
+            description=f"**{track['title']}**",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🎤 Interpret", value=track['artist']['name'], inline=True)
+        embed.add_field(name="💿 Album", value=track.get('album', {}).get('title', 'N/A'), inline=True)
+        embed.add_field(name="🎧 Požádal", value=interaction.user.display_name, inline=True)
+        
+        if track.get("album", {}).get("cover_medium"):
+            embed.set_thumbnail(url=track["album"]["cover_medium"])
+        
+        embed.set_footer(text="⚔️ Valhalla Bot • 30s preview z Deezer")
+        
+        await interaction.followup.send(embed=embed)
+        
+    except Exception as e:
+        await interaction.followup.send(f"❌ Chyba přehrávání: {e}")
+
 # ============== GIVEAWAY SYSTEM ==============
 
 active_giveaways = {}
