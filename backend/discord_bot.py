@@ -381,11 +381,15 @@ def get_daily_game_xp(guild_id: int, user_id: int) -> int:
         if isinstance(last_reset, str):
             last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
         
+        # Ensure timezone aware
+        if last_reset.tzinfo is None:
+            last_reset = last_reset.replace(tzinfo=timezone.utc)
+        
         # Reset if new day
         if (datetime.now(timezone.utc) - last_reset).days >= 1:
             users_collection.update_one(
                 {"guild_id": guild_id, "user_id": user_id},
-                {"$set": {"daily_game_xp": 0, "last_game_xp_reset": datetime.now(timezone.utc)}}
+                {"$set": {"daily_game_xp": 0, "last_game_xp_reset": datetime.now(timezone.utc).isoformat()}}
             )
             return 0
     
