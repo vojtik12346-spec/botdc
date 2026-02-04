@@ -1303,23 +1303,61 @@ async def nowplaying_command(interaction: discord.Interaction):
 # ============== SOUNDCLOUD MUSIC SEARCH ==============
 
 SOUNDCLOUD_CLIENT_ID = os.environ.get("SOUNDCLOUD_CLIENT_ID", "")
+SOUNDCLOUD_CLIENT_SECRET = os.environ.get("SOUNDCLOUD_CLIENT_SECRET", "")
 SOUNDCLOUD_API_URL = "https://api.soundcloud.com"
+
+# Cache pro SoundCloud access token
+soundcloud_token_cache = {"token": None, "expires": None}
+
+async def get_soundcloud_token() -> str:
+    """Získej OAuth2 access token pro SoundCloud"""
+    global soundcloud_token_cache
+    
+    # Zkontroluj cache
+    if soundcloud_token_cache["token"] and soundcloud_token_cache["expires"]:
+        if datetime.now(timezone.utc) < soundcloud_token_cache["expires"]:
+            return soundcloud_token_cache["token"]
+    
+    if not SOUNDCLOUD_CLIENT_ID or not SOUNDCLOUD_CLIENT_SECRET:
+        print("[SOUNDCLOUD] Missing credentials!", flush=True)
+        return None
+    
+    async with aiohttp.ClientSession() as session:
+        url = f"{SOUNDCLOUD_API_URL}/oauth2/token"
+        data = {
+            "client_id": SOUNDCLOUD_CLIENT_ID,
+            "client_secret": SOUNDCLOUD_CLIENT_SECRET,
+            "grant_type": "client_credentials"
+        }
+        try:
+            async with session.post(url, data=data) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    token = result.get("access_token")
+                    # Token vyprší za 1 hodinu, refreshneme za 50 minut
+                    soundcloud_token_cache["token"] = token
+                    soundcloud_token_cache["expires"] = datetime.now(timezone.utc) + timedelta(minutes=50)
+                    print("[SOUNDCLOUD] Got new access token", flush=True)
+                    return token
+                else:
+                    print(f"[SOUNDCLOUD] Token error: {resp.status}", flush=True)
+        except Exception as e:
+            print(f"[SOUNDCLOUD] Token error: {e}", flush=True)
+    return None
 
 async def search_soundcloud(query: str, limit: int = 5) -> list:
     """Vyhledej písničky na SoundCloud API"""
-    if not SOUNDCLOUD_CLIENT_ID:
-        print("[SOUNDCLOUD] Missing client_id!", flush=True)
+    token = await get_soundcloud_token()
+    if not token:
+        print("[SOUNDCLOUD] No token available!", flush=True)
         return []
     
     async with aiohttp.ClientSession() as session:
         url = f"{SOUNDCLOUD_API_URL}/tracks"
-        params = {
-            "q": query,
-            "limit": limit,
-            "client_id": SOUNDCLOUD_CLIENT_ID
-        }
+        params = {"q": query, "limit": limit}
+        headers = {"Authorization": f"Bearer {token}"}
         try:
-            async with session.get(url, params=params) as resp:
+            async with session.get(url, params=params, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     print(f"[SOUNDCLOUD] Found {len(data)} tracks for '{query}'", flush=True)
@@ -1330,22 +1368,30 @@ async def search_soundcloud(query: str, limit: int = 5) -> list:
             print(f"[SOUNDCLOUD] Search error: {e}", flush=True)
     return []
 
-async def get_soundcloud_stream_url(track_id: int) -> str:
+async def get_soundcloud_stream_url(track: dict) -> str:
     """Získej stream URL pro SoundCloud track"""
-    if not SOUNDCLOUD_CLIENT_ID:
+    token = await get_soundcloud_token()
+    if not token:
         return None
     
-    async with aiohttp.ClientSession() as session:
-        url = f"{SOUNDCLOUD_API_URL}/tracks/{track_id}/stream"
-        params = {"client_id": SOUNDCLOUD_CLIENT_ID}
-        try:
-            async with session.get(url, params=params, allow_redirects=False) as resp:
-                if resp.status in [301, 302]:
-                    return resp.headers.get("Location")
-                elif resp.status == 200:
-                    return url + f"?client_id={SOUNDCLOUD_CLIENT_ID}"
-        except Exception as e:
-            print(f"[SOUNDCLOUD] Stream error: {e}", flush=True)
+    # Zkus media transcoding URL (nové API)
+    media = track.get("media", {}).get("transcodings", [])
+    for transcoding in media:
+        if transcoding.get("format", {}).get("protocol") == "progressive":
+            url = transcoding.get("url")
+            if url:
+                async with aiohttp.ClientSession() as session:
+                    headers = {"Authorization": f"Bearer {token}"}
+                    async with session.get(url, headers=headers) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            return data.get("url")
+    
+    # Fallback na starý stream_url
+    stream_url = track.get("stream_url")
+    if stream_url:
+        return f"{stream_url}?oauth_token={token}"
+    
     return None
 
 class SoundCloudSearchView(discord.ui.View):
@@ -1396,11 +1442,7 @@ class SoundCloudSearchView(discord.ui.View):
         queue_data = get_music_queue(interaction.guild_id)
         
         # Získej stream URL
-        stream_url = track.get("stream_url")
-        if stream_url:
-            stream_url = f"{stream_url}?client_id={SOUNDCLOUD_CLIENT_ID}"
-        else:
-            stream_url = await get_soundcloud_stream_url(track["id"])
+        stream_url = await get_soundcloud_stream_url(track)
         
         if not stream_url:
             await interaction.followup.send("❌ Tato písnička není dostupná pro streaming!", ephemeral=True)
@@ -1504,11 +1546,7 @@ async def playtrack_command(interaction: discord.Interaction, query: str):
     track = tracks[0]
     
     # Získej stream URL
-    stream_url = track.get("stream_url")
-    if stream_url:
-        stream_url = f"{stream_url}?client_id={SOUNDCLOUD_CLIENT_ID}"
-    else:
-        stream_url = await get_soundcloud_stream_url(track["id"])
+    stream_url = await get_soundcloud_stream_url(track)
     
     if not stream_url:
         await interaction.followup.send("❌ Tato písnička není dostupná pro streaming!", ephemeral=True)
