@@ -416,7 +416,7 @@ async def add_game_xp(guild_id: int, user_id: int, user_name: str, minutes: int,
     # Update daily game XP and game-specific time
     update_query = {
         "$inc": {"daily_game_xp": xp_earned, "total_game_time": minutes},
-        "$set": {"last_game_xp_reset": datetime.now(timezone.utc)}
+        "$set": {"last_game_xp_reset": datetime.now(timezone.utc).isoformat()}
     }
     
     if game_name:
