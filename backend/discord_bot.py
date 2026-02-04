@@ -1390,14 +1390,24 @@ async def get_soundcloud_stream_url(track: dict) -> str:
                 if resp.status == 200:
                     data = await resp.json()
                     # Preferuj http_mp3_128_url, pak hls varianty
-                    stream_url = (
+                    stream_api_url = (
                         data.get("http_mp3_128_url") or 
                         data.get("hls_mp3_128_url") or 
                         data.get("hls_aac_160_url")
                     )
-                    if stream_url:
-                        print(f"[SOUNDCLOUD] Got stream URL for track {track_id}", flush=True)
-                        return stream_url
+                    if stream_api_url:
+                        # Musíme získat skutečnou CDN URL pomocí Authorization header
+                        try:
+                            async with session.get(stream_api_url, headers=headers, allow_redirects=True) as stream_resp:
+                                if stream_resp.status == 200:
+                                    # Finální URL po redirectu je skutečná stream URL
+                                    final_url = str(stream_resp.url)
+                                    print(f"[SOUNDCLOUD] Got CDN stream URL for track {track_id}", flush=True)
+                                    return final_url
+                                else:
+                                    print(f"[SOUNDCLOUD] Stream redirect error: {stream_resp.status}", flush=True)
+                        except Exception as e:
+                            print(f"[SOUNDCLOUD] Stream redirect error: {e}", flush=True)
                 else:
                     print(f"[SOUNDCLOUD] Streams API error: {resp.status}", flush=True)
         except Exception as e:
