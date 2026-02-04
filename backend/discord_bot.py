@@ -2366,6 +2366,11 @@ async def slash_help(interaction: discord.Interaction):
         value="`/search [název]` - vyhledej na SoundCloud\n`/playtrack [název]` - rychlé přehrání\n`/radio [stanice]` - přehraj rádio\n`/radiolist` - seznam stanic",
         inline=False
     )
+    embed.add_field(
+        name="🎭 Reaction Roles (Admin)",
+        value="`/reactionrole` - vytvoř reakci pro získání role\n`/multireactionrole` - více rolí v jedné zprávě\n`/addrole` - přidej roli ke zprávě\n`/listreactionroles` - seznam všech\n`/deletereactionrole` - smaž reakci",
+        inline=False
+    )
     await interaction.response.send_message(embed=embed)
 
 @bot.command(name="pomoc")
