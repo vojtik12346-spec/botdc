@@ -9,10 +9,28 @@ from discord import app_commands
 import asyncio
 import re
 import os
+import subprocess
+import shutil
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import uuid
 import math
+
+# Auto-install FFmpeg if not present
+def ensure_ffmpeg():
+    """Ensure FFmpeg is installed"""
+    if not shutil.which('ffmpeg'):
+        print("⚠️ FFmpeg not found, installing...", flush=True)
+        try:
+            subprocess.run(['apt-get', 'update'], check=True, capture_output=True)
+            subprocess.run(['apt-get', 'install', '-y', 'ffmpeg'], check=True, capture_output=True)
+            print("✅ FFmpeg installed successfully!", flush=True)
+        except Exception as e:
+            print(f"❌ Failed to install FFmpeg: {e}", flush=True)
+    else:
+        print("✅ FFmpeg is available", flush=True)
+
+ensure_ffmpeg()
 
 load_dotenv()
 
